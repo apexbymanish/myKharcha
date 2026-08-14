@@ -22,6 +22,48 @@ public actor ExpenseStore {
         return snapshot(category)
     }
 
+    public static let defaultCategories: [(name: String, symbol: String, colorHex: String)] = [
+        ("Food", "fork.knife", "#E07A5F"),
+        ("Transport", "bus", "#3D405B"),
+        ("Rent", "house", "#8E7DBE"),
+        ("Subscriptions", "arrow.triangle.2.circlepath", "#5F797B"),
+        ("Shopping", "bag", "#F2CC8F"),
+        ("Health", "cross.case", "#81B29A"),
+        ("Entertainment", "gamecontroller", "#E5989B"),
+        ("Other", "tag", "#9A9A9A")
+    ]
+
+    public func seedDefaultCategoriesIfNeeded() throws {
+        guard try modelContext.fetch(FetchDescriptor<Category>()).isEmpty else { return }
+        for c in Self.defaultCategories {
+            modelContext.insert(Category(name: c.name, symbol: c.symbol, colorHex: c.colorHex, monthlyBudget: nil))
+        }
+        try modelContext.save()
+    }
+
+    public func categories() throws -> [CategorySnapshot] {
+        try modelContext.fetch(FetchDescriptor<Category>())
+            .sorted { $0.name < $1.name }
+            .map(snapshot)
+    }
+
+    public func setBudget(categoryID: UUID, amount: Decimal?) throws {
+        guard let category = try fetchCategory(id: categoryID) else { throw StoreError.notFound }
+        category.monthlyBudget = amount
+        category.updatedAt = .now
+        try modelContext.save()
+    }
+
+    public func budgetStatuses(now: Date, calendar: Calendar) throws -> [BudgetStatus] {
+        try modelContext.fetch(FetchDescriptor<Category>())
+            .compactMap { category in
+                guard let budget = category.monthlyBudget else { return nil }
+                let spent = try? self.spent(in: .month, categoryID: category.id, now: now, calendar: calendar)
+                return BudgetStatus(categoryID: category.id, categoryName: category.name, spent: spent ?? 0, budget: budget)
+            }
+            .sorted { $0.categoryName < $1.categoryName }
+    }
+
     // MARK: Transactions
 
     @discardableResult
