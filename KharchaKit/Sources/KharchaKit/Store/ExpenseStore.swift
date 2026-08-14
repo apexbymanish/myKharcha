@@ -98,6 +98,12 @@ public actor ExpenseStore {
         }
     }
 
+    public func txnRows() throws -> [TxnRow] {
+        try modelContext.fetch(FetchDescriptor<Txn>())
+            .sorted { $0.date < $1.date }
+            .map { TxnRow(date: $0.date, kind: $0.kind, amount: $0.amount, categoryName: $0.category?.name ?? "", note: $0.note) }
+    }
+
     // MARK: Internals
 
     private func total(kind: TxnKind, period: Period, categoryID: UUID?, now: Date, calendar: Calendar) throws -> Decimal {
