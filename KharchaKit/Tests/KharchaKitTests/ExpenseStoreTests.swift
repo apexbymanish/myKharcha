@@ -48,3 +48,10 @@ import Foundation
         _ = try await store.addTxn(amount: -5, kind: .expense, categoryID: nil, note: nil, date: d(2026, 8, 14), source: .siri)
     }
 }
+
+@Test func unknownCategoryIDThrowsInsteadOfSilentlyNilling() async throws {
+    let store = try makeStore()
+    await #expect(throws: StoreError.notFound) {
+        _ = try await store.addTxn(amount: 1_000, kind: .expense, categoryID: UUID(), note: nil, date: d(2026, 8, 14), source: .manual)
+    }
+}

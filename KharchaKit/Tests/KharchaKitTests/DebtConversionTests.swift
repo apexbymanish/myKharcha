@@ -27,7 +27,30 @@ import Foundation
     let sita = try await store.addFriend(name: "Sita", phone: nil)
     let debt = try await store.addDebt(friendID: sita.id, amount: 20_000, direction: .iTook, date: d(2026, 8, 1), note: nil, dueDate: nil)
 
-    await #expect(throws: StoreError.invalidAmount) {
+    await #expect(throws: StoreError.wrongDebtDirection) {
+        _ = try await store.convertDebtToExpense(debtID: debt.id, date: d(2026, 8, 14))
+    }
+}
+
+@Test func convertOnUnseededStoreCreatesOtherCategory() async throws {
+    let store = try makeStore() // deliberately NOT seeded
+    let ram = try await store.addFriend(name: "Ram", phone: nil)
+    let debt = try await store.addDebt(friendID: ram.id, amount: 15_000, direction: .iGave, date: d(2026, 8, 1), note: nil, dueDate: nil)
+
+    _ = try await store.convertDebtToExpense(debtID: debt.id, date: d(2026, 8, 14))
+
+    let rows = try await store.txnRows()
+    #expect(rows.first?.categoryName == "Other")
+}
+
+@Test func convertAlreadySettledDebtIsRejected() async throws {
+    let store = try makeStore()
+    try await store.seedDefaultCategoriesIfNeeded()
+    let ram = try await store.addFriend(name: "Ram", phone: nil)
+    let debt = try await store.addDebt(friendID: ram.id, amount: 10_000, direction: .iGave, date: d(2026, 8, 1), note: nil, dueDate: nil)
+    _ = try await store.settleDebt(debtID: debt.id, amount: 10_000)
+
+    await #expect(throws: StoreError.debtAlreadySettled) {
         _ = try await store.convertDebtToExpense(debtID: debt.id, date: d(2026, 8, 14))
     }
 }

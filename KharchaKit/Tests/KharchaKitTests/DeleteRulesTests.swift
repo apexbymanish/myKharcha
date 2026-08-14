@@ -21,7 +21,7 @@ import Foundation
     let store = try makeStore()
     try await store.seedDefaultCategoriesIfNeeded()
     let other = try await store.categories().first { $0.name == "Other" }!
-    await #expect(throws: StoreError.invalidAmount) {
+    await #expect(throws: StoreError.cannotDeleteFallbackCategory) {
         try await store.deleteCategory(categoryID: other.id)
     }
 }

@@ -77,7 +77,11 @@ public actor ExpenseStore {
     @discardableResult
     public func addTxn(amount: Decimal, kind: TxnKind, categoryID: UUID?, note: String?, date: Date, source: TxnSource) throws -> UUID {
         guard amount > 0 else { throw StoreError.invalidAmount }
-        let category = try categoryID.flatMap { try fetchCategory(id: $0) }
+        var category: Category?
+        if let categoryID {
+            guard let found = try fetchCategory(id: categoryID) else { throw StoreError.notFound }
+            category = found
+        }
         let txn = Txn(amount: amount, kind: kind, category: category, note: note, date: date, source: source)
         modelContext.insert(txn)
         try modelContext.save()
@@ -193,10 +197,11 @@ public actor ExpenseStore {
     /// (category "Other") and the debt is closed.
     @discardableResult
     public func convertDebtToExpense(debtID: UUID, date: Date) throws -> UUID {
-        guard let debt = try fetchDebt(id: debtID), !debt.settled else { throw StoreError.notFound }
-        guard debt.direction == .iGave else { throw StoreError.invalidAmount }
+        guard let debt = try fetchDebt(id: debtID) else { throw StoreError.notFound }
+        guard !debt.settled else { throw StoreError.debtAlreadySettled }
+        guard debt.direction == .iGave else { throw StoreError.wrongDebtDirection }
 
-        let other = try modelContext.fetch(FetchDescriptor<Category>()).first { $0.name == "Other" }
+        let other = try ensureOtherCategory()
         let txn = Txn(
             amount: debt.remaining,
             kind: .expense,
@@ -238,7 +243,7 @@ public actor ExpenseStore {
 
     public func deleteCategory(categoryID: UUID) throws {
         guard let category = try fetchCategory(id: categoryID) else { throw StoreError.notFound }
-        guard category.name != "Other" else { throw StoreError.invalidAmount }
+        guard category.name != "Other" else { throw StoreError.cannotDeleteFallbackCategory }
 
         let other = try ensureOtherCategory()
         for txn in try modelContext.fetch(FetchDescriptor<Txn>()) where txn.category?.id == categoryID {
