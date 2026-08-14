@@ -33,7 +33,9 @@ private func makePublicStore() throws -> ExpenseStore {
         direction: .iGave,
         remaining: 10_000,
         settled: false,
-        dueDate: nil
+        dueDate: nil,
+        date: publicTestDate(2026, 8, 1),
+        note: "lunch"
     )
     #expect(debt.remaining == 10_000)
 
@@ -42,14 +44,15 @@ private func makePublicStore() throws -> ExpenseStore {
         name: "Food",
         symbol: "fork.knife",
         colorHex: "#E07A5F",
-        monthlyBudget: nil
+        monthlyBudget: nil,
+        isFallback: false
     )
     #expect(category.name == "Food")
 
     let budget = BudgetStatus(categoryID: category.id, categoryName: category.name, spent: 1_000, budget: 2_000)
     #expect(!budget.isOver)
 
-    let row = TxnRow(date: .now, kind: .expense, amount: 500, categoryName: "Food", note: nil)
+    let row = TxnRow(id: UUID(), date: .now, kind: .expense, amount: 500, categoryName: "Food", note: nil, source: .manual)
     #expect(row.amount == 500)
 }
 

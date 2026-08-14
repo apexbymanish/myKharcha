@@ -19,6 +19,8 @@ public struct DebtSnapshot: Sendable, Equatable {
     public let remaining: Decimal
     public let settled: Bool
     public let dueDate: Date?
+    public let date: Date
+    public let note: String?
 
     public init(
         id: UUID,
@@ -28,7 +30,9 @@ public struct DebtSnapshot: Sendable, Equatable {
         direction: DebtDirection,
         remaining: Decimal,
         settled: Bool,
-        dueDate: Date?
+        dueDate: Date?,
+        date: Date,
+        note: String?
     ) {
         self.id = id
         self.friendID = friendID
@@ -38,5 +42,7 @@ public struct DebtSnapshot: Sendable, Equatable {
         self.remaining = remaining
         self.settled = settled
         self.dueDate = dueDate
+        self.date = date
+        self.note = note
     }
 }

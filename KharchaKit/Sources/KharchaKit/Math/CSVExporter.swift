@@ -1,18 +1,22 @@
 import Foundation
 
 public struct TxnRow: Sendable, Equatable {
+    public let id: UUID
     public let date: Date
     public let kind: TxnKind
     public let amount: Decimal
     public let categoryName: String
     public let note: String?
+    public let source: TxnSource
 
-    public init(date: Date, kind: TxnKind, amount: Decimal, categoryName: String, note: String?) {
+    public init(id: UUID, date: Date, kind: TxnKind, amount: Decimal, categoryName: String, note: String?, source: TxnSource) {
+        self.id = id
         self.date = date
         self.kind = kind
         self.amount = amount
         self.categoryName = categoryName
         self.note = note
+        self.source = source
     }
 }
 

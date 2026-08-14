@@ -4,8 +4,8 @@ import Foundation
 
 @Test func exportProducesHeaderAndEscapedRows() {
     let rows = [
-        TxnRow(date: d(2026, 8, 14), kind: .expense, amount: 12_000, categoryName: "Food", note: "lunch, with Ram"),
-        TxnRow(date: d(2026, 8, 15), kind: .income, amount: 3_000_000, categoryName: "", note: nil)
+        TxnRow(id: UUID(), date: d(2026, 8, 14), kind: .expense, amount: 12_000, categoryName: "Food", note: "lunch, with Ram", source: .manual),
+        TxnRow(id: UUID(), date: d(2026, 8, 15), kind: .income, amount: 3_000_000, categoryName: "", note: nil, source: .manual)
     ]
     let csv = CSVExporter.export(rows, timeZone: testCal.timeZone)
     let lines = csv.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
@@ -15,7 +15,7 @@ import Foundation
 }
 
 @Test func quotesInsideFieldsAreDoubled() {
-    let rows = [TxnRow(date: d(2026, 8, 14), kind: .expense, amount: 1, categoryName: "Food", note: #"say "hi""#)]
+    let rows = [TxnRow(id: UUID(), date: d(2026, 8, 14), kind: .expense, amount: 1, categoryName: "Food", note: #"say "hi""#, source: .manual)]
     let csv = CSVExporter.export(rows, timeZone: testCal.timeZone)
     #expect(csv.contains(#""say ""hi""""#))
 }

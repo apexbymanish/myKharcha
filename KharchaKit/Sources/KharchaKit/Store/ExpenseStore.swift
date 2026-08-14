@@ -7,13 +7,15 @@ public struct CategorySnapshot: Sendable, Equatable {
     public let symbol: String
     public let colorHex: String
     public let monthlyBudget: Decimal?
+    public let isFallback: Bool
 
-    public init(id: UUID, name: String, symbol: String, colorHex: String, monthlyBudget: Decimal?) {
+    public init(id: UUID, name: String, symbol: String, colorHex: String, monthlyBudget: Decimal?, isFallback: Bool = false) {
         self.id = id
         self.name = name
         self.symbol = symbol
         self.colorHex = colorHex
         self.monthlyBudget = monthlyBudget
+        self.isFallback = isFallback
     }
 }
 
@@ -44,7 +46,7 @@ public actor ExpenseStore {
     public func seedDefaultCategoriesIfNeeded() throws {
         guard try modelContext.fetch(FetchDescriptor<Category>()).isEmpty else { return }
         for c in Self.defaultCategories {
-            modelContext.insert(Category(name: c.name, symbol: c.symbol, colorHex: c.colorHex, monthlyBudget: nil))
+            modelContext.insert(Category(name: c.name, symbol: c.symbol, colorHex: c.colorHex, monthlyBudget: nil, isFallback: c.name == "Other"))
         }
         try modelContext.save()
     }
@@ -124,7 +126,17 @@ public actor ExpenseStore {
     public func txnRows() throws -> [TxnRow] {
         try modelContext.fetch(FetchDescriptor<Txn>())
             .sorted { $0.date < $1.date }
-            .map { TxnRow(date: $0.date, kind: $0.kind, amount: $0.amount, categoryName: $0.category?.name ?? "", note: $0.note) }
+            .map {
+                TxnRow(
+                    id: $0.id,
+                    date: $0.date,
+                    kind: $0.kind,
+                    amount: $0.amount,
+                    categoryName: $0.category?.name ?? "",
+                    note: $0.note,
+                    source: $0.source
+                )
+            }
     }
 
     // MARK: Internals
@@ -145,7 +157,7 @@ public actor ExpenseStore {
     }
 
     private func snapshot(_ c: Category) -> CategorySnapshot {
-        CategorySnapshot(id: c.id, name: c.name, symbol: c.symbol, colorHex: c.colorHex, monthlyBudget: c.monthlyBudget)
+        CategorySnapshot(id: c.id, name: c.name, symbol: c.symbol, colorHex: c.colorHex, monthlyBudget: c.monthlyBudget, isFallback: c.isFallback)
     }
 
     // MARK: Friends & Debts
@@ -246,7 +258,9 @@ public actor ExpenseStore {
             direction: debt.direction,
             remaining: debt.remaining,
             settled: debt.settled,
-            dueDate: debt.dueDate
+            dueDate: debt.dueDate,
+            date: debt.date,
+            note: debt.note
         )
     }
 
@@ -254,7 +268,7 @@ public actor ExpenseStore {
 
     public func deleteCategory(categoryID: UUID) throws {
         guard let category = try fetchCategory(id: categoryID) else { throw StoreError.notFound }
-        guard category.name != "Other" else { throw StoreError.cannotDeleteFallbackCategory }
+        guard !category.isFallback else { throw StoreError.cannotDeleteFallbackCategory }
 
         let other = try ensureOtherCategory()
         for txn in try modelContext.fetch(FetchDescriptor<Txn>()) where txn.category?.id == categoryID {
@@ -287,10 +301,16 @@ public actor ExpenseStore {
     }
 
     private func ensureOtherCategory() throws -> Category {
-        if let other = try modelContext.fetch(FetchDescriptor<Category>()).first(where: { $0.name == "Other" }) {
+        let categories = try modelContext.fetch(FetchDescriptor<Category>())
+        if let other = categories.first(where: { $0.isFallback }) {
             return other
         }
-        let other = Category(name: "Other", symbol: "tag", colorHex: "#9A9A9A", monthlyBudget: nil)
+        // Safety net: an older store might have an "Other" category that predates
+        // the isFallback flag. Adopt it by name before creating a duplicate.
+        if let other = categories.first(where: { $0.name == "Other" }) {
+            return other
+        }
+        let other = Category(name: "Other", symbol: "tag", colorHex: "#9A9A9A", monthlyBudget: nil, isFallback: true)
         modelContext.insert(other)
         return other
     }
