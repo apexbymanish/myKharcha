@@ -84,6 +84,20 @@ public actor ExpenseStore {
         try total(kind: .income, period: period, categoryID: nil, now: now, calendar: calendar)
     }
 
+    /// True when an identical Siri-logged expense (same amount + category)
+    /// exists within the last 120 seconds — used by LogExpenseIntent to
+    /// re-prompt instead of double-logging.
+    public func isDuplicate(amount: Decimal, categoryID: UUID?, now: Date) throws -> Bool {
+        let cutoff = now.addingTimeInterval(-120)
+        return try modelContext.fetch(FetchDescriptor<Txn>()).contains {
+            $0.source == .siri
+                && $0.kind == .expense
+                && $0.amount == amount
+                && $0.category?.id == categoryID
+                && $0.date > cutoff && $0.date <= now
+        }
+    }
+
     // MARK: Internals
 
     private func total(kind: TxnKind, period: Period, categoryID: UUID?, now: Date, calendar: Calendar) throws -> Decimal {
