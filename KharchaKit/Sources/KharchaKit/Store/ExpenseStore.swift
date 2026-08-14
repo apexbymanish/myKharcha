@@ -219,4 +219,49 @@ public actor ExpenseStore {
             dueDate: debt.dueDate
         )
     }
+
+    // MARK: Deletion rules
+
+    public func deleteCategory(categoryID: UUID) throws {
+        guard let category = try fetchCategory(id: categoryID) else { throw StoreError.notFound }
+        guard category.name != "Other" else { throw StoreError.invalidAmount }
+
+        let other = try ensureOtherCategory()
+        for txn in try modelContext.fetch(FetchDescriptor<Txn>()) where txn.category?.id == categoryID {
+            txn.category = other
+            txn.updatedAt = .now
+        }
+        for rule in try modelContext.fetch(FetchDescriptor<RecurringRule>()) where rule.category?.id == categoryID {
+            rule.category = other
+            rule.updatedAt = .now
+        }
+        modelContext.delete(category)
+        try modelContext.save()
+    }
+
+    public func deleteFriend(friendID: UUID) throws {
+        guard let friend = try fetchFriend(id: friendID) else { throw StoreError.notFound }
+        let debts = try modelContext.fetch(FetchDescriptor<Debt>()).filter { $0.friend?.id == friendID }
+        guard debts.allSatisfy(\.settled) else { throw StoreError.friendHasOpenDebts }
+        for debt in debts { modelContext.delete(debt) }
+        modelContext.delete(friend)
+        try modelContext.save()
+    }
+
+    public func deleteTxn(txnID: UUID) throws {
+        guard let txn = try modelContext.fetch(FetchDescriptor<Txn>()).first(where: { $0.id == txnID }) else {
+            throw StoreError.notFound
+        }
+        modelContext.delete(txn)
+        try modelContext.save()
+    }
+
+    private func ensureOtherCategory() throws -> Category {
+        if let other = try modelContext.fetch(FetchDescriptor<Category>()).first(where: { $0.name == "Other" }) {
+            return other
+        }
+        let other = Category(name: "Other", symbol: "tag", colorHex: "#9A9A9A", monthlyBudget: nil)
+        modelContext.insert(other)
+        return other
+    }
 }
