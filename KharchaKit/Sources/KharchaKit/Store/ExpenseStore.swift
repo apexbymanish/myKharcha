@@ -7,6 +7,14 @@ public struct CategorySnapshot: Sendable, Equatable {
     public let symbol: String
     public let colorHex: String
     public let monthlyBudget: Decimal?
+
+    public init(id: UUID, name: String, symbol: String, colorHex: String, monthlyBudget: Decimal?) {
+        self.id = id
+        self.name = name
+        self.symbol = symbol
+        self.colorHex = colorHex
+        self.monthlyBudget = monthlyBudget
+    }
 }
 
 @ModelActor
