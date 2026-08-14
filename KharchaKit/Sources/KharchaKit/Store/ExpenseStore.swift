@@ -161,6 +161,30 @@ public actor ExpenseStore {
             }
     }
 
+    /// Give up on an unpaid debt: the remaining amount becomes a real expense
+    /// (category "Other") and the debt is closed.
+    @discardableResult
+    public func convertDebtToExpense(debtID: UUID, date: Date) throws -> UUID {
+        guard let debt = try fetchDebt(id: debtID), !debt.settled else { throw StoreError.notFound }
+        guard debt.direction == .iGave else { throw StoreError.invalidAmount }
+
+        let other = try modelContext.fetch(FetchDescriptor<Category>()).first { $0.name == "Other" }
+        let txn = Txn(
+            amount: debt.remaining,
+            kind: .expense,
+            category: other,
+            note: "Unpaid: \(debt.friend?.name ?? "?")",
+            date: date,
+            source: .manual
+        )
+        modelContext.insert(txn)
+        debt.settledAmount = debt.amount
+        debt.settled = true
+        debt.updatedAt = .now
+        try modelContext.save()
+        return txn.id
+    }
+
     private func fetchFriend(id: UUID) throws -> Friend? {
         try modelContext.fetch(FetchDescriptor<Friend>()).first { $0.id == id }
     }
