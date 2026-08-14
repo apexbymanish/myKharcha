@@ -104,4 +104,81 @@ public actor ExpenseStore {
     private func snapshot(_ c: Category) -> CategorySnapshot {
         CategorySnapshot(id: c.id, name: c.name, symbol: c.symbol, colorHex: c.colorHex, monthlyBudget: c.monthlyBudget)
     }
+
+    // MARK: Friends & Debts
+
+    @discardableResult
+    public func addFriend(name: String, phone: String?) throws -> FriendSnapshot {
+        let friend = Friend(name: name, phone: phone, photoData: nil)
+        modelContext.insert(friend)
+        try modelContext.save()
+        return FriendSnapshot(id: friend.id, name: friend.name)
+    }
+
+    public func friends() throws -> [FriendSnapshot] {
+        try modelContext.fetch(FetchDescriptor<Friend>())
+            .sorted { $0.name < $1.name }
+            .map { FriendSnapshot(id: $0.id, name: $0.name) }
+    }
+
+    @discardableResult
+    public func addDebt(friendID: UUID, amount: Decimal, direction: DebtDirection, date: Date, note: String?, dueDate: Date?) throws -> DebtSnapshot {
+        guard amount > 0 else { throw StoreError.invalidAmount }
+        guard let friend = try fetchFriend(id: friendID) else { throw StoreError.notFound }
+        let debt = Debt(friend: friend, amount: amount, direction: direction, date: date, note: note, dueDate: dueDate)
+        modelContext.insert(debt)
+        try modelContext.save()
+        return snapshot(debt)
+    }
+
+    @discardableResult
+    public func settleDebt(debtID: UUID, amount: Decimal) throws -> DebtSnapshot {
+        guard let debt = try fetchDebt(id: debtID) else { throw StoreError.notFound }
+        guard amount > 0, amount <= debt.remaining else { throw StoreError.invalidAmount }
+        debt.settledAmount += amount
+        debt.settled = debt.remaining == 0
+        debt.updatedAt = .now
+        try modelContext.save()
+        return snapshot(debt)
+    }
+
+    public func openDebts() throws -> [DebtSnapshot] {
+        try modelContext.fetch(FetchDescriptor<Debt>())
+            .filter { !$0.settled }
+            .sorted { $0.date < $1.date }
+            .map(snapshot)
+    }
+
+    /// Positive = the friend owes me; negative = I owe the friend.
+    public func netBalance(friendID: UUID) throws -> Decimal {
+        try modelContext.fetch(FetchDescriptor<Debt>())
+            .filter { $0.friend?.id == friendID && !$0.settled }
+            .reduce(Decimal(0)) { sum, debt in
+                switch debt.direction {
+                case .iGave: sum + debt.remaining
+                case .iTook: sum - debt.remaining
+                }
+            }
+    }
+
+    private func fetchFriend(id: UUID) throws -> Friend? {
+        try modelContext.fetch(FetchDescriptor<Friend>()).first { $0.id == id }
+    }
+
+    private func fetchDebt(id: UUID) throws -> Debt? {
+        try modelContext.fetch(FetchDescriptor<Debt>()).first { $0.id == id }
+    }
+
+    private func snapshot(_ debt: Debt) -> DebtSnapshot {
+        DebtSnapshot(
+            id: debt.id,
+            friendID: debt.friend?.id,
+            friendName: debt.friend?.name ?? "?",
+            amount: debt.amount,
+            direction: debt.direction,
+            remaining: debt.remaining,
+            settled: debt.settled,
+            dueDate: debt.dueDate
+        )
+    }
 }
