@@ -63,13 +63,24 @@ public actor ExpenseStore {
     }
 
     public func budgetStatuses(now: Date, calendar: Calendar) throws -> [BudgetStatus] {
-        try modelContext.fetch(FetchDescriptor<Category>())
+        let range = Period.month.dateRange(now: now, calendar: calendar)
+        // Single pass: fetch Txn once and bucket sums by category, instead of
+        // re-fetching the whole table per category via spent(). Do not
+        // reintroduce the N+1 fetch pattern here.
+        let txns = try modelContext.fetch(FetchDescriptor<Txn>())
+        var spentByCategory: [UUID: Decimal] = [:]
+        for txn in txns where txn.kind == .expense && range.contains(txn.date) {
+            guard let categoryID = txn.category?.id else { continue }
+            spentByCategory[categoryID, default: 0] += txn.amount
+        }
+
+        return try modelContext.fetch(FetchDescriptor<Category>())
             .compactMap { category in
                 guard let budget = category.monthlyBudget else { return nil }
-                let spent = try? self.spent(in: .month, categoryID: category.id, now: now, calendar: calendar)
-                return BudgetStatus(categoryID: category.id, categoryName: category.name, spent: spent ?? 0, budget: budget)
+                let spent = spentByCategory[category.id] ?? 0
+                return BudgetStatus(categoryID: category.id, categoryName: category.name, spent: spent, budget: budget)
             }
-            .sorted { $0.categoryName < $1.categoryName }
+            .sorted { $0.categoryName.localizedStandardCompare($1.categoryName) == .orderedAscending }
     }
 
     // MARK: Transactions
