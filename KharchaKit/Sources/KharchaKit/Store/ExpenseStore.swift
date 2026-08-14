@@ -53,11 +53,12 @@ public actor ExpenseStore {
 
     public func categories() throws -> [CategorySnapshot] {
         try modelContext.fetch(FetchDescriptor<Category>())
-            .sorted { $0.name < $1.name }
+            .sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
             .map(snapshot)
     }
 
     public func setBudget(categoryID: UUID, amount: Decimal?) throws {
+        if let amount, amount <= 0 { throw StoreError.invalidAmount }
         guard let category = try fetchCategory(id: categoryID) else { throw StoreError.notFound }
         category.monthlyBudget = amount
         category.updatedAt = .now
@@ -172,7 +173,7 @@ public actor ExpenseStore {
 
     public func friends() throws -> [FriendSnapshot] {
         try modelContext.fetch(FetchDescriptor<Friend>())
-            .sorted { $0.name < $1.name }
+            .sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
             .map { FriendSnapshot(id: $0.id, name: $0.name) }
     }
 

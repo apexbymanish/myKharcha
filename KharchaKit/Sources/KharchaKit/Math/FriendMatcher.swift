@@ -22,7 +22,10 @@ public enum FriendMatcher {
 
         return candidates
             .compactMap { c in score(c.name).map { (c, $0) } }
-            .sorted { $0.1 < $1.1 }
+            .sorted { lhs, rhs in
+                if lhs.1 != rhs.1 { return lhs.1 < rhs.1 }
+                return normalize(lhs.0.name) < normalize(rhs.0.name)
+            }
             .map(\.0)
     }
 }

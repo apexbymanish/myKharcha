@@ -25,3 +25,14 @@ private func f(_ name: String) -> FriendSnapshot { FriendSnapshot(id: UUID(), na
     let ranked = FriendMatcher.rank(query: "김", candidates: [f("이수민"), f("김민수")])
     #expect(ranked.map(\.name) == ["김민수"])
 }
+
+@Test func sameTierMatchesAreOrderedDeterministically() {
+    // "Ravi" and "Rakesh" are both prefix matches for "ra" (tier 1) — the
+    // tie must break on normalized name, not input/insertion order.
+    let ravi = f("Ravi")
+    let rakesh = f("Rakesh")
+    let ranked1 = FriendMatcher.rank(query: "ra", candidates: [ravi, rakesh])
+    let ranked2 = FriendMatcher.rank(query: "ra", candidates: [rakesh, ravi])
+    #expect(ranked1.map(\.name) == ["Rakesh", "Ravi"])
+    #expect(ranked2.map(\.name) == ["Rakesh", "Ravi"])
+}

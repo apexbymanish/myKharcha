@@ -20,7 +20,7 @@ public enum RecurringMath {
 
     private static func clamped(dayOfMonth: Int, inMonthOf monthStart: Date, calendar: Calendar) -> Date {
         let dayCount = calendar.range(of: .day, in: .month, for: monthStart)!.count
-        let day = min(dayOfMonth, dayCount)
+        let day = min(max(dayOfMonth, 1), dayCount)
         return calendar.date(byAdding: .day, value: day - 1, to: calendar.startOfDay(for: monthStart))!
     }
 }

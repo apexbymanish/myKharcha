@@ -37,3 +37,11 @@ import Foundation
     let reminder = RecurringMath.reminderDate(for: d(2026, 8, 25, 0), daysBefore: 3, calendar: testCal)
     #expect(reminder == d(2026, 8, 22, 0))
 }
+
+@Test func dayOfMonthZeroClampsToFirstOfMonthNotPreviousMonth() {
+    // dayOfMonth 0 is bogus input; it must still clamp to a valid day (>= 1)
+    // rather than underflowing into the previous month.
+    let due = RecurringMath.nextDueDate(dayOfMonth: 0, after: d(2026, 8, 31), calendar: testCal)
+    #expect(due > d(2026, 8, 31))
+    #expect(due == d(2026, 9, 1, 0))
+}
