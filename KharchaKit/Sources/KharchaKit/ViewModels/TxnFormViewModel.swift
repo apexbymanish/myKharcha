@@ -1,5 +1,4 @@
 import Foundation
-import Observation
 
 @MainActor
 public final class TxnFormViewModel: ObservableObject {
@@ -23,6 +22,7 @@ public final class TxnFormViewModel: ObservableObject {
     }
 
     public func load() async {
+        state.errorMessage = nil
         do {
             let categories = try await store.categories()
             state.categories = categories

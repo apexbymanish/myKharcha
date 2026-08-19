@@ -150,6 +150,43 @@ them:
       §5). Record how long the snapshot took before entity phrases started
       working.
 
+## 7. Known limitations
+
+These are accepted, understood gaps — not bugs to chase further right now.
+Recorded here so a future reader doesn't rediscover them from scratch.
+
+- **Extension-side notification scheduling is deferred.** The App Intents
+  extension (`Extension/KharchaExtension.swift`) does not itself call
+  `NotificationScheduler.resync` after an intent mutates data — only the main
+  app does (on launch, and now on mutation from the views per the app-shell
+  fix wave: adding/deleting a reminder, adding a debt with a due date). The net
+  is app-launch/mutation resync: if you only ever interact with Kharcha
+  through Siri and never open the app, reminder notifications can lag behind
+  the true state until the app is next launched. Given Siri-only usage is a
+  minority path and the app is expected to be opened regularly, this is an
+  accepted gap rather than a blocker.
+- **Cross-process fault staleness between background and foreground.**
+  SwiftData `ExpenseStore` instances in the main app and the extension are
+  separate processes reading the same App Group store. A sequence like
+  background the app → settle a debt via Siri → foreground the app can show
+  stale amounts for a moment because the foregrounded process's in-memory
+  faults haven't refreshed yet. The app-shell fix wave adds a
+  `.onReceive(...willEnterForegroundNotification)` → `vm.load()` on all 7
+  screens specifically to correct this — **verification step:** on-device,
+  background Kharcha, settle a debt (or log an expense) via Siri, then
+  foreground the app and confirm the affected screen (FriendDetail / Home)
+  shows the updated amount within roughly a second of returning to the
+  foreground, not the stale pre-Siri value.
+- **The auto-log watermark is an optimization, not the correctness
+  guarantee.** `AutoLogRunner` (`KharchaKit/Sources/KharchaKit/Math/AutoLogRunner.swift`)
+  persists a "last run" timestamp so it doesn't rescan all of history on every
+  launch, but if that timestamp fails to persist (or is rolled back), catch-up
+  will simply recompute the same missed-occurrence window — it will **not**
+  double-log, because idempotency is enforced independently by checking
+  `store.txnRows()` for an existing txn with the same note and the same
+  start-of-day date before inserting. Do not read the watermark as a dedup
+  mechanism; it only narrows the scan.
+
 ## Sign-off
 
 - [ ] All sections above checked on at least one physical device.

@@ -1,5 +1,4 @@
 import Foundation
-import Observation
 
 @MainActor
 public final class FriendsViewModel: ObservableObject {
@@ -28,6 +27,7 @@ public final class FriendsViewModel: ObservableObject {
     }
 
     public func load() async {
+        state.errorMessage = nil
         do {
             let friends = try await store.friends()
             let balances = try await store.netBalances()

@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 import KharchaKit
 
 struct BudgetsView: View {
@@ -54,5 +55,8 @@ struct BudgetsView: View {
             }
         }
         .task { await vm.load() }
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
+            Task { await vm.load() }
+        }
     }
 }

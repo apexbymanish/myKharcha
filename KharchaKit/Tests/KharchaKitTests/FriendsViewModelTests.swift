@@ -121,4 +121,19 @@ struct FriendsViewModelTests {
         let names = vm.state.rows.map(\.name)
         #expect(names == ["Ram", "Zoe", "Bob", "Amy"])
     }
+
+    @Test
+    @MainActor
+    func loadClearsAPreviousErrorMessage() async throws {
+        let store = try makeStore()
+        let vm = FriendsViewModel(store: store)
+
+        // Trigger a validation error to seed state.errorMessage.
+        await vm.addFriend(name: "")
+        #expect(vm.state.errorMessage != nil)
+
+        await vm.load()
+
+        #expect(vm.state.errorMessage == nil)
+    }
 }

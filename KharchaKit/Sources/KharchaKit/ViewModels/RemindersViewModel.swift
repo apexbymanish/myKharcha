@@ -1,5 +1,4 @@
 import Foundation
-import Observation
 
 @MainActor
 public final class RemindersViewModel: ObservableObject {
@@ -16,6 +15,7 @@ public final class RemindersViewModel: ObservableObject {
     }
 
     public func load() async {
+        state.errorMessage = nil
         do {
             let rules = try await store.recurringRules()
             state.rules = rules

@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 import KharchaKit
 
 struct HistoryView: View {
@@ -64,5 +65,8 @@ struct HistoryView: View {
         }
         .task { await vm.load() }
         .refreshable { await vm.load() }
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
+            Task { await vm.load() }
+        }
     }
 }

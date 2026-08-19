@@ -1,5 +1,4 @@
 import Foundation
-import Observation
 
 @MainActor
 public final class HistoryViewModel: ObservableObject {
@@ -24,6 +23,7 @@ public final class HistoryViewModel: ObservableObject {
     }
 
     public func load(calendar: Calendar = .current) async {
+        state.errorMessage = nil
         do {
             let categories = try await store.categories()
             state.categories = categories
@@ -53,6 +53,7 @@ public final class HistoryViewModel: ObservableObject {
     }
 
     private func reloadSections(calendar: Calendar) async {
+        state.errorMessage = nil
         do {
             let rows = try await store.txnRows()
                 .filter { state.filterKind == nil || $0.kind == state.filterKind! }

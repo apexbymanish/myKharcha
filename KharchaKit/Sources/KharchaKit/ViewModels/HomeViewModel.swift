@@ -1,5 +1,4 @@
 import Foundation
-import Observation
 
 @MainActor
 public final class HomeViewModel: ObservableObject {
@@ -21,6 +20,7 @@ public final class HomeViewModel: ObservableObject {
     }
 
     public func load(now: Date = Date(), calendar: Calendar = .current) async {
+        state.errorMessage = nil
         state.isLoading = true
         defer { state.isLoading = false }
 

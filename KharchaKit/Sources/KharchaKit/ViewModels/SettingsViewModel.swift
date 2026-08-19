@@ -1,5 +1,4 @@
 import Foundation
-import Observation
 
 @MainActor
 public final class SettingsViewModel: ObservableObject {
@@ -17,6 +16,7 @@ public final class SettingsViewModel: ObservableObject {
     }
 
     public func load() async {
+        state.errorMessage = nil
         do {
             let categories = try await store.categories()
             state.categories = categories

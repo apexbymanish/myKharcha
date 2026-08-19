@@ -1,5 +1,4 @@
 import Foundation
-import Observation
 
 @MainActor
 public final class BudgetsViewModel: ObservableObject {
@@ -17,6 +16,7 @@ public final class BudgetsViewModel: ObservableObject {
     }
 
     public func load(now: Date = Date(), calendar: Calendar = .current) async {
+        state.errorMessage = nil
         do {
             let categories = try await store.categories()
             state.categories = categories
