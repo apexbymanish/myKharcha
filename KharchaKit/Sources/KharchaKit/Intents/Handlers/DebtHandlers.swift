@@ -32,19 +32,7 @@ public struct SettleResult: Sendable, Equatable {
 
 public enum SettleDebtHandler {
     public static func run(store: ExpenseStore, friendID: UUID, friendName: String, amount: Decimal?, now: Date) async throws -> SettleResult {
-        let open = try await store.openDebts().filter { $0.friendID == friendID && $0.direction == .iGave }
-        guard !open.isEmpty else { throw StoreError.notFound }
-        let totalRemaining = open.reduce(Decimal(0)) { $0 + $1.remaining }
-        let toSettle = amount ?? totalRemaining
-        guard toSettle > 0, toSettle <= totalRemaining else { throw StoreError.invalidAmount }
-
-        var left = toSettle
-        for debt in open where left > 0 {  // oldest first (openDebts is date-sorted)
-            let chunk = min(debt.remaining, left)
-            _ = try await store.settleDebt(debtID: debt.id, amount: chunk)
-            left -= chunk
-        }
-        let remaining = totalRemaining - toSettle
+        let (toSettle, remaining) = try await store.settleFriendDebts(friendID: friendID, amount: amount)
         let message = remaining == 0
             ? "\(friendName) is all settled up."
             : "Settled \(AmountFormatter.krw(toSettle)) — \(friendName) still owes you \(AmountFormatter.krw(remaining))."
@@ -84,10 +72,11 @@ public enum DebtQueryHandler {
     }
 
     public static func run(store: ExpenseStore) async throws -> DebtOverview {
+        let balances = try await store.netBalances()
         var theyOweMe: [DebtRow] = []
         var iOwe: [DebtRow] = []
         for friend in try await store.friends() {
-            let net = try await store.netBalance(friendID: friend.id)
+            let net = balances[friend.id] ?? 0
             if net > 0 { theyOweMe.append(DebtRow(friendID: friend.id, name: friend.name, amount: net)) }
             if net < 0 { iOwe.append(DebtRow(friendID: friend.id, name: friend.name, amount: abs(net))) }
         }

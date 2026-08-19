@@ -237,6 +237,47 @@ public actor ExpenseStore {
             }
     }
 
+    /// Single actor entry for SettleDebtHandler: fetch this friend's open iGave debts
+    /// oldest-first, allocate the settle amount across them in one save, and report
+    /// what got settled vs. what's left. Do not reintroduce the read-then-loop
+    /// pattern (one `settleDebt` call per debt) that used to live in the handler —
+    /// that split the write across multiple saves.
+    @discardableResult
+    public func settleFriendDebts(friendID: UUID, amount: Decimal?) throws -> (settled: Decimal, remaining: Decimal) {
+        let open = try modelContext.fetch(FetchDescriptor<Debt>())
+            .filter { $0.friend?.id == friendID && $0.direction == .iGave && !$0.settled }
+            .sorted { $0.date < $1.date }
+        guard !open.isEmpty else { throw StoreError.notFound }
+        let total = open.reduce(Decimal(0)) { $0 + $1.remaining }
+        let toSettle = amount ?? total
+        guard toSettle > 0, toSettle <= total else { throw StoreError.invalidAmount }
+
+        var left = toSettle
+        for debt in open where left > 0 {
+            let chunk = min(debt.remaining, left)
+            debt.settledAmount += chunk
+            debt.settled = debt.remaining == 0
+            debt.updatedAt = .now
+            left -= chunk
+        }
+        try modelContext.save()
+        return (toSettle, total - toSettle)
+    }
+
+    /// Single Debt fetch: net balance per friend (positive = they owe me, negative = I owe them).
+    /// Use this instead of calling `netBalance(friendID:)` once per friend.
+    public func netBalances() throws -> [UUID: Decimal] {
+        var balances: [UUID: Decimal] = [:]
+        for debt in try modelContext.fetch(FetchDescriptor<Debt>()) where !debt.settled {
+            guard let friendID = debt.friend?.id else { continue }
+            switch debt.direction {
+            case .iGave: balances[friendID, default: 0] += debt.remaining
+            case .iTook: balances[friendID, default: 0] -= debt.remaining
+            }
+        }
+        return balances
+    }
+
     /// Give up on an unpaid debt: the remaining amount becomes a real expense
     /// (category "Other") and the debt is closed.
     @discardableResult
