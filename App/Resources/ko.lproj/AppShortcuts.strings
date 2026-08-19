@@ -1,0 +1,37 @@
+/* LogExpenseIntent */
+"Log an expense in ${applicationName}" = "${applicationName}에 지출 기록해 줘";
+"Log ${category} spending in ${applicationName}" = "${applicationName}에 ${category} 지출 기록해 줘";
+"I spent money in ${applicationName}" = "${applicationName}에서 돈 썼어";
+"${applicationName} expense" = "${applicationName} 지출";
+
+/* LogIncomeIntent */
+"Log income in ${applicationName}" = "${applicationName}에 수입 기록해 줘";
+"I got paid in ${applicationName}" = "${applicationName}에 돈 들어왔어";
+"${applicationName} income" = "${applicationName} 수입";
+
+/* SpendingQueryIntent */
+"How much did I spend in ${applicationName}" = "${applicationName}에서 얼마 썼어";
+"${applicationName} spending" = "${applicationName} 지출 내역";
+"Check my spending in ${applicationName}" = "${applicationName}에서 지출 확인해 줘";
+
+/* BudgetStatusIntent */
+"How is my budget in ${applicationName}" = "${applicationName} 예산 어때";
+"${applicationName} budget" = "${applicationName} 예산";
+
+/* AddReminderIntent */
+"Add a bill reminder in ${applicationName}" = "${applicationName}에 청구서 알림 추가해 줘";
+"${applicationName} reminder" = "${applicationName} 알림";
+
+/* LogDebtIntent */
+"Log a loan in ${applicationName}" = "${applicationName}에 대여 기록해 줘";
+"I gave money to ${friend} in ${applicationName}" = "${applicationName}에서 ${friend}한테 돈 줬어";
+"I took money from ${friend} in ${applicationName}" = "${applicationName}에서 ${friend}한테 돈 받았어";
+"${applicationName} loan" = "${applicationName} 대여";
+
+/* SettleDebtIntent */
+"${friend} paid me back in ${applicationName}" = "${applicationName}에서 ${friend}가 돈 갚았어";
+"Settle up in ${applicationName}" = "${applicationName}에서 정산해 줘";
+
+/* DebtQueryIntent */
+"Who owes me money in ${applicationName}" = "${applicationName}에서 누가 나한테 돈 빚졌어";
+"${applicationName} debts" = "${applicationName} 빚 목록";

@@ -17,4 +17,9 @@ public enum KharchaContainerFactory {
             configurations: [ModelConfiguration(isStoredInMemoryOnly: true)]
         )
     }
+
+    /// Dev fallback when the App Group container is unavailable (e.g. missing entitlement).
+    public static func localOnDisk() throws -> ModelContainer {
+        try ModelContainer(for: Schema(KharchaSchema.models), configurations: [ModelConfiguration()])
+    }
 }

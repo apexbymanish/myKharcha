@@ -3,3 +3,5 @@
 .swiftpm/
 xcuserdata/
 .superpowers/
+DerivedData/
+*.xcuserdatad

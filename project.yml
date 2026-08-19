@@ -1,0 +1,63 @@
+name: Kharcha
+options:
+  bundleIdPrefix: com.manish
+  deploymentTarget:
+    iOS: "26.0"
+  createIntermediateGroups: true
+packages:
+  KharchaKit:
+    path: KharchaKit
+targets:
+  Kharcha:
+    type: application
+    platform: iOS
+    sources:
+      - App
+    dependencies:
+      - package: KharchaKit
+      - target: KharchaIntentsExtension
+        embed: true
+    entitlements:
+      path: App/Kharcha.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - group.com.manish.kharcha
+    info:
+      path: App/Info.plist
+      properties:
+        CFBundleDisplayName: Kharcha
+        UILaunchScreen: {}
+        INAlternativeAppNames:
+          - INAlternativeAppName: Kharcha
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.manish.kharcha
+        TARGETED_DEVICE_FAMILY: "1"
+        CODE_SIGN_STYLE: Automatic
+  KharchaIntentsExtension:
+    type: extensionkit-extension
+    platform: iOS
+    sources:
+      - Extension
+    dependencies:
+      - package: KharchaKit
+    entitlements:
+      path: Extension/KharchaExtension.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - group.com.manish.kharcha
+    info:
+      path: Extension/Info.plist
+      properties:
+        EXAppExtensionAttributes:
+          EXExtensionPointIdentifier: com.apple.appintents-extension
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.manish.kharcha.intents
+        CODE_SIGN_STYLE: Automatic
+schemes:
+  Kharcha:
+    build:
+      targets: { Kharcha: all }
+    run:
+      config: Debug

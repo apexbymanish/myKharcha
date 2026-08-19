@@ -1,0 +1,33 @@
+/* LogExpenseIntent (parameter-free phrases only) */
+"Log an expense in ${applicationName}" = "${applicationName} मा खर्च लेख";
+"I spent money in ${applicationName}" = "${applicationName} मा पैसा खर्च गरें";
+"${applicationName} expense" = "${applicationName} खर्च";
+
+/* LogIncomeIntent */
+"Log income in ${applicationName}" = "${applicationName} मा आम्दानी लेख";
+"I got paid in ${applicationName}" = "${applicationName} मा पैसा आयो";
+"${applicationName} income" = "${applicationName} आम्दानी";
+
+/* SpendingQueryIntent */
+"How much did I spend in ${applicationName}" = "${applicationName} मा कति खर्च भयो";
+"${applicationName} spending" = "${applicationName} खर्च विवरण";
+"Check my spending in ${applicationName}" = "${applicationName} मा खर्च हेर";
+
+/* BudgetStatusIntent */
+"How is my budget in ${applicationName}" = "${applicationName} बजेट कस्तो छ";
+"${applicationName} budget" = "${applicationName} बजेट";
+
+/* AddReminderIntent */
+"Add a bill reminder in ${applicationName}" = "${applicationName} मा बिल रिमाइन्डर थप";
+"${applicationName} reminder" = "${applicationName} रिमाइन्डर";
+
+/* LogDebtIntent */
+"Log a loan in ${applicationName}" = "${applicationName} मा ऋण लेख";
+"${applicationName} loan" = "${applicationName} ऋण";
+
+/* SettleDebtIntent */
+"Settle up in ${applicationName}" = "${applicationName} मा हिसाब मिलाउ";
+
+/* DebtQueryIntent */
+"Who owes me money in ${applicationName}" = "${applicationName} मा कसले पैसा तिर्न बाँकी छ";
+"${applicationName} debts" = "${applicationName} ऋण सूची";
