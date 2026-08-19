@@ -161,6 +161,26 @@ public actor ExpenseStore {
         CategorySnapshot(id: c.id, name: c.name, symbol: c.symbol, colorHex: c.colorHex, monthlyBudget: c.monthlyBudget, isFallback: c.isFallback)
     }
 
+    /// Single-pass per-category expense breakdown for a period (Siri "how much did I spend").
+    public func spendingBreakdown(in period: Period, now: Date, calendar: Calendar) throws -> SpendingBreakdown {
+        let range = period.dateRange(now: now, calendar: calendar)
+        let expenses = try modelContext.fetch(FetchDescriptor<Txn>())
+            .filter { $0.kind == .expense && range.contains($0.date) }
+        var buckets: [String: (id: UUID?, amount: Decimal)] = [:]
+        var total = Decimal(0)
+        for txn in expenses {
+            let name = txn.category?.name ?? "Uncategorized"
+            var bucket = buckets[name] ?? (txn.category?.id, 0)
+            bucket.amount += txn.amount
+            buckets[name] = bucket
+            total += txn.amount
+        }
+        let categories = buckets
+            .map { CategorySpend(categoryID: $0.value.id, categoryName: $0.key, amount: $0.value.amount) }
+            .sorted { ($1.amount, $0.categoryName) < ($0.amount, $1.categoryName) }
+        return SpendingBreakdown(total: total, categories: categories)
+    }
+
     // MARK: Friends & Debts
 
     @discardableResult
@@ -316,5 +336,43 @@ public actor ExpenseStore {
         let other = Category(name: "Other", symbol: "tag", colorHex: "#9A9A9A", monthlyBudget: nil, isFallback: true)
         modelContext.insert(other)
         return other
+    }
+
+    // MARK: Recurring rules
+
+    @discardableResult
+    public func addRecurringRule(name: String, amount: Decimal, categoryID: UUID?, dayOfMonth: Int, remindDaysBefore: Int, autoLog: Bool) throws -> RecurringRuleSnapshot {
+        guard amount > 0, (1...31).contains(dayOfMonth) else { throw StoreError.invalidAmount }
+        var category: Category?
+        if let categoryID {
+            guard let found = try fetchCategory(id: categoryID) else { throw StoreError.notFound }
+            category = found
+        }
+        let rule = RecurringRule(name: name, amount: amount, category: category, dayOfMonth: dayOfMonth, remindDaysBefore: remindDaysBefore, autoLog: autoLog)
+        modelContext.insert(rule)
+        try modelContext.save()
+        return snapshot(rule)
+    }
+
+    public func recurringRules() throws -> [RecurringRuleSnapshot] {
+        try modelContext.fetch(FetchDescriptor<RecurringRule>())
+            .sorted { ($0.dayOfMonth, $0.name) < ($1.dayOfMonth, $1.name) }
+            .map(snapshot)
+    }
+
+    public func deleteRecurringRule(ruleID: UUID) throws {
+        guard let rule = try modelContext.fetch(FetchDescriptor<RecurringRule>()).first(where: { $0.id == ruleID }) else {
+            throw StoreError.notFound
+        }
+        modelContext.delete(rule)
+        try modelContext.save()
+    }
+
+    private func snapshot(_ rule: RecurringRule) -> RecurringRuleSnapshot {
+        RecurringRuleSnapshot(
+            id: rule.id, name: rule.name, amount: rule.amount,
+            categoryName: rule.category?.name ?? "",
+            dayOfMonth: rule.dayOfMonth, remindDaysBefore: rule.remindDaysBefore, autoLog: rule.autoLog
+        )
     }
 }
