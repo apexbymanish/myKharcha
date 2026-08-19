@@ -93,6 +93,10 @@ public actor ExpenseStore {
         guard amount > 0 else { throw StoreError.invalidAmount }
         var category: Category?
         if let categoryID {
+            // Defense-in-depth: CategoryEntityQuery filters out unknown/deleted category
+            // ids before Siri ever offers them, so a real user can't normally reach this
+            // .notFound. It only fires if a delete races a resolution already in flight
+            // (category deleted between entity resolution and this addTxn call).
             guard let found = try fetchCategory(id: categoryID) else { throw StoreError.notFound }
             category = found
         }
@@ -162,22 +166,30 @@ public actor ExpenseStore {
     }
 
     /// Single-pass per-category expense breakdown for a period (Siri "how much did I spend").
+    /// Bucketed by category id (not name) so two categories that happen to share a
+    /// display name never get merged into one row; nil (no category) always buckets
+    /// under "Uncategorized".
     public func spendingBreakdown(in period: Period, now: Date, calendar: Calendar) throws -> SpendingBreakdown {
         let range = period.dateRange(now: now, calendar: calendar)
         let expenses = try modelContext.fetch(FetchDescriptor<Txn>())
             .filter { $0.kind == .expense && range.contains($0.date) }
-        var buckets: [String: (id: UUID?, amount: Decimal)] = [:]
+        var buckets: [UUID?: (name: String, amount: Decimal)] = [:]
         var total = Decimal(0)
         for txn in expenses {
+            let id = txn.category?.id
             let name = txn.category?.name ?? "Uncategorized"
-            var bucket = buckets[name] ?? (txn.category?.id, 0)
+            var bucket = buckets[id] ?? (name, 0)
             bucket.amount += txn.amount
-            buckets[name] = bucket
+            buckets[id] = bucket
             total += txn.amount
         }
-        let categories = buckets
-            .map { CategorySpend(categoryID: $0.value.id, categoryName: $0.key, amount: $0.value.amount) }
-            .sorted { ($1.amount, $0.categoryName) < ($0.amount, $1.categoryName) }
+        let unsorted: [CategorySpend] = buckets.map {
+            CategorySpend(categoryID: $0.key, categoryName: $0.value.name, amount: $0.value.amount)
+        }
+        let categories = unsorted.sorted { (lhs: CategorySpend, rhs: CategorySpend) -> Bool in
+            if lhs.amount != rhs.amount { return lhs.amount > rhs.amount }
+            return lhs.categoryName.localizedStandardCompare(rhs.categoryName) == .orderedAscending
+        }
         return SpendingBreakdown(total: total, categories: categories)
     }
 
@@ -398,7 +410,11 @@ public actor ExpenseStore {
 
     public func recurringRules() throws -> [RecurringRuleSnapshot] {
         try modelContext.fetch(FetchDescriptor<RecurringRule>())
-            .sorted { ($0.dayOfMonth, $0.name) < ($1.dayOfMonth, $1.name) }
+            .sorted { lhs, rhs in
+                lhs.dayOfMonth != rhs.dayOfMonth
+                    ? lhs.dayOfMonth < rhs.dayOfMonth
+                    : lhs.name.localizedStandardCompare(rhs.name) == .orderedAscending
+            }
             .map(snapshot)
     }
 

@@ -74,6 +74,39 @@ private func makePublicStore() throws -> ExpenseStore {
     #expect(spent == 5_000)
 }
 
+@Test func publicAPI_moreSnapshotTypesAreDirectlyConstructible() {
+    let rule = RecurringRuleSnapshot(
+        id: UUID(), name: "Rent", amount: 500_000, categoryName: "Rent",
+        dayOfMonth: 25, remindDaysBefore: 3, autoLog: false
+    )
+    #expect(rule.dayOfMonth == 25)
+
+    let categorySpend = CategorySpend(categoryID: UUID(), categoryName: "Food", amount: 12_000)
+    #expect(categorySpend.categoryName == "Food")
+
+    let breakdown = SpendingBreakdown(total: 12_000, categories: [categorySpend])
+    #expect(breakdown.total == 12_000)
+
+    let logResult = LogResult(txnID: UUID(), needsDuplicateConfirmation: false, message: "Logged.")
+    #expect(!logResult.needsDuplicateConfirmation)
+
+    let summary = SpendingSummary(periodLabel: "today", total: 12_000, top: [categorySpend], message: "You spent ₩12,000 today.")
+    #expect(summary.periodLabel == "today")
+
+    let budgetStatus = BudgetStatus(categoryID: UUID(), categoryName: "Food", spent: 1_000, budget: 2_000)
+    let report = BudgetReport(statuses: [budgetStatus], message: "All 1 budgets are on track.")
+    #expect(report.statuses.count == 1)
+
+    let row = DebtRow(friendID: UUID(), name: "Ram", amount: 20_000)
+    #expect(row.name == "Ram")
+
+    let overview = DebtOverview(theyOweMe: [row], iOwe: [], message: "1 friend owes you ₩20,000.")
+    #expect(overview.theyOweMe.count == 1)
+
+    let settleResult = SettleResult(settledAmount: 20_000, remainingOwed: 0, message: "Ram is all settled up.")
+    #expect(settleResult.remainingOwed == 0)
+}
+
 @Test func publicAPI_addFriendAddDebtSettleDebtNetBalanceFlow() async throws {
     let store = try makePublicStore()
     let friend = try await store.addFriend(name: "Hari", phone: nil)

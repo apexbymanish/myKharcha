@@ -44,4 +44,26 @@ extension IntentGlobalStateTests {
         let intent = SpendingQueryIntent()
         _ = try await intent.perform()  // default period .today, empty store → "haven't spent anything"
     }
+
+    @Test func categoryEntityQuerySuggestsSeededDefaults() async throws {
+        IntentStoreProvider.override(container: try KharchaContainerFactory.inMemory())
+        defer { IntentStoreProvider.reset() }
+
+        let store = try IntentStoreProvider.store()
+        try await store.seedDefaultCategoriesIfNeeded()
+
+        let suggested = try await CategoryEntityQuery().suggestedEntities()
+        #expect(suggested.count == 8)
+    }
+
+    @Test func friendEntityQueryFindsFuzzyMatch() async throws {
+        IntentStoreProvider.override(container: try KharchaContainerFactory.inMemory())
+        defer { IntentStoreProvider.reset() }
+
+        let store = try IntentStoreProvider.store()
+        _ = try await store.addFriend(name: "Ram", phone: nil)
+
+        let matches = try await FriendEntityQuery().entities(matching: "ra")
+        #expect(matches.map(\.name) == ["Ram"])
+    }
 }

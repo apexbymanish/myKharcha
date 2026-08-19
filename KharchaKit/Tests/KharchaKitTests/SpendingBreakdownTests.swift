@@ -20,6 +20,30 @@ import Foundation
     #expect(breakdown.categories[0].amount == 42_000)
 }
 
+@Test func sameNameCategoriesAreNotMerged() async throws {
+    let store = try makeStore()
+    let food1 = try await store.addCategory(name: "Food", symbol: "fork.knife", colorHex: "#E07A5F", monthlyBudget: nil)
+    let food2 = try await store.addCategory(name: "Food", symbol: "fork.knife", colorHex: "#E07A5F", monthlyBudget: nil)
+    _ = try await store.addTxn(amount: 10_000, kind: .expense, categoryID: food1.id, note: nil, date: d(2026, 8, 10), source: .manual)
+    _ = try await store.addTxn(amount: 5_000, kind: .expense, categoryID: food2.id, note: nil, date: d(2026, 8, 11), source: .manual)
+
+    let breakdown = try await store.spendingBreakdown(in: .month, now: d(2026, 8, 15), calendar: testCal)
+    #expect(breakdown.categories.count == 2)
+    #expect(breakdown.categories.allSatisfy { $0.categoryName == "Food" })
+    #expect(Set(breakdown.categories.compactMap(\.categoryID)) == Set([food1.id, food2.id]))
+}
+
+@Test func breakdownAmountTiesBreakByNameAscending() async throws {
+    let store = try makeStore()
+    let zebra = try await store.addCategory(name: "Zebra", symbol: "tag", colorHex: "#000000", monthlyBudget: nil)
+    let apple = try await store.addCategory(name: "Apple", symbol: "tag", colorHex: "#000000", monthlyBudget: nil)
+    _ = try await store.addTxn(amount: 10_000, kind: .expense, categoryID: zebra.id, note: nil, date: d(2026, 8, 10), source: .manual)
+    _ = try await store.addTxn(amount: 10_000, kind: .expense, categoryID: apple.id, note: nil, date: d(2026, 8, 11), source: .manual)
+
+    let breakdown = try await store.spendingBreakdown(in: .month, now: d(2026, 8, 15), calendar: testCal)
+    #expect(breakdown.categories.map(\.categoryName) == ["Apple", "Zebra"])
+}
+
 @Test func emptyStoreBreakdownIsZero() async throws {
     let store = try makeStore()
     let breakdown = try await store.spendingBreakdown(in: .today, now: d(2026, 8, 15), calendar: testCal)

@@ -6,5 +6,11 @@ public enum PeriodAppEnum: String, AppEnum {
     public static let caseDisplayRepresentations: [PeriodAppEnum: DisplayRepresentation] = [
         .today: "today", .week: "this week", .month: "this month"
     ]
-    public var period: Period { Period(rawValue: rawValue) ?? .today }
+    public var period: Period {
+        switch self {
+        case .today: .today
+        case .week: .week
+        case .month: .month
+        }
+    }
 }
