@@ -1,0 +1,141 @@
+import SwiftUI
+import KharchaKit
+
+struct FriendDetailView: View {
+    @StateObject private var vm: FriendDetailViewModel
+    @State private var showAddDebtSheet = false
+    @State private var addDebtDirection: DebtDirection = .iGave
+    @State private var showSettleAlert = false
+
+    init(store: ExpenseStore, friendID: UUID, friendName: String) {
+        _vm = StateObject(wrappedValue: FriendDetailViewModel(store: store, friendID: friendID, friendName: friendName))
+    }
+
+    private var netPhrase: String {
+        if vm.state.net > 0 { return "\(vm.state.friendName) owes you \(AmountFormatter.krw(vm.state.net))" }
+        if vm.state.net < 0 { return "You owe \(vm.state.friendName) \(AmountFormatter.krw(abs(vm.state.net)))" }
+        return "Settled up"
+    }
+
+    var body: some View {
+        List {
+            Section {
+                Text(netPhrase).font(.title3.bold())
+                HStack {
+                    Button("I gave") {
+                        addDebtDirection = .iGave
+                        showAddDebtSheet = true
+                    }
+                    .buttonStyle(.bordered)
+
+                    Button("I took") {
+                        addDebtDirection = .iTook
+                        showAddDebtSheet = true
+                    }
+                    .buttonStyle(.bordered)
+
+                    Spacer()
+
+                    Button("Settle up") {
+                        showSettleAlert = true
+                    }
+                    .buttonStyle(.borderedProminent)
+                }
+            }
+
+            Section("History") {
+                if vm.state.debts.isEmpty {
+                    Text("No debts yet").foregroundStyle(.secondary)
+                }
+                ForEach(vm.state.debts, id: \.id) { debt in
+                    HStack {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(debt.direction == .iGave ? "I gave" : "I took").font(.callout)
+                            if let note = debt.note, !note.isEmpty {
+                                Text(note).font(.caption).foregroundStyle(.secondary)
+                            }
+                            if let due = debt.dueDate {
+                                Text("Due \(due.formatted(date: .abbreviated, time: .omitted))")
+                                    .font(.caption2)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                        Spacer()
+                        Text(AmountFormatter.krw(debt.remaining))
+                            .font(.callout.monospacedDigit())
+                    }
+                    .opacity(debt.settled ? 0.4 : 1.0)
+                    .swipeActions {
+                        if !debt.settled && debt.direction == .iGave {
+                            Button("Write off", role: .destructive) {
+                                Task { await vm.writeOff(debt.id) }
+                            }
+                        }
+                    }
+                }
+            }
+
+            if let error = vm.state.errorMessage {
+                Text(error).foregroundStyle(.red)
+            }
+        }
+        .navigationTitle(vm.state.friendName)
+        .sheet(isPresented: $showAddDebtSheet) {
+            NavigationStack {
+                AddDebtSheet(vm: vm, direction: addDebtDirection)
+            }
+        }
+        .textFieldAlert(
+            isPresented: $showSettleAlert,
+            title: "Settle Up",
+            placeholder: "Amount (blank = full)",
+            keyboardType: .decimalPad
+        ) { text in
+            Task { await vm.settle(amountText: text.isEmpty ? nil : text) }
+        }
+        .task { await vm.load() }
+    }
+}
+
+private struct AddDebtSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    @ObservedObject var vm: FriendDetailViewModel
+    let direction: DebtDirection
+
+    @State private var amountText = ""
+    @State private var note = ""
+    @State private var hasDueDate = false
+    @State private var dueDate = Date()
+
+    var body: some View {
+        Form {
+            TextField("Amount", text: $amountText)
+                .keyboardType(.decimalPad)
+            TextField("Note", text: $note)
+            Toggle("Due date", isOn: $hasDueDate)
+            if hasDueDate {
+                DatePicker("Due", selection: $dueDate, displayedComponents: .date)
+            }
+            if let error = vm.state.errorMessage {
+                Text(error).foregroundStyle(.red)
+            }
+        }
+        .navigationTitle(direction == .iGave ? "I Gave" : "I Took")
+        .toolbar {
+            ToolbarItem(placement: .cancellationAction) {
+                Button("Cancel") { dismiss() }
+            }
+            ToolbarItem(placement: .confirmationAction) {
+                Button("Save") {
+                    Task {
+                        await vm.addDebt(
+                            direction: direction, amountText: amountText, note: note,
+                            dueDate: hasDueDate ? dueDate : nil
+                        )
+                        if vm.state.errorMessage == nil { dismiss() }
+                    }
+                }
+            }
+        }
+    }
+}

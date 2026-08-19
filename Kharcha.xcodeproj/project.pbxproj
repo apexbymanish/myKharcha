@@ -7,16 +7,25 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		173EEE6F11D2CCD1B6196158 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79255B2E0B29F7AAECB8F64E /* RootView.swift */; };
+		16B589669E10043DBBDA2386 /* RemindersView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4ABA52414CD34EBD8EB3CE1 /* RemindersView.swift */; };
+		201DD3C9D16397855B31A709 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69FEAF37EE3107CA468FAED2 /* RootView.swift */; };
+		3BA4A022DF6B6F8726650E6B /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2AC177A02071D0D0843C2B /* HistoryView.swift */; };
 		4AE837573A29441C158B8F50 /* KharchaKit in Frameworks */ = {isa = PBXBuildFile; productRef = 0E07F004FC632ACED67AC07C /* KharchaKit */; };
 		4EA295C514095F8614356165 /* NotificationScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB1E5C96417E43021CD9A6E1 /* NotificationScheduler.swift */; };
 		5BD0AE89CAF38588218DE003 /* KharchaIntentsExtension.appex in Embed ExtensionKit Extensions */ = {isa = PBXBuildFile; fileRef = C9B1C67CC809A3D2F4BEFB0C /* KharchaIntentsExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		6069A68846AA50BC0652548A /* KharchaShortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 437A08250B1C4583CA7A9752 /* KharchaShortcuts.swift */; };
+		9007BDAE8E3EBCB3FBAB214B /* TxnFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE89EF311C80735B99534F5A /* TxnFormView.swift */; };
+		9B6C6C0FCB774DB3EED8D011 /* Components.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3135AA1A3D54C1360E66E543 /* Components.swift */; };
 		A5C8647415847128B1E2D528 /* KharchaExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 798E304D56508DA05FAA2F08 /* KharchaExtension.swift */; };
+		A6E5B3D9C3AA768690D1703C /* FriendDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD5A5FDB31A883B6E3EAB77B /* FriendDetailView.swift */; };
+		CB5709B8D44A948CB76CC915 /* BudgetsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C907E594924CA417671EA605 /* BudgetsView.swift */; };
+		D76B8FEBF38309EEAF827F49 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08E503EBB2AE805185B83A7E /* SettingsView.swift */; };
 		D9CA6C09190EC645534A3749 /* AppShortcuts.strings in Resources */ = {isa = PBXBuildFile; fileRef = 603A5A86D90E0B55068BA06D /* AppShortcuts.strings */; };
 		DC43AE9520A807F9E5FD5C2B /* KharchaKit in Frameworks */ = {isa = PBXBuildFile; productRef = 3DD61C4907D809C2393BE230 /* KharchaKit */; };
+		E036C51F34E1B1F3EA61E5BC /* FriendsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A34CE6439C8216233EFABD4 /* FriendsView.swift */; };
 		E7D09FB8DA5781CE85EF6389 /* KharchaApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FA8CCC79FEAF1C8A0A478AC /* KharchaApp.swift */; };
 		EDCCA7DDB4E6538BEFD71DEE /* AppBootstrap.swift in Sources */ = {isa = PBXBuildFile; fileRef = 210E3A40B033E1C645DFEA8C /* AppBootstrap.swift */; };
+		F921785F0A5ADF09DAF22627 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D510A06F004F7900AE06B36 /* HomeView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -44,18 +53,27 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		08E503EBB2AE805185B83A7E /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		0D510A06F004F7900AE06B36 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
 		1E7D1088EC76A3D6B3266C65 /* ko */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ko; path = ko.lproj/AppShortcuts.strings; sourceTree = "<group>"; };
 		210E3A40B033E1C645DFEA8C /* AppBootstrap.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppBootstrap.swift; sourceTree = "<group>"; };
+		2A34CE6439C8216233EFABD4 /* FriendsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendsView.swift; sourceTree = "<group>"; };
+		3135AA1A3D54C1360E66E543 /* Components.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Components.swift; sourceTree = "<group>"; };
 		437A08250B1C4583CA7A9752 /* KharchaShortcuts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KharchaShortcuts.swift; sourceTree = "<group>"; };
 		4CCB153C1D76AC0E4C404125 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		62B253CD42B237423480E375 /* KharchaKit */ = {isa = PBXFileReference; lastKnownFileType = folder; name = KharchaKit; path = KharchaKit; sourceTree = SOURCE_ROOT; };
-		79255B2E0B29F7AAECB8F64E /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
+		69FEAF37EE3107CA468FAED2 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
 		798E304D56508DA05FAA2F08 /* KharchaExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KharchaExtension.swift; sourceTree = "<group>"; };
 		82202E5095E40A6F67FE0B67 /* Kharcha.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Kharcha.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		937792B55087B957FB2294FD /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/AppShortcuts.strings; sourceTree = "<group>"; };
 		9FA8CCC79FEAF1C8A0A478AC /* KharchaApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KharchaApp.swift; sourceTree = "<group>"; };
+		B4ABA52414CD34EBD8EB3CE1 /* RemindersView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemindersView.swift; sourceTree = "<group>"; };
+		C907E594924CA417671EA605 /* BudgetsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BudgetsView.swift; sourceTree = "<group>"; };
 		C9B1C67CC809A3D2F4BEFB0C /* KharchaIntentsExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.extensionkit-extension"; includeInIndex = 0; path = KharchaIntentsExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		CA2AC177A02071D0D0843C2B /* HistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryView.swift; sourceTree = "<group>"; };
 		CB1E5C96417E43021CD9A6E1 /* NotificationScheduler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationScheduler.swift; sourceTree = "<group>"; };
+		CD5A5FDB31A883B6E3EAB77B /* FriendDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendDetailView.swift; sourceTree = "<group>"; };
+		CE89EF311C80735B99534F5A /* TxnFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TxnFormView.swift; sourceTree = "<group>"; };
 		D50FE78493168AE9CB798FE0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		E22CC07B95BFFB95988F1EA3 /* KharchaExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = KharchaExtension.entitlements; sourceTree = "<group>"; };
 		E349D7658EC0B182BAFA4634 /* ne */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ne; path = ne.lproj/AppShortcuts.strings; sourceTree = "<group>"; };
@@ -101,8 +119,8 @@
 				9FA8CCC79FEAF1C8A0A478AC /* KharchaApp.swift */,
 				437A08250B1C4583CA7A9752 /* KharchaShortcuts.swift */,
 				CB1E5C96417E43021CD9A6E1 /* NotificationScheduler.swift */,
-				79255B2E0B29F7AAECB8F64E /* RootView.swift */,
 				4E4D0A8B2A15CFCCB8C96370 /* Resources */,
+				56A889442EFEAF7A510DB45D /* Views */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -132,6 +150,23 @@
 				C9B1C67CC809A3D2F4BEFB0C /* KharchaIntentsExtension.appex */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		56A889442EFEAF7A510DB45D /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				C907E594924CA417671EA605 /* BudgetsView.swift */,
+				3135AA1A3D54C1360E66E543 /* Components.swift */,
+				CD5A5FDB31A883B6E3EAB77B /* FriendDetailView.swift */,
+				2A34CE6439C8216233EFABD4 /* FriendsView.swift */,
+				CA2AC177A02071D0D0843C2B /* HistoryView.swift */,
+				0D510A06F004F7900AE06B36 /* HomeView.swift */,
+				B4ABA52414CD34EBD8EB3CE1 /* RemindersView.swift */,
+				69FEAF37EE3107CA468FAED2 /* RootView.swift */,
+				08E503EBB2AE805185B83A7E /* SettingsView.swift */,
+				CE89EF311C80735B99534F5A /* TxnFormView.swift */,
+			);
+			path = Views;
 			sourceTree = "<group>";
 		};
 		87F451561063F254743274CC /* Packages */ = {
@@ -245,10 +280,19 @@
 			buildActionMask = 2147483647;
 			files = (
 				EDCCA7DDB4E6538BEFD71DEE /* AppBootstrap.swift in Sources */,
+				CB5709B8D44A948CB76CC915 /* BudgetsView.swift in Sources */,
+				9B6C6C0FCB774DB3EED8D011 /* Components.swift in Sources */,
+				A6E5B3D9C3AA768690D1703C /* FriendDetailView.swift in Sources */,
+				E036C51F34E1B1F3EA61E5BC /* FriendsView.swift in Sources */,
+				3BA4A022DF6B6F8726650E6B /* HistoryView.swift in Sources */,
+				F921785F0A5ADF09DAF22627 /* HomeView.swift in Sources */,
 				E7D09FB8DA5781CE85EF6389 /* KharchaApp.swift in Sources */,
 				6069A68846AA50BC0652548A /* KharchaShortcuts.swift in Sources */,
 				4EA295C514095F8614356165 /* NotificationScheduler.swift in Sources */,
-				173EEE6F11D2CCD1B6196158 /* RootView.swift in Sources */,
+				16B589669E10043DBBDA2386 /* RemindersView.swift in Sources */,
+				201DD3C9D16397855B31A709 /* RootView.swift in Sources */,
+				D76B8FEBF38309EEAF827F49 /* SettingsView.swift in Sources */,
+				9007BDAE8E3EBCB3FBAB214B /* TxnFormView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
