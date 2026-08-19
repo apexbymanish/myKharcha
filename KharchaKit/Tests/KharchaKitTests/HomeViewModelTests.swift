@@ -37,4 +37,29 @@ struct HomeViewModelTests {
         #expect(vm.state.monthSpent == 0)
         #expect(vm.state.recent.isEmpty)
     }
+
+    @Test
+    @MainActor
+    func friendRowsCarrySignedNetsAndExcludeZeroNets() async throws {
+        let store = try makeStore()
+        let ram = try await store.addFriend(name: "Ram", phone: nil)
+        let sita = try await store.addFriend(name: "Sita", phone: nil)
+        let zero = try await store.addFriend(name: "Zero", phone: nil)
+
+        // Ram: I gave 50k, so friend owes me (net +50k)
+        _ = try await store.addDebt(friendID: ram.id, amount: 50_000, direction: .iGave, date: d(2026, 8, 1), note: nil, dueDate: nil)
+
+        // Sita: I took 20k, so I owe her (net -20k)
+        _ = try await store.addDebt(friendID: sita.id, amount: 20_000, direction: .iTook, date: d(2026, 8, 1), note: nil, dueDate: nil)
+
+        // Zero: no debts (zero net, should be excluded)
+
+        let vm = HomeViewModel(store: store)
+        await vm.load(now: d(2026, 8, 19), calendar: testCal)
+
+        #expect(vm.state.friendRows.count == 2)
+        #expect(vm.state.friendRows.map(\.name) == ["Ram", "Sita"])
+        #expect(vm.state.friendRows[0].amount == 50_000)    // Ram owes us (positive)
+        #expect(vm.state.friendRows[1].amount == -20_000)   // We owe Sita (negative)
+    }
 }

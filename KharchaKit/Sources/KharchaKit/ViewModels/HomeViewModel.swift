@@ -39,12 +39,15 @@ public final class HomeViewModel: ObservableObject {
             var friendRows: [DebtRow] = []
             for friend in friends {
                 let balance = balances[friend.id] ?? 0
-                friendRows.append(DebtRow(friendID: friend.id, name: friend.name, amount: abs(balance)))
+                // Skip zero-net friends; store signed net
+                if balance != 0 {
+                    friendRows.append(DebtRow(friendID: friend.id, name: friend.name, amount: balance))
+                }
             }
-            // Sort: positive (they owe me) descending, then negative (I owe) as positive descending
+            // Sort: positive (they owe me) descending, then negative (I owe) by abs descending
             friendRows.sort { a, b in
-                let aNet = balances[a.friendID] ?? 0
-                let bNet = balances[b.friendID] ?? 0
+                let aNet = a.amount
+                let bNet = b.amount
                 if (aNet > 0) && (bNet <= 0) { return true }
                 if (aNet <= 0) && (bNet > 0) { return false }
                 return abs(aNet) > abs(bNet)
