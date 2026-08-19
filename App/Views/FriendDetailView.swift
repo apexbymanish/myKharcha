@@ -1,13 +1,16 @@
 import SwiftUI
+import UIKit
 import KharchaKit
 
 struct FriendDetailView: View {
+    let store: ExpenseStore
     @StateObject private var vm: FriendDetailViewModel
     @State private var showAddDebtSheet = false
     @State private var addDebtDirection: DebtDirection = .iGave
     @State private var showSettleAlert = false
 
     init(store: ExpenseStore, friendID: UUID, friendName: String) {
+        self.store = store
         _vm = StateObject(wrappedValue: FriendDetailViewModel(store: store, friendID: friendID, friendName: friendName))
     }
 
@@ -36,10 +39,12 @@ struct FriendDetailView: View {
 
                     Spacer()
 
-                    Button("Settle up") {
-                        showSettleAlert = true
+                    if vm.state.net != 0 {
+                        Button("Settle up") {
+                            showSettleAlert = true
+                        }
+                        .buttonStyle(.borderedProminent)
                     }
-                    .buttonStyle(.borderedProminent)
                 }
             }
 
@@ -82,7 +87,7 @@ struct FriendDetailView: View {
         .navigationTitle(vm.state.friendName)
         .sheet(isPresented: $showAddDebtSheet) {
             NavigationStack {
-                AddDebtSheet(vm: vm, direction: addDebtDirection)
+                AddDebtSheet(vm: vm, direction: addDebtDirection, store: store)
             }
         }
         .textFieldAlert(
@@ -94,6 +99,9 @@ struct FriendDetailView: View {
             Task { await vm.settle(amountText: text.isEmpty ? nil : text) }
         }
         .task { await vm.load() }
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
+            Task { await vm.load() }
+        }
     }
 }
 
@@ -101,6 +109,7 @@ private struct AddDebtSheet: View {
     @Environment(\.dismiss) private var dismiss
     @ObservedObject var vm: FriendDetailViewModel
     let direction: DebtDirection
+    let store: ExpenseStore
 
     @State private var amountText = ""
     @State private var note = ""
@@ -127,12 +136,18 @@ private struct AddDebtSheet: View {
             }
             ToolbarItem(placement: .confirmationAction) {
                 Button("Save") {
+                    let dueDateToSave = hasDueDate ? dueDate : nil
                     Task {
                         await vm.addDebt(
                             direction: direction, amountText: amountText, note: note,
-                            dueDate: hasDueDate ? dueDate : nil
+                            dueDate: dueDateToSave
                         )
-                        if vm.state.errorMessage == nil { dismiss() }
+                        if vm.state.errorMessage == nil {
+                            if dueDateToSave != nil {
+                                Task { await NotificationScheduler.shared.resync(store: store) }
+                            }
+                            dismiss()
+                        }
                     }
                 }
             }

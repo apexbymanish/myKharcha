@@ -96,6 +96,45 @@ struct FriendDetailViewModelTests {
 
     @Test
     @MainActor
+    func settleNegativeNetSettlesITookDebts() async throws {
+        let store = try makeStore()
+        let friend = try await store.addFriend(name: "Heidi", phone: nil)
+        _ = try await store.addDebt(friendID: friend.id, amount: 100_000, direction: .iTook, date: d(2026, 8, 1), note: nil, dueDate: nil)
+
+        let vm = FriendDetailViewModel(store: store, friendID: friend.id, friendName: friend.name)
+        await vm.load()
+        #expect(vm.state.net == -100_000)
+
+        await vm.settle(amountText: "40,000")
+
+        #expect(vm.state.errorMessage == nil)
+        #expect(vm.state.net == -60_000) // net moved toward 0
+
+        await vm.settle(amountText: nil)
+
+        #expect(vm.state.errorMessage == nil)
+        #expect(vm.state.net == 0)
+    }
+
+    @Test
+    @MainActor
+    func settleWithZeroNetShowsMessageAndDoesNotMutateStore() async throws {
+        let store = try makeStore()
+        let friend = try await store.addFriend(name: "Ivan", phone: nil)
+
+        let vm = FriendDetailViewModel(store: store, friendID: friend.id, friendName: friend.name)
+        await vm.load()
+        #expect(vm.state.net == 0)
+
+        await vm.settle(amountText: nil)
+
+        #expect(vm.state.errorMessage == "Nothing to settle.")
+        #expect(vm.state.net == 0)
+        #expect(vm.state.debts.isEmpty)
+    }
+
+    @Test
+    @MainActor
     func writeOffConvertsToExpense() async throws {
         let store = try makeStore()
         let friend = try await store.addFriend(name: "Grace", phone: nil)

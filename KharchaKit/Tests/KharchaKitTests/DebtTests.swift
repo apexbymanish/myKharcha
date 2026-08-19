@@ -63,3 +63,32 @@ import Foundation
     #expect(open.count == 1)
     #expect(open.first?.amount == 20_000)
 }
+
+@Test func settleFriendDebtsITookOldestFirstWithPartial() async throws {
+    let store = try makeStore()
+    let ram = try await store.addFriend(name: "Ram", phone: nil)
+    // Two "I took" debts (I owe Ram) — oldest first should be drained first.
+    _ = try await store.addDebt(friendID: ram.id, amount: 30_000, direction: .iTook, date: d(2026, 8, 1), note: nil, dueDate: nil)
+    _ = try await store.addDebt(friendID: ram.id, amount: 20_000, direction: .iTook, date: d(2026, 8, 5), note: nil, dueDate: nil)
+
+    let (settled, remaining) = try await store.settleFriendDebts(friendID: ram.id, amount: 35_000, direction: .iTook)
+    #expect(settled == 35_000)
+    #expect(remaining == 15_000)
+
+    let open = try await store.openDebts()
+    #expect(!open.contains { $0.date == d(2026, 8, 1) })
+    let newer = try #require(open.first { $0.date == d(2026, 8, 5) })
+    #expect(newer.remaining == 15_000)
+
+    // Fully settle the remaining .iTook debt.
+    _ = try await store.settleFriendDebts(friendID: ram.id, amount: nil, direction: .iTook)
+
+    // .iGave debts of the same friend must be untouched by an .iTook settle,
+    // and once no open .iTook debts remain, settling .iTook again is .notFound.
+    _ = try await store.addDebt(friendID: ram.id, amount: 5_000, direction: .iGave, date: d(2026, 8, 10), note: nil, dueDate: nil)
+    await #expect(throws: StoreError.notFound) {
+        _ = try await store.settleFriendDebts(friendID: ram.id, amount: nil, direction: .iTook)
+    }
+    let net = try await store.netBalance(friendID: ram.id)
+    #expect(net == 5_000) // only the untouched .iGave debt remains
+}

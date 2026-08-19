@@ -275,15 +275,19 @@ public actor ExpenseStore {
             }
     }
 
-    /// Single actor entry for SettleDebtHandler: fetch this friend's open iGave debts
-    /// oldest-first, allocate the settle amount across them in one save, and report
-    /// what got settled vs. what's left. Do not reintroduce the read-then-loop
-    /// pattern (one `settleDebt` call per debt) that used to live in the handler —
-    /// that split the write across multiple saves.
+    /// Single actor entry for SettleDebtHandler: fetch this friend's open debts of
+    /// `direction` oldest-first, allocate the settle amount across them in one save,
+    /// and report what got settled vs. what's left. Do not reintroduce the
+    /// read-then-loop pattern (one `settleDebt` call per debt) that used to live in
+    /// the handler — that split the write across multiple saves.
+    ///
+    /// `direction` defaults to `.iGave` (friend owes me) to keep existing call sites
+    /// (Siri's SettleDebtHandler) compiling and semantically unchanged. Pass `.iTook`
+    /// to settle debts where I owe the friend instead.
     @discardableResult
-    public func settleFriendDebts(friendID: UUID, amount: Decimal?) throws -> (settled: Decimal, remaining: Decimal) {
+    public func settleFriendDebts(friendID: UUID, amount: Decimal?, direction: DebtDirection = .iGave) throws -> (settled: Decimal, remaining: Decimal) {
         let open = try modelContext.fetch(FetchDescriptor<Debt>())
-            .filter { $0.friend?.id == friendID && $0.direction == .iGave && !$0.settled }
+            .filter { $0.friend?.id == friendID && $0.direction == direction && !$0.settled }
             .sorted { $0.date < $1.date }
         guard !open.isEmpty else { throw StoreError.notFound }
         let total = open.reduce(Decimal(0)) { $0 + $1.remaining }

@@ -1,5 +1,4 @@
 import Foundation
-import Observation
 
 @MainActor
 public final class FriendDetailViewModel: ObservableObject {
@@ -26,6 +25,7 @@ public final class FriendDetailViewModel: ObservableObject {
     }
 
     public func load() async {
+        state.errorMessage = nil
         do {
             let debts = try await store.debts(friendID: state.friendID)
             let balances = try await store.netBalances()
@@ -63,6 +63,12 @@ public final class FriendDetailViewModel: ObservableObject {
     public func settle(amountText: String?) async {
         state.errorMessage = nil
 
+        guard state.net != 0 else {
+            state.errorMessage = "Nothing to settle."
+            return
+        }
+        let direction: DebtDirection = state.net > 0 ? .iGave : .iTook
+
         let amount: Decimal?
         if let text = amountText, !text.isEmpty {
             guard let parsed = TxnFormViewModel.parsedAmount(text) else {
@@ -75,7 +81,7 @@ public final class FriendDetailViewModel: ObservableObject {
         }
 
         do {
-            _ = try await store.settleFriendDebts(friendID: state.friendID, amount: amount)
+            _ = try await store.settleFriendDebts(friendID: state.friendID, amount: amount, direction: direction)
             await load()
         } catch {
             state.errorMessage = (error as? LocalizedError)?.errorDescription ?? "Something went wrong."
