@@ -47,3 +47,19 @@ import Foundation
     let spent = try await store.spent(in: .month, categoryID: nil, now: d(2026, 8, 14), calendar: testCal)
     #expect(spent == 0)
 }
+
+@Test func legacyOtherCategoryIsAdoptedAsFallback() async throws {
+    let store = try makeStore()
+    // Simulate a pre-isFallback store: an "Other" created WITHOUT the flag.
+    let legacyOther = try await store.addCategory(name: "Other", symbol: "tag", colorHex: "#9A9A9A", monthlyBudget: nil)
+    let food = try await store.addCategory(name: "Food", symbol: "fork.knife", colorHex: "#E07A5F", monthlyBudget: nil)
+
+    // deleteCategory triggers ensureOtherCategory, which must adopt AND flag the legacy category.
+    try await store.deleteCategory(categoryID: food.id)
+
+    let categories = try await store.categories()
+    #expect(categories.first { $0.id == legacyOther.id }?.isFallback == true)
+    await #expect(throws: StoreError.cannotDeleteFallbackCategory) {
+        try await store.deleteCategory(categoryID: legacyOther.id)
+    }
+}

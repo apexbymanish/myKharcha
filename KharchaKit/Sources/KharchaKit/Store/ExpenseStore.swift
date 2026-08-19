@@ -309,6 +309,8 @@ public actor ExpenseStore {
         // Safety net: an older store might have an "Other" category that predates
         // the isFallback flag. Adopt it by name before creating a duplicate.
         if let other = categories.first(where: { $0.name == "Other" }) {
+            other.isFallback = true
+            other.updatedAt = .now
             return other
         }
         let other = Category(name: "Other", symbol: "tag", colorHex: "#9A9A9A", monthlyBudget: nil, isFallback: true)
