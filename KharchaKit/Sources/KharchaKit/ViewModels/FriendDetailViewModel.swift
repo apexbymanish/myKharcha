@@ -4,8 +4,8 @@ import Observation
 @MainActor
 public final class FriendDetailViewModel: ObservableObject {
     public struct State: Sendable {
-        public let friendID: UUID
-        public let friendName: String
+        public var friendID: UUID
+        public var friendName: String
         public var net: Decimal = 0
         public var debts: [DebtSnapshot] = []
         public var errorMessage: String?

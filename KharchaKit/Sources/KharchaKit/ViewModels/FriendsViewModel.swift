@@ -38,11 +38,15 @@ public final class FriendsViewModel: ObservableObject {
 
             // Sort: positive nets desc (most-owed first), then zero, then negative (most-owed-to first)
             let sorted = rows.sorted { lhs, rhs in
-                if lhs.net > 0 && rhs.net <= 0 { return true }
-                if lhs.net <= 0 && rhs.net > 0 { return false }
-                if lhs.net > 0 && rhs.net > 0 { return lhs.net > rhs.net }
-                if lhs.net < 0 && rhs.net < 0 { return lhs.net < rhs.net }
-                return lhs.name.localizedStandardCompare(rhs.name) == .orderedAscending
+                let lhsRank = lhs.net > 0 ? 0 : (lhs.net == 0 ? 1 : 2)
+                let rhsRank = rhs.net > 0 ? 0 : (rhs.net == 0 ? 1 : 2)
+
+                if lhsRank != rhsRank { return lhsRank < rhsRank }
+
+                // Within same rank
+                if lhsRank == 0 { return lhs.net > rhs.net }  // positive: desc
+                if lhsRank == 1 { return lhs.name.localizedStandardCompare(rhs.name) == .orderedAscending }  // zero: name asc
+                return abs(lhs.net) > abs(rhs.net)  // negative: abs desc
             }
 
             state.rows = sorted

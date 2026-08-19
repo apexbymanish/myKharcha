@@ -60,8 +60,7 @@ public final class SettingsViewModel: ObservableObject {
     public func makeExport(calendar: Calendar = .current) async {
         do {
             let rows = try await store.txnRows()
-            let timeZone = calendar.timeZone ?? TimeZone(abbreviation: "UTC")!
-            let document = CSVDocumentBuilder.document(rows, timeZone: timeZone)
+            let document = CSVDocumentBuilder.document(rows, timeZone: calendar.timeZone)
             state.exportDocument = document
         } catch {
             state.errorMessage = (error as? LocalizedError)?.errorDescription ?? "Something went wrong."

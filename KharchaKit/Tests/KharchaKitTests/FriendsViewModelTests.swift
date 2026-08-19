@@ -94,4 +94,31 @@ struct FriendsViewModelTests {
 
         #expect(vm.state.rows.isEmpty)
     }
+
+    @Test
+    @MainActor
+    func sortRanksZeroNetBeforeNegativeDebts() async throws {
+        let store = try makeStore()
+        let ram = try await store.addFriend(name: "Ram", phone: nil)
+        let zoe = try await store.addFriend(name: "Zoe", phone: nil)
+        let amy = try await store.addFriend(name: "Amy", phone: nil)
+        let bob = try await store.addFriend(name: "Bob", phone: nil)
+
+        // Ram: +50,000 (I gave)
+        _ = try await store.addDebt(friendID: ram.id, amount: 50_000, direction: .iGave, date: d(2026, 8, 1), note: nil, dueDate: nil)
+
+        // Zoe: 0 (no debts)
+
+        // Amy: -10,000 (I took)
+        _ = try await store.addDebt(friendID: amy.id, amount: 10_000, direction: .iTook, date: d(2026, 8, 1), note: nil, dueDate: nil)
+
+        // Bob: -30,000 (I took)
+        _ = try await store.addDebt(friendID: bob.id, amount: 30_000, direction: .iTook, date: d(2026, 8, 1), note: nil, dueDate: nil)
+
+        let vm = FriendsViewModel(store: store)
+        await vm.load()
+
+        let names = vm.state.rows.map(\.name)
+        #expect(names == ["Ram", "Zoe", "Bob", "Amy"])
+    }
 }
