@@ -20,7 +20,7 @@ import Foundation
     await #expect(throws: StoreError.invalidAmount) {
         _ = try await store.addRecurringRule(name: "X", amount: 0, categoryID: nil, dayOfMonth: 5, remindDaysBefore: 1, autoLog: false)
     }
-    await #expect(throws: StoreError.invalidAmount) {
+    await #expect(throws: StoreError.invalidDayOfMonth) {
         _ = try await store.addRecurringRule(name: "X", amount: 1, categoryID: nil, dayOfMonth: 32, remindDaysBefore: 1, autoLog: false)
     }
     await #expect(throws: StoreError.notFound) {

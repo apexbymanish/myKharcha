@@ -5,6 +5,8 @@ import SwiftUI
 public struct LogExpenseIntent: AppIntent {
     public static let title: LocalizedStringResource = "Log Expense"
     public static let description = IntentDescription("Logs an expense in Kharcha.")
+    // spec §8: logging allowed from a locked device
+    public static var authenticationPolicy: IntentAuthenticationPolicy { .alwaysAllowed }
 
     @Parameter(title: "Amount") public var amount: Double
     @Parameter(title: "Category") public var category: CategoryEntity?
@@ -37,6 +39,8 @@ public struct LogExpenseIntent: AppIntent {
 public struct LogIncomeIntent: AppIntent {
     public static let title: LocalizedStringResource = "Log Income"
     public static let description = IntentDescription("Logs income in Kharcha.")
+    // spec §8: logging allowed from a locked device
+    public static var authenticationPolicy: IntentAuthenticationPolicy { .alwaysAllowed }
 
     @Parameter(title: "Amount") public var amount: Double
     @Parameter(title: "Note") public var note: String?
@@ -56,6 +60,7 @@ public struct LogIncomeIntent: AppIntent {
 public struct SpendingQueryIntent: AppIntent {
     public static let title: LocalizedStringResource = "Spending Summary"
     public static let description = IntentDescription("Tells you how much you've spent.")
+    // default .requiresAuthentication is the spec-required behavior (queries need unlock) — do not relax
 
     @Parameter(title: "Period", default: .today) public var period: PeriodAppEnum
     @Parameter(title: "Category") public var category: CategoryEntity?
@@ -78,6 +83,7 @@ public struct SpendingQueryIntent: AppIntent {
 public struct BudgetStatusIntent: AppIntent {
     public static let title: LocalizedStringResource = "Budget Status"
     public static let description = IntentDescription("Tells you how your budgets are tracking.")
+    // default .requiresAuthentication is the spec-required behavior (queries need unlock) — do not relax
 
     public init() {}
 
@@ -93,6 +99,8 @@ public struct BudgetStatusIntent: AppIntent {
 public struct AddReminderIntent: AppIntent {
     public static let title: LocalizedStringResource = "Add Reminder"
     public static let description = IntentDescription("Adds a recurring reminder in Kharcha.")
+    // spec §8: logging allowed from a locked device
+    public static var authenticationPolicy: IntentAuthenticationPolicy { .alwaysAllowed }
 
     @Parameter(title: "Name") public var name: String
     @Parameter(title: "Amount") public var amount: Double
@@ -127,6 +135,8 @@ public enum DebtDirectionAppEnum: String, AppEnum {
 public struct LogDebtIntent: AppIntent {
     public static let title: LocalizedStringResource = "Log Debt"
     public static let description = IntentDescription("Logs money owed between you and a friend.")
+    // spec §8: logging allowed from a locked device
+    public static var authenticationPolicy: IntentAuthenticationPolicy { .alwaysAllowed }
 
     @Parameter(title: "Friend") public var friend: FriendEntity
     @Parameter(title: "Amount") public var amount: Double
@@ -151,6 +161,7 @@ public struct LogDebtIntent: AppIntent {
 public struct SettleDebtIntent: AppIntent {
     public static let title: LocalizedStringResource = "Settle Debt"
     public static let description = IntentDescription("Settles some or all of what a friend owes you.")
+    // default .requiresAuthentication is the spec-required behavior (queries need unlock) — do not relax
 
     @Parameter(title: "Friend") public var friend: FriendEntity
     @Parameter(title: "Amount") public var amount: Double?
@@ -172,6 +183,7 @@ public struct SettleDebtIntent: AppIntent {
 public struct DebtQueryIntent: AppIntent {
     public static let title: LocalizedStringResource = "Debt Overview"
     public static let description = IntentDescription("Tells you who owes whom.")
+    // default .requiresAuthentication is the spec-required behavior (queries need unlock) — do not relax
 
     public init() {}
 

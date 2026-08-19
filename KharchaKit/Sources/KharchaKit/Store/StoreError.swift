@@ -7,6 +7,8 @@ public enum StoreError: Error, Equatable, LocalizedError {
     case cannotDeleteFallbackCategory
     case wrongDebtDirection
     case debtAlreadySettled
+    case containerUnavailable
+    case invalidDayOfMonth
 
     public var errorDescription: String? {
         switch self {
@@ -22,6 +24,10 @@ public enum StoreError: Error, Equatable, LocalizedError {
             return "Only money you gave can be written off."
         case .debtAlreadySettled:
             return "That debt is already settled."
+        case .containerUnavailable:
+            return "Couldn't open your data — open Kharcha once."
+        case .invalidDayOfMonth:
+            return "That day of the month isn't valid."
         }
     }
 }

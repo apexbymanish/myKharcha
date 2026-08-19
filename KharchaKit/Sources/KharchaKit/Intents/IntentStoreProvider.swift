@@ -8,7 +8,9 @@ public enum IntentStoreProvider {
 
     public static func store() throws -> ExpenseStore {
         lock.lock(); defer { lock.unlock() }
-        if cached == nil { cached = try KharchaContainerFactory.appGroup() }
+        if cached == nil {
+            do { cached = try KharchaContainerFactory.appGroup() } catch { throw StoreError.containerUnavailable }
+        }
         return ExpenseStore(modelContainer: cached!)
     }
 

@@ -16,8 +16,10 @@ import Foundation
 }
 
 @Test func storeErrorsHaveSpokenDescriptions() {
-    for error: StoreError in [.invalidAmount, .notFound, .friendHasOpenDebts, .cannotDeleteFallbackCategory, .wrongDebtDirection, .debtAlreadySettled] {
+    for error: StoreError in [.invalidAmount, .notFound, .friendHasOpenDebts, .cannotDeleteFallbackCategory, .wrongDebtDirection, .debtAlreadySettled, .containerUnavailable, .invalidDayOfMonth] {
         #expect(!(error.errorDescription ?? "").isEmpty)
     }
     #expect(StoreError.debtAlreadySettled.errorDescription == "That debt is already settled.")
+    #expect(StoreError.containerUnavailable.errorDescription == "Couldn't open your data — open Kharcha once.")
+    #expect(StoreError.invalidDayOfMonth.errorDescription == "That day of the month isn't valid.")
 }
