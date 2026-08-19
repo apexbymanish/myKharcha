@@ -14,6 +14,7 @@
 		4EA295C514095F8614356165 /* NotificationScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB1E5C96417E43021CD9A6E1 /* NotificationScheduler.swift */; };
 		5BD0AE89CAF38588218DE003 /* KharchaIntentsExtension.appex in Embed ExtensionKit Extensions */ = {isa = PBXBuildFile; fileRef = C9B1C67CC809A3D2F4BEFB0C /* KharchaIntentsExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		6069A68846AA50BC0652548A /* KharchaShortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 437A08250B1C4583CA7A9752 /* KharchaShortcuts.swift */; };
+		841B26FD78955A9FD61C0BF5 /* AppContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F2521668CBB9D4ABDCFC25D /* AppContainer.swift */; };
 		9007BDAE8E3EBCB3FBAB214B /* TxnFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE89EF311C80735B99534F5A /* TxnFormView.swift */; };
 		9B6C6C0FCB774DB3EED8D011 /* Components.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3135AA1A3D54C1360E66E543 /* Components.swift */; };
 		A5C8647415847128B1E2D528 /* KharchaExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 798E304D56508DA05FAA2F08 /* KharchaExtension.swift */; };
@@ -25,6 +26,7 @@
 		E036C51F34E1B1F3EA61E5BC /* FriendsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A34CE6439C8216233EFABD4 /* FriendsView.swift */; };
 		E7D09FB8DA5781CE85EF6389 /* KharchaApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FA8CCC79FEAF1C8A0A478AC /* KharchaApp.swift */; };
 		EDCCA7DDB4E6538BEFD71DEE /* AppBootstrap.swift in Sources */ = {isa = PBXBuildFile; fileRef = 210E3A40B033E1C645DFEA8C /* AppBootstrap.swift */; };
+		F736A659B37EABEBCC787B0F /* CSVFileWriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5510B845D3AB3C6032FEE8FF /* CSVFileWriter.swift */; };
 		F921785F0A5ADF09DAF22627 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D510A06F004F7900AE06B36 /* HomeView.swift */; };
 /* End PBXBuildFile section */
 
@@ -58,9 +60,11 @@
 		1E7D1088EC76A3D6B3266C65 /* ko */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ko; path = ko.lproj/AppShortcuts.strings; sourceTree = "<group>"; };
 		210E3A40B033E1C645DFEA8C /* AppBootstrap.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppBootstrap.swift; sourceTree = "<group>"; };
 		2A34CE6439C8216233EFABD4 /* FriendsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendsView.swift; sourceTree = "<group>"; };
+		2F2521668CBB9D4ABDCFC25D /* AppContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppContainer.swift; sourceTree = "<group>"; };
 		3135AA1A3D54C1360E66E543 /* Components.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Components.swift; sourceTree = "<group>"; };
 		437A08250B1C4583CA7A9752 /* KharchaShortcuts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KharchaShortcuts.swift; sourceTree = "<group>"; };
 		4CCB153C1D76AC0E4C404125 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		5510B845D3AB3C6032FEE8FF /* CSVFileWriter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CSVFileWriter.swift; sourceTree = "<group>"; };
 		62B253CD42B237423480E375 /* KharchaKit */ = {isa = PBXFileReference; lastKnownFileType = folder; name = KharchaKit; path = KharchaKit; sourceTree = SOURCE_ROOT; };
 		69FEAF37EE3107CA468FAED2 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
 		798E304D56508DA05FAA2F08 /* KharchaExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KharchaExtension.swift; sourceTree = "<group>"; };
@@ -114,6 +118,8 @@
 			isa = PBXGroup;
 			children = (
 				210E3A40B033E1C645DFEA8C /* AppBootstrap.swift */,
+				2F2521668CBB9D4ABDCFC25D /* AppContainer.swift */,
+				5510B845D3AB3C6032FEE8FF /* CSVFileWriter.swift */,
 				4CCB153C1D76AC0E4C404125 /* Info.plist */,
 				E642361E067E71B27DDEBCF9 /* Kharcha.entitlements */,
 				9FA8CCC79FEAF1C8A0A478AC /* KharchaApp.swift */,
@@ -280,7 +286,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				EDCCA7DDB4E6538BEFD71DEE /* AppBootstrap.swift in Sources */,
+				841B26FD78955A9FD61C0BF5 /* AppContainer.swift in Sources */,
 				CB5709B8D44A948CB76CC915 /* BudgetsView.swift in Sources */,
+				F736A659B37EABEBCC787B0F /* CSVFileWriter.swift in Sources */,
 				9B6C6C0FCB774DB3EED8D011 /* Components.swift in Sources */,
 				A6E5B3D9C3AA768690D1703C /* FriendDetailView.swift in Sources */,
 				E036C51F34E1B1F3EA61E5BC /* FriendsView.swift in Sources */,
@@ -495,7 +503,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.manish.kharcha.intents;
 				SDKROOT = iphoneos;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Release;
 		};
@@ -511,7 +519,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.manish.kharcha.intents;
 				SDKROOT = iphoneos;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
 		};

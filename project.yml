@@ -55,6 +55,7 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.manish.kharcha.intents
         CODE_SIGN_STYLE: Automatic
+        TARGETED_DEVICE_FAMILY: "1"
 schemes:
   Kharcha:
     build:

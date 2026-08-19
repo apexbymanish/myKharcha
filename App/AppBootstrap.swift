@@ -1,66 +1,59 @@
 import UIKit
 import SwiftData
+import UserNotifications
 import KharchaKit
 
 /// App delegate that wires up the shared SwiftData container, runs auto-log
 /// catch-up for recurring rules, and (re)syncs local notifications on launch.
 final class AppBootstrap: NSObject, UIApplicationDelegate {
-    private static let lastAutoLogDateKey = "kharcha.lastAutoLogDate"
 
     func application(
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
     ) -> Bool {
-        let container: ModelContainer
-        do {
-            container = try KharchaContainerFactory.appGroup()
-        } catch {
-            // Dev fallback — e.g. running without the App Group entitlement provisioned.
-            print("Kharcha: App Group container unavailable (\(error)); falling back to local on-disk store.")
-            do {
-                container = try KharchaContainerFactory.localOnDisk()
-            } catch {
-                // spec §8: the app must still function, not crash — last resort is an
-                // in-memory container (data won't persist across launches, but the UI
-                // and intents stay usable for this session).
-                print("Kharcha: local on-disk store unavailable (\(error)); falling back to in-memory (non-persistent) store.")
-                do {
-                    container = try KharchaContainerFactory.inMemory()
-                } catch {
-                    fatalError("Kharcha: unable to create any ModelContainer, including in-memory: \(error)")
-                }
-            }
-        }
-        IntentStoreProvider.override(container: container)
+        IntentStoreProvider.override(container: AppContainer.shared)
+        UNUserNotificationCenter.current().delegate = self
 
         Task {
             guard let store = try? IntentStoreProvider.store() else { return }
             try? await store.seedDefaultCategoriesIfNeeded()
-            await Self.runAutoLogCatchUp(store: store)
+            try? await AutoLogRunner.run(store: store, watermark: DefaultsWatermark(), now: Date(), calendar: .current)
             await NotificationScheduler.shared.resync(store: store)
         }
 
         return true
     }
+}
 
-    /// Logs the transactions for any recurring-rule occurrences that fell due
-    /// while the app wasn't running (only for rules with `autoLog` enabled).
-    private static func runAutoLogCatchUp(store: ExpenseStore, now: Date = Date(), calendar: Calendar = .current) async {
-        let defaults = UserDefaults(suiteName: KharchaContainerFactory.appGroupID) ?? .standard
-        let lastDate = defaults.object(forKey: lastAutoLogDateKey) as? Date
-        let since = lastDate ?? now
+extension AppBootstrap: UNUserNotificationCenterDelegate {
+    /// Without this, local notifications scheduled by NotificationScheduler are
+    /// silently swallowed while the app is in the foreground (the default
+    /// UNUserNotificationCenter behavior). Show them as a banner + sound instead.
+    func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        willPresent notification: UNNotification
+    ) async -> UNNotificationPresentationOptions {
+        [.banner, .sound]
+    }
+}
 
-        guard let rules = try? await store.recurringRules() else { return }
-        for rule in rules where rule.autoLog {
-            let occurrences = AutoLogCatchUp.dueOccurrences(dayOfMonth: rule.dayOfMonth, since: since, now: now, calendar: calendar)
-            for occurrence in occurrences {
-                _ = try? await store.addTxn(
-                    amount: rule.amount, kind: .expense, categoryID: nil,
-                    note: rule.name, date: occurrence, source: .manual
-                )
-            }
-        }
+/// UserDefaults-backed AutoLogWatermark — persists the "last auto-log catch-up"
+/// timestamp in the same App Group defaults, under the same key the old inline
+/// catch-up loop used. The actual dedup guarantee lives in AutoLogRunner's
+/// txnRows() idempotency check; this watermark is only a scan-window optimization.
+struct DefaultsWatermark: AutoLogWatermark {
+    private static let key = "kharcha.lastAutoLogDate"
+    private let defaults: UserDefaults
 
-        defaults.set(now, forKey: lastAutoLogDateKey)
+    init(defaults: UserDefaults = UserDefaults(suiteName: KharchaContainerFactory.appGroupID) ?? .standard) {
+        self.defaults = defaults
+    }
+
+    func lastRun() -> Date? {
+        defaults.object(forKey: Self.key) as? Date
+    }
+
+    func setLastRun(_ date: Date) {
+        defaults.set(date, forKey: Self.key)
     }
 }

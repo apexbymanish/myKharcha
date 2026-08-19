@@ -1,9 +1,11 @@
 import SwiftUI
+import UIKit
 import KharchaKit
 
 struct SettingsView: View {
     @StateObject private var vm: SettingsViewModel
     @State private var showAddCategoryAlert = false
+    @State private var exportURL: URL?
 
     init(store: ExpenseStore) {
         _vm = StateObject(wrappedValue: SettingsViewModel(store: store))
@@ -30,12 +32,14 @@ struct SettingsView: View {
             }
 
             Section("Export") {
-                if let document = vm.state.exportDocument {
-                    ShareLink(item: document, preview: SharePreview("Kharcha Export.csv"))
-                } else {
-                    Button("Export as CSV") {
-                        Task { await vm.makeExport() }
-                    }
+                // Button stays visible always — tapping regenerates the file, so
+                // re-exporting after new transactions doesn't require anything
+                // special from the user.
+                Button("Export as CSV") {
+                    Task { await vm.makeExport() }
+                }
+                if let exportURL {
+                    ShareLink(item: exportURL, preview: SharePreview("Kharcha Export.csv"))
                 }
             }
 
@@ -48,5 +52,11 @@ struct SettingsView: View {
             Task { await vm.addCategory(name: text) }
         }
         .task { await vm.load() }
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
+            Task { await vm.load() }
+        }
+        .onChange(of: vm.state.exportDocument) { _, newValue in
+            exportURL = newValue.flatMap { CSVFileWriter.write($0) }
+        }
     }
 }

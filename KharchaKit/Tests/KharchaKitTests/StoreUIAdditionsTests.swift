@@ -28,6 +28,20 @@ import Foundation
     #expect(row.date == d(2026, 8, 11))
 }
 
+@Test func updateTxnWithNilCategoryClearsExistingCategory() async throws {
+    let store = try makeStore()
+    let food = try await store.addCategory(name: "Food", symbol: "fork.knife", colorHex: "#E07A5F", monthlyBudget: nil)
+    let id = try await store.addTxn(amount: 5_000, kind: .expense, categoryID: food.id, note: nil, date: d(2026, 8, 10), source: .manual)
+
+    let before = try await store.txnRows().first { $0.id == id }!
+    #expect(before.categoryName == "Food")
+
+    try await store.updateTxn(txnID: id, amount: 5_000, kind: .expense, categoryID: nil, note: nil, date: d(2026, 8, 10))
+
+    let after = try await store.txnRows().first { $0.id == id }!
+    #expect(after.categoryName == "")
+}
+
 @Test func updateTxnValidation() async throws {
     let store = try makeStore()
     let id = try await store.addTxn(amount: 5_000, kind: .expense, categoryID: nil, note: nil, date: d(2026, 8, 10), source: .manual)
