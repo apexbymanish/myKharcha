@@ -64,15 +64,15 @@ public struct DebtCard: View {
         VStack(alignment: .leading, spacing: 8) {
             if !overview.theyOweMe.isEmpty {
                 Text("Owed to you").font(.caption).foregroundStyle(.secondary)
-                ForEach(overview.theyOweMe, id: \.categoryName) { row in
-                    HStack { Text(row.categoryName); Spacer(); Text(AmountFormatter.krw(row.amount)).monospacedDigit() }
+                ForEach(overview.theyOweMe, id: \.friendID) { row in
+                    HStack { Text(row.name); Spacer(); Text(AmountFormatter.krw(row.amount)).monospacedDigit() }
                         .font(.callout)
                 }
             }
             if !overview.iOwe.isEmpty {
                 Text("You owe").font(.caption).foregroundStyle(.secondary)
-                ForEach(overview.iOwe, id: \.categoryName) { row in
-                    HStack { Text(row.categoryName); Spacer(); Text(AmountFormatter.krw(row.amount)).monospacedDigit() }
+                ForEach(overview.iOwe, id: \.friendID) { row in
+                    HStack { Text(row.name); Spacer(); Text(AmountFormatter.krw(row.amount)).monospacedDigit() }
                         .font(.callout)
                 }
             }

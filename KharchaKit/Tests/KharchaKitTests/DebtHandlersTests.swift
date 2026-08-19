@@ -27,6 +27,22 @@ import Foundation
     #expect(try await store.netBalance(friendID: sita.id) == 0)
 }
 
+@Test func logDebtSpeaksOverallOppositeNetWhenIGaveButOverallIOwe() async throws {
+    let store = try makeStore()
+    let ram = try await store.addFriend(name: "Ram", phone: nil)
+    _ = try await LogDebtHandler.run(store: store, friendID: ram.id, friendName: "Ram", amount: 100_000, direction: .iTook, note: nil, now: d(2026, 8, 19))
+    let second = try await LogDebtHandler.run(store: store, friendID: ram.id, friendName: "Ram", amount: 20_000, direction: .iGave, note: nil, now: d(2026, 8, 19))
+    #expect(second.message == "Noted — Ram owes you ₩20,000 (overall you still owe ₩80,000).")
+}
+
+@Test func logDebtSpeaksOverallOppositeNetWhenITookButOverallTheyOwe() async throws {
+    let store = try makeStore()
+    let ram = try await store.addFriend(name: "Ram", phone: nil)
+    _ = try await LogDebtHandler.run(store: store, friendID: ram.id, friendName: "Ram", amount: 100_000, direction: .iGave, note: nil, now: d(2026, 8, 19))
+    let second = try await LogDebtHandler.run(store: store, friendID: ram.id, friendName: "Ram", amount: 20_000, direction: .iTook, note: nil, now: d(2026, 8, 19))
+    #expect(second.message == "Noted — you owe Ram ₩20,000 (overall Ram still owes you ₩80,000).")
+}
+
 @Test func settleFavorsOldestDebtFirst() async throws {
     let store = try makeStore()
     let sita = try await store.addFriend(name: "Sita", phone: nil)
@@ -61,9 +77,9 @@ import Foundation
     _ = try await store.addDebt(friendID: sita.id, amount: 20_000, direction: .iTook, date: d(2026, 8, 5), note: nil, dueDate: nil)
 
     let overview = try await DebtQueryHandler.run(store: store)
-    #expect(overview.theyOweMe.map(\.categoryName) == ["Ram"])
+    #expect(overview.theyOweMe.map(\.name) == ["Ram"])
     #expect(overview.iOwe.first?.amount == 20_000)
-    #expect(overview.message == "Friends owe you ₩50,000; you owe ₩20,000.")
+    #expect(overview.message == "1 friend owes you ₩50,000; you owe ₩20,000.")
 
     let empty = try await DebtQueryHandler.run(store: try makeStore())
     #expect(empty.message == "No open debts.")
