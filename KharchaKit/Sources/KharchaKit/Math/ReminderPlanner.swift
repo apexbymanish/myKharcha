@@ -12,6 +12,7 @@ public struct ReminderSpec: Sendable, Equatable {
 
 public enum ReminderPlanner {
 
+    /// Every returned fireDate is strictly in the future relative to `now` — NotificationScheduler relies on this invariant.
     public static func plan(rules: [RecurringRuleSnapshot], debts: [DebtSnapshot], now: Date, calendar: Calendar, hour: Int = 9) -> [ReminderSpec] {
         var specs: [ReminderSpec] = []
         let formatter = DateFormatter()

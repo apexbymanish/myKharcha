@@ -170,7 +170,7 @@ public struct SettleDebtIntent: AppIntent {
 
     public func perform() async throws -> some IntentResult & ProvidesDialog & ShowsSnippetView {
         let store = try IntentStoreProvider.store()
-        var money = amount.map { Decimal(siriDouble: $0) }
+        let money = amount.map { Decimal(siriDouble: $0) }
 
         // If amount is nil (settle-all), confirm the total owed before proceeding
         if amount == nil {

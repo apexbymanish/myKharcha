@@ -20,7 +20,15 @@ final class AppBootstrap: NSObject, UIApplicationDelegate {
             do {
                 container = try KharchaContainerFactory.localOnDisk()
             } catch {
-                fatalError("Kharcha: unable to create any ModelContainer: \(error)")
+                // spec §8: the app must still function, not crash — last resort is an
+                // in-memory container (data won't persist across launches, but the UI
+                // and intents stay usable for this session).
+                print("Kharcha: local on-disk store unavailable (\(error)); falling back to in-memory (non-persistent) store.")
+                do {
+                    container = try KharchaContainerFactory.inMemory()
+                } catch {
+                    fatalError("Kharcha: unable to create any ModelContainer, including in-memory: \(error)")
+                }
             }
         }
         IntentStoreProvider.override(container: container)
