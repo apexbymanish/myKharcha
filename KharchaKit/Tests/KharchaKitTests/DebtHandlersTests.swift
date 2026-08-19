@@ -27,6 +27,20 @@ import Foundation
     #expect(try await store.netBalance(friendID: sita.id) == 0)
 }
 
+@Test func settleFavorsOldestDebtFirst() async throws {
+    let store = try makeStore()
+    let sita = try await store.addFriend(name: "Sita", phone: nil)
+    _ = try await store.addDebt(friendID: sita.id, amount: 30_000, direction: .iGave, date: d(2026, 8, 1), note: nil, dueDate: nil)
+    _ = try await store.addDebt(friendID: sita.id, amount: 20_000, direction: .iGave, date: d(2026, 8, 5), note: nil, dueDate: nil)
+
+    _ = try await SettleDebtHandler.run(store: store, friendID: sita.id, friendName: "Sita", amount: 35_000, now: d(2026, 8, 19))
+
+    let open = try await store.openDebts()
+    #expect(!open.contains { $0.date == d(2026, 8, 1) })
+    let newer = try #require(open.first { $0.date == d(2026, 8, 5) })
+    #expect(newer.remaining == 15_000)
+}
+
 @Test func settleValidation() async throws {
     let store = try makeStore()
     let ram = try await store.addFriend(name: "Ram", phone: nil)
