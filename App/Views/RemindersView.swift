@@ -1,11 +1,15 @@
 import SwiftUI
+import UIKit
 import KharchaKit
 
 struct RemindersView: View {
+    let store: ExpenseStore
     @StateObject private var vm: RemindersViewModel
     @State private var showAddSheet = false
+    @State private var notificationsDenied = false
 
     init(store: ExpenseStore) {
+        self.store = store
         _vm = StateObject(wrappedValue: RemindersViewModel(store: store))
     }
 
@@ -35,12 +39,22 @@ struct RemindersView: View {
                 }
                 .swipeActions {
                     Button("Delete", role: .destructive) {
-                        Task { await vm.delete(rule.id) }
+                        Task {
+                            await vm.delete(rule.id)
+                            if vm.state.errorMessage == nil {
+                                Task { await NotificationScheduler.shared.resync(store: store) }
+                            }
+                        }
                     }
                 }
             }
             if let error = vm.state.errorMessage {
                 Text(error).foregroundStyle(.red)
+            }
+            if notificationsDenied {
+                Text("Notifications are off — reminders won't fire. Enable them in Settings.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
         }
         .navigationTitle("Reminders")
@@ -55,10 +69,16 @@ struct RemindersView: View {
         }
         .sheet(isPresented: $showAddSheet) {
             NavigationStack {
-                AddReminderSheet(vm: vm)
+                AddReminderSheet(vm: vm, store: store)
             }
         }
-        .task { await vm.load() }
+        .task {
+            await vm.load()
+            notificationsDenied = await NotificationScheduler.authorizationDenied()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
+            Task { await vm.load() }
+        }
     }
 }
 
@@ -70,6 +90,7 @@ struct RemindersView: View {
 private struct AddReminderSheet: View {
     @Environment(\.dismiss) private var dismiss
     @ObservedObject var vm: RemindersViewModel
+    let store: ExpenseStore
 
     @State private var name = ""
     @State private var amountText = ""
@@ -105,7 +126,10 @@ private struct AddReminderSheet: View {
                             name: name, amountText: amountText, dayOfMonth: dayOfMonth,
                             remindDaysBefore: remindDaysBefore, autoLog: autoLog, categoryID: nil
                         )
-                        if vm.state.errorMessage == nil { dismiss() }
+                        if vm.state.errorMessage == nil {
+                            Task { await NotificationScheduler.shared.resync(store: store) }
+                            dismiss()
+                        }
                     }
                 }
             }

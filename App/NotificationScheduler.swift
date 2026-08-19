@@ -7,6 +7,12 @@ final class NotificationScheduler {
     static let shared = NotificationScheduler()
     private let prefix = "kharcha."
 
+    /// True when the user has explicitly denied notification permission — used to
+    /// surface a "reminders won't fire" notice in the UI instead of failing silently.
+    static func authorizationDenied() async -> Bool {
+        await UNUserNotificationCenter.current().notificationSettings().authorizationStatus == .denied
+    }
+
     func resync(store: ExpenseStore, now: Date = Date(), calendar: Calendar = .current) async {
         let center = UNUserNotificationCenter.current()
         guard (try? await center.requestAuthorization(options: [.alert, .sound])) == true else { return }
