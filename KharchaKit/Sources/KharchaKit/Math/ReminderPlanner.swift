@@ -22,7 +22,7 @@ public enum ReminderPlanner {
         for rule in rules {
             var due = RecurringMath.nextDueDate(dayOfMonth: rule.dayOfMonth, after: now, calendar: calendar)
             var remind = at(hour: hour, of: RecurringMath.reminderDate(for: due, daysBefore: rule.remindDaysBefore, calendar: calendar), calendar: calendar)
-            if remind <= now {
+            while remind <= now {
                 due = RecurringMath.nextDueDate(dayOfMonth: rule.dayOfMonth, after: due, calendar: calendar)
                 remind = at(hour: hour, of: RecurringMath.reminderDate(for: due, daysBefore: rule.remindDaysBefore, calendar: calendar), calendar: calendar)
             }

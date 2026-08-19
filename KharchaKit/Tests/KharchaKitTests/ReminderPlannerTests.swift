@@ -34,6 +34,18 @@ private func rule(_ name: String, amount: Decimal, day: Int, remind: Int) -> Rec
     #expect(specs[0].fireDate == testCal.date(bySettingHour: 9, minute: 0, second: 0, of: d(2026, 8, 29, 0))!)
 }
 
+@Test func ruleLargeRemindDaysBeforeLoopsUntilFuture() {
+    // day 25, remindDaysBefore 40, now = Aug 19
+    // First due: Aug 25, remind: Aug 25 - 40 = Jul 16 (past)
+    // Second due: Sep 25, remind: Sep 25 - 40 = Aug 16 (past)
+    // Third due: Oct 25, remind: Oct 25 - 40 = Sep 15 (future at 09:00) ✓
+    let specs = ReminderPlanner.plan(rules: [rule("Rent", amount: 500_000, day: 25, remind: 40)], debts: [], now: d(2026, 8, 19), calendar: testCal)
+    #expect(specs.count == 1)
+    #expect(specs[0].fireDate > d(2026, 8, 19))
+    #expect(specs[0].body == "Rent (₩500,000) is due on Oct 25.")
+    #expect(specs[0].fireDate == testCal.date(bySettingHour: 9, minute: 0, second: 0, of: d(2026, 9, 15, 0))!)
+}
+
 @Test func autoLogCatchUpFindsMissedOccurrences() {
     // since = Jun 20, now = Aug 19, day 25 → Jun 25, Jul 25 (Aug 25 not yet)
     let dates = AutoLogCatchUp.dueOccurrences(dayOfMonth: 25, since: d(2026, 6, 20), now: d(2026, 8, 19), calendar: testCal)
