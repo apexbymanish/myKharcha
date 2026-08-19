@@ -1,0 +1,79 @@
+import Foundation
+import Observation
+
+@MainActor
+public final class HistoryViewModel: ObservableObject {
+    public struct Section: Sendable, Equatable {
+        public let title: String
+        public let rows: [TxnRow]
+    }
+
+    public struct State: Sendable {
+        public var sections: [Section] = []
+        public var filterKind: TxnKind?
+        public var filterCategoryName: String?
+        public var categories: [CategorySnapshot] = []
+        public var errorMessage: String?
+    }
+
+    @Published public private(set) var state = State()
+    private let store: ExpenseStore
+
+    public init(store: ExpenseStore) {
+        self.store = store
+    }
+
+    public func load(calendar: Calendar = .current) async {
+        do {
+            let categories = try await store.categories()
+            state.categories = categories
+            await reloadSections(calendar: calendar)
+        } catch {
+            state.errorMessage = (error as? LocalizedError)?.errorDescription ?? "Something went wrong."
+        }
+    }
+
+    public func setKindFilter(_ k: TxnKind?, calendar: Calendar = .current) async {
+        state.filterKind = k
+        await reloadSections(calendar: calendar)
+    }
+
+    public func setCategoryFilter(_ name: String?, calendar: Calendar = .current) async {
+        state.filterCategoryName = name
+        await reloadSections(calendar: calendar)
+    }
+
+    public func delete(_ id: UUID, calendar: Calendar = .current) async {
+        do {
+            try await store.deleteTxn(txnID: id)
+            await reloadSections(calendar: calendar)
+        } catch {
+            state.errorMessage = (error as? LocalizedError)?.errorDescription ?? "Something went wrong."
+        }
+    }
+
+    private func reloadSections(calendar: Calendar) async {
+        do {
+            let rows = try await store.txnRows()
+                .filter { state.filterKind == nil || $0.kind == state.filterKind! }
+                .filter { state.filterCategoryName == nil || $0.categoryName == state.filterCategoryName! }
+                .sorted { $0.date > $1.date }
+
+            let grouped = Dictionary(grouping: rows) { row in
+                let c = calendar.dateComponents([.year, .month], from: row.date)
+                return c.year! * 100 + c.month!
+            }
+
+            let titleFormatter = DateFormatter()
+            titleFormatter.dateFormat = "MMMM yyyy"
+            titleFormatter.locale = Locale(identifier: "en_US_POSIX")
+            titleFormatter.timeZone = calendar.timeZone
+
+            state.sections = grouped.keys.sorted(by: >).map { key in
+                Section(title: titleFormatter.string(from: grouped[key]![0].date), rows: grouped[key]!)
+            }
+        } catch {
+            state.errorMessage = (error as? LocalizedError)?.errorDescription ?? "Something went wrong."
+        }
+    }
+}
