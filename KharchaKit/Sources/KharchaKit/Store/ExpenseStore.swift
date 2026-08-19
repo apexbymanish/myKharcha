@@ -144,6 +144,25 @@ public actor ExpenseStore {
             }
     }
 
+    public func updateTxn(txnID: UUID, amount: Decimal, kind: TxnKind, categoryID: UUID?, note: String?, date: Date) throws {
+        guard amount > 0 else { throw StoreError.invalidAmount }
+        guard let txn = try modelContext.fetch(FetchDescriptor<Txn>()).first(where: { $0.id == txnID }) else {
+            throw StoreError.notFound
+        }
+        var category: Category?
+        if let categoryID {
+            guard let found = try fetchCategory(id: categoryID) else { throw StoreError.notFound }
+            category = found
+        }
+        txn.amount = amount
+        txn.kind = kind
+        txn.category = category
+        txn.note = note
+        txn.date = date
+        txn.updatedAt = .now
+        try modelContext.save()
+    }
+
     // MARK: Internals
 
     private func total(kind: TxnKind, period: Period, categoryID: UUID?, now: Date, calendar: Calendar) throws -> Decimal {
@@ -228,6 +247,13 @@ public actor ExpenseStore {
         debt.updatedAt = .now
         try modelContext.save()
         return snapshot(debt)
+    }
+
+    public func debts(friendID: UUID) throws -> [DebtSnapshot] {
+        try modelContext.fetch(FetchDescriptor<Debt>())
+            .filter { $0.friend?.id == friendID }
+            .sorted { $0.date > $1.date }
+            .map(snapshot)
     }
 
     public func openDebts() throws -> [DebtSnapshot] {
