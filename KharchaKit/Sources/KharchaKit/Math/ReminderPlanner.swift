@@ -13,7 +13,7 @@ public struct ReminderSpec: Sendable, Equatable {
 public enum ReminderPlanner {
 
     /// Every returned fireDate is strictly in the future relative to `now` — NotificationScheduler relies on this invariant.
-    public static func plan(rules: [RecurringRuleSnapshot], debts: [DebtSnapshot], now: Date, calendar: Calendar, hour: Int = 9) -> [ReminderSpec] {
+    public static func plan(rules: [RecurringRuleSnapshot], debts: [DebtSnapshot], installments: [InstallmentSnapshot] = [], now: Date, calendar: Calendar, hour: Int = 9) -> [ReminderSpec] {
         var specs: [ReminderSpec] = []
         let formatter = DateFormatter()
         formatter.dateFormat = "MMM d"
@@ -30,7 +30,7 @@ public enum ReminderPlanner {
             specs.append(ReminderSpec(
                 id: "rule-\(rule.id.uuidString)",
                 title: rule.name,
-                body: "\(rule.name) (\(AmountFormatter.krw(rule.amount))) is due on \(formatter.string(from: due)).",
+                body: "\(rule.name) (\(AmountFormatter.money(rule.amount))) is due on \(formatter.string(from: due)).",
                 fireDate: remind
             ))
         }
@@ -42,8 +42,25 @@ public enum ReminderPlanner {
             specs.append(ReminderSpec(
                 id: "debt-\(debt.id.uuidString)",
                 title: debt.friendName,
-                body: "\(debt.friendName)'s \(AmountFormatter.krw(debt.remaining)) is due on \(formatter.string(from: dueDate)).",
+                body: "\(debt.friendName)'s \(AmountFormatter.money(debt.remaining)) is due on \(formatter.string(from: dueDate)).",
                 fireDate: fire
+            ))
+        }
+
+        // Active installments/loans: remind `remindDaysBefore` the monthly due day,
+        // rolling forward to the next unfired occurrence (same shape as rules).
+        for inst in installments {
+            var due = RecurringMath.nextDueDate(dayOfMonth: inst.dayOfMonth, after: now, calendar: calendar)
+            var remind = at(hour: hour, of: RecurringMath.reminderDate(for: due, daysBefore: inst.remindDaysBefore, calendar: calendar), calendar: calendar)
+            while remind <= now {
+                due = RecurringMath.nextDueDate(dayOfMonth: inst.dayOfMonth, after: due, calendar: calendar)
+                remind = at(hour: hour, of: RecurringMath.reminderDate(for: due, daysBefore: inst.remindDaysBefore, calendar: calendar), calendar: calendar)
+            }
+            specs.append(ReminderSpec(
+                id: "installment-\(inst.id.uuidString)",
+                title: inst.name,
+                body: String(localized: "\(inst.name) payment (\(AmountFormatter.money(inst.monthlyAmount))) is due on \(formatter.string(from: due)).", bundle: .module),
+                fireDate: remind
             ))
         }
 

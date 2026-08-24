@@ -7,13 +7,13 @@ public enum LogDebtHandler {
         let message: String
         switch direction {
         case .iGave where net >= 0:
-            message = "Noted — \(friendName) owes you \(AmountFormatter.krw(amount)) (total \(AmountFormatter.krw(net)))."
+            message = "Noted — \(friendName) owes you \(AmountFormatter.money(amount)) (total \(AmountFormatter.money(net)))."
         case .iTook where net <= 0:
-            message = "Noted — you owe \(friendName) \(AmountFormatter.krw(amount)) (total \(AmountFormatter.krw(abs(net))))."
+            message = "Noted — you owe \(friendName) \(AmountFormatter.money(amount)) (total \(AmountFormatter.money(abs(net))))."
         case .iGave:
-            message = "Noted — \(friendName) owes you \(AmountFormatter.krw(amount)) (overall you still owe \(AmountFormatter.krw(abs(net))))."
+            message = "Noted — \(friendName) owes you \(AmountFormatter.money(amount)) (overall you still owe \(AmountFormatter.money(abs(net))))."
         case .iTook:
-            message = "Noted — you owe \(friendName) \(AmountFormatter.krw(amount)) (overall \(friendName) still owes you \(AmountFormatter.krw(net)))."
+            message = "Noted — you owe \(friendName) \(AmountFormatter.money(amount)) (overall \(friendName) still owes you \(AmountFormatter.money(net)))."
         }
         return LogResult(txnID: debt.id, needsDuplicateConfirmation: false, message: message)
     }
@@ -35,7 +35,7 @@ public enum SettleDebtHandler {
         let (toSettle, remaining) = try await store.settleFriendDebts(friendID: friendID, amount: amount)
         let message = remaining == 0
             ? "\(friendName) is all settled up."
-            : "Settled \(AmountFormatter.krw(toSettle)) — \(friendName) still owes you \(AmountFormatter.krw(remaining))."
+            : "Settled \(AmountFormatter.money(toSettle)) — \(friendName) still owes you \(AmountFormatter.money(remaining))."
         return SettleResult(settledAmount: toSettle, remainingOwed: remaining, message: message)
     }
 }
@@ -89,11 +89,11 @@ public enum DebtQueryHandler {
         case (false, false): message = "No open debts."
         case (true, false):
             let who = theyOweMe.count == 1 ? "1 friend owes" : "\(theyOweMe.count) friends owe"
-            message = "\(who) you \(AmountFormatter.krw(owedToMe)) in total."
-        case (false, true): message = "You owe \(AmountFormatter.krw(owedByMe)) in total."
+            message = "\(who) you \(AmountFormatter.money(owedToMe)) in total."
+        case (false, true): message = "You owe \(AmountFormatter.money(owedByMe)) in total."
         case (true, true):
             let who = theyOweMe.count == 1 ? "1 friend owes" : "\(theyOweMe.count) friends owe"
-            message = "\(who) you \(AmountFormatter.krw(owedToMe)); you owe \(AmountFormatter.krw(owedByMe))."
+            message = "\(who) you \(AmountFormatter.money(owedToMe)); you owe \(AmountFormatter.money(owedByMe))."
         }
         return DebtOverview(theyOweMe: theyOweMe, iOwe: iOwe, message: message)
     }

@@ -6,7 +6,7 @@ import Foundation
     let store = try makeStore()
     try await store.seedDefaultCategoriesIfNeeded()
     let all = try await CategoryEntityResolver.all(store: store)
-    #expect(all.count == 8)
+    #expect(all.count == 10)
     let food = all.first { $0.name == "Food" }!
     let byID = try await CategoryEntityResolver.matching(ids: [food.id, UUID()], store: store)
     #expect(byID.map(\.name) == ["Food"])

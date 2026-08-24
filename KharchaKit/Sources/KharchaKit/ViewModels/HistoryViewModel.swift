@@ -9,8 +9,12 @@ public final class HistoryViewModel: ObservableObject {
 
     public struct State: Sendable {
         public var sections: [Section] = []
+        /// Every transaction, unfiltered — drives the charts and calendar grid.
+        public var allRows: [TxnRow] = []
         public var filterKind: TxnKind?
         public var filterCategoryName: String?
+        /// When set, the list is limited to this day (tapped in the calendar grid).
+        public var dayFilter: Date?
         public var categories: [CategorySnapshot] = []
         public var errorMessage: String?
     }
@@ -43,6 +47,12 @@ public final class HistoryViewModel: ObservableObject {
         await reloadSections(calendar: calendar)
     }
 
+    /// Limit the list to a single day (calendar tap); pass nil to clear.
+    public func setDayFilter(_ day: Date?, calendar: Calendar = .current) async {
+        state.dayFilter = day
+        await reloadSections(calendar: calendar)
+    }
+
     public func delete(_ id: UUID, calendar: Calendar = .current) async {
         do {
             try await store.deleteTxn(txnID: id)
@@ -55,9 +65,12 @@ public final class HistoryViewModel: ObservableObject {
     private func reloadSections(calendar: Calendar) async {
         state.errorMessage = nil
         do {
-            let rows = try await store.txnRows()
+            let all = try await store.txnRows()
+            state.allRows = all
+            let rows = all
                 .filter { state.filterKind == nil || $0.kind == state.filterKind! }
                 .filter { state.filterCategoryName == nil || $0.categoryName == state.filterCategoryName! }
+                .filter { state.dayFilter == nil || calendar.isDate($0.date, inSameDayAs: state.dayFilter!) }
                 .sorted { $0.date > $1.date }
 
             let grouped = Dictionary(grouping: rows) { row in

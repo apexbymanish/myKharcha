@@ -1,37 +1,60 @@
 /* LogExpenseIntent */
-"Log an expense in ${applicationName}" = "${applicationName}에 지출 기록해 줘";
-"Log ${category} spending in ${applicationName}" = "${applicationName}에 ${category} 지출 기록해 줘";
-"I spent money in ${applicationName}" = "${applicationName}에서 돈 썼어";
+"Log an expense in ${applicationName}" = "${applicationName}에 지출 기록";
+"Add an expense in ${applicationName}" = "${applicationName}에 지출 추가";
+"Record an expense in ${applicationName}" = "${applicationName}에 지출 입력";
+"New expense in ${applicationName}" = "${applicationName} 새 지출";
+"Log ${category} spending in ${applicationName}" = "${applicationName}에 ${category} 지출 기록";
+"Track a ${category} expense in ${applicationName}" = "${applicationName}에서 ${category} 지출 추적";
+"I spent money in ${applicationName}" = "${applicationName}에서 돈을 썼어요";
 "${applicationName} expense" = "${applicationName} 지출";
 
 /* LogIncomeIntent */
-"Log income in ${applicationName}" = "${applicationName}에 수입 기록해 줘";
-"I got paid in ${applicationName}" = "${applicationName}에 돈 들어왔어";
+"Log income in ${applicationName}" = "${applicationName}에 수입 기록";
+"Add income in ${applicationName}" = "${applicationName}에 수입 추가";
+"Record income in ${applicationName}" = "${applicationName}에 수입 입력";
+"I got paid in ${applicationName}" = "${applicationName}에서 급여를 받았어요";
+"I received money in ${applicationName}" = "${applicationName}에서 돈을 받았어요";
 "${applicationName} income" = "${applicationName} 수입";
 
 /* SpendingQueryIntent */
-"How much did I spend in ${applicationName}" = "${applicationName}에서 얼마 썼어";
+"How much did I spend in ${applicationName}" = "${applicationName}에서 얼마 썼어요";
+"How much have I spent in ${applicationName}" = "${applicationName}에서 얼마나 썼어요";
+"Check my spending in ${applicationName}" = "${applicationName}에서 지출 확인";
+"Show my spending in ${applicationName}" = "${applicationName}에서 지출 보여줘";
+"What did I spend on ${category} in ${applicationName}" = "${applicationName}에서 ${category}에 얼마 썼어요";
 "${applicationName} spending" = "${applicationName} 지출 내역";
-"Check my spending in ${applicationName}" = "${applicationName}에서 지출 확인해 줘";
 
 /* BudgetStatusIntent */
-"How is my budget in ${applicationName}" = "${applicationName} 예산 어때";
+"How is my budget in ${applicationName}" = "${applicationName}에서 예산 어때요";
+"How are my budgets in ${applicationName}" = "${applicationName}에서 예산 상태 어때요";
+"Check my budget in ${applicationName}" = "${applicationName}에서 예산 확인";
+"Am I over budget in ${applicationName}" = "${applicationName}에서 예산 초과했어요";
 "${applicationName} budget" = "${applicationName} 예산";
 
 /* AddReminderIntent */
-"Add a bill reminder in ${applicationName}" = "${applicationName}에 청구서 알림 추가해 줘";
+"Add a bill reminder in ${applicationName}" = "${applicationName}에 청구서 알림 추가";
+"Add a reminder in ${applicationName}" = "${applicationName}에 알림 추가";
+"Remind me about a bill in ${applicationName}" = "${applicationName}에서 청구서 알려줘";
+"New bill reminder in ${applicationName}" = "${applicationName} 새 청구서 알림";
 "${applicationName} reminder" = "${applicationName} 알림";
 
 /* LogDebtIntent */
-"Log a loan in ${applicationName}" = "${applicationName}에 대여 기록해 줘";
-"I gave money to ${friend} in ${applicationName}" = "${applicationName}에서 ${friend}한테 돈 줬어";
-"I took money from ${friend} in ${applicationName}" = "${applicationName}에서 ${friend}한테 돈 받았어";
-"${applicationName} loan" = "${applicationName} 대여";
+"Log a loan in ${applicationName}" = "${applicationName}에 대출 기록";
+"Add a loan in ${applicationName}" = "${applicationName}에 대출 추가";
+"I gave money to ${friend} in ${applicationName}" = "${applicationName}에서 ${friend}에게 돈을 줬어요";
+"I lent money to ${friend} in ${applicationName}" = "${applicationName}에서 ${friend}에게 돈을 빌려줬어요";
+"I took money from ${friend} in ${applicationName}" = "${applicationName}에서 ${friend}에게서 돈을 받았어요";
+"I borrowed money from ${friend} in ${applicationName}" = "${applicationName}에서 ${friend}에게서 돈을 빌렸어요";
+"${applicationName} loan" = "${applicationName} 대출";
 
 /* SettleDebtIntent */
-"${friend} paid me back in ${applicationName}" = "${applicationName}에서 ${friend}가 돈 갚았어";
-"Settle up in ${applicationName}" = "${applicationName}에서 정산해 줘";
+"${friend} paid me back in ${applicationName}" = "${applicationName}에서 ${friend}이(가) 갚았어요";
+"I paid back ${friend} in ${applicationName}" = "${applicationName}에서 ${friend}에게 갚았어요";
+"Settle up in ${applicationName}" = "${applicationName}에서 정산하기";
+"Settle a debt in ${applicationName}" = "${applicationName}에서 빚 정산";
 
 /* DebtQueryIntent */
-"Who owes me money in ${applicationName}" = "${applicationName}에서 누가 나한테 돈 빚졌어";
-"${applicationName} debts" = "${applicationName} 빚 목록";
+"Who owes me money in ${applicationName}" = "${applicationName}에서 누가 나한테 빚졌어요";
+"Who do I owe in ${applicationName}" = "${applicationName}에서 내가 누구한테 빚졌어요";
+"Show my debts in ${applicationName}" = "${applicationName}에서 내 빚 보여줘";
+"${applicationName} debts" = "${applicationName} 빚";

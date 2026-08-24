@@ -18,14 +18,14 @@ public enum LogExpenseHandler {
             return LogResult(
                 txnID: nil,
                 needsDuplicateConfirmation: true,
-                message: "You just logged \(AmountFormatter.krw(amount)) — log it again?"
+                message: "You just logged \(AmountFormatter.money(amount)) — log it again?"
             )
         }
         let id = try await store.addTxn(amount: amount, kind: .expense, categoryID: categoryID, note: note, date: now, source: .siri)
         return LogResult(
             txnID: id,
             needsDuplicateConfirmation: false,
-            message: "Logged \(AmountFormatter.krw(amount)) for \(categoryName ?? "Uncategorized")."
+            message: "Logged \(AmountFormatter.money(amount)) for \(categoryName ?? "Uncategorized")."
         )
     }
 }
@@ -33,6 +33,6 @@ public enum LogExpenseHandler {
 public enum LogIncomeHandler {
     public static func run(store: ExpenseStore, amount: Decimal, note: String?, now: Date) async throws -> LogResult {
         let id = try await store.addTxn(amount: amount, kind: .income, categoryID: nil, note: note, date: now, source: .siri)
-        return LogResult(txnID: id, needsDuplicateConfirmation: false, message: "Recorded \(AmountFormatter.krw(amount)) income.")
+        return LogResult(txnID: id, needsDuplicateConfirmation: false, message: "Recorded \(AmountFormatter.money(amount)) income.")
     }
 }

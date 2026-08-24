@@ -135,6 +135,44 @@ struct FriendDetailViewModelTests {
 
     @Test
     @MainActor
+    func totalsBreakDownByDirection() async throws {
+        let store = try makeStore()
+        let friend = try await store.addFriend(name: "Judy", phone: nil)
+        _ = try await store.addDebt(friendID: friend.id, amount: 100_000, direction: .iGave, date: d(2026, 8, 1), note: nil, dueDate: nil)
+        _ = try await store.addDebt(friendID: friend.id, amount: 30_000, direction: .iGave, date: d(2026, 8, 2), note: nil, dueDate: nil)
+        _ = try await store.addDebt(friendID: friend.id, amount: 50_000, direction: .iTook, date: d(2026, 8, 3), note: nil, dueDate: nil)
+
+        let vm = FriendDetailViewModel(store: store, friendID: friend.id, friendName: friend.name)
+        await vm.load()
+
+        #expect(vm.state.totalGiven == 130_000)
+        #expect(vm.state.totalTaken == 50_000)
+        #expect(vm.state.net == 80_000) // 130k given − 50k taken
+    }
+
+    @Test
+    @MainActor
+    func clearAllSettlesBothDirections() async throws {
+        let store = try makeStore()
+        let friend = try await store.addFriend(name: "Karl", phone: nil)
+        _ = try await store.addDebt(friendID: friend.id, amount: 100_000, direction: .iGave, date: d(2026, 8, 1), note: nil, dueDate: nil)
+        _ = try await store.addDebt(friendID: friend.id, amount: 40_000, direction: .iTook, date: d(2026, 8, 2), note: nil, dueDate: nil)
+
+        let vm = FriendDetailViewModel(store: store, friendID: friend.id, friendName: friend.name)
+        await vm.load()
+        #expect(vm.state.net == 60_000)
+
+        await vm.clearAll()
+
+        #expect(vm.state.errorMessage == nil)
+        #expect(vm.state.net == 0)
+        #expect(vm.state.totalGiven == 0)
+        #expect(vm.state.totalTaken == 0)
+        #expect(vm.state.debts.allSatisfy { $0.settled })
+    }
+
+    @Test
+    @MainActor
     func writeOffConvertsToExpense() async throws {
         let store = try makeStore()
         let friend = try await store.addFriend(name: "Grace", phone: nil)

@@ -7,6 +7,7 @@ private func rule(_ name: String, amount: Decimal, day: Int, remind: Int) -> Rec
 }
 
 @Test func rulePlansReminderBeforeDueDate() {
+    pinTestCurrency()
     let specs = ReminderPlanner.plan(rules: [rule("Rent", amount: 500_000, day: 25, remind: 3)], debts: [], now: d(2026, 8, 19), calendar: testCal)
     #expect(specs.count == 1)
     #expect(specs[0].id.hasPrefix("rule-"))
@@ -17,6 +18,7 @@ private func rule(_ name: String, amount: Decimal, day: Int, remind: Int) -> Rec
 }
 
 @Test func rulePastRemindWindowRollsToNextMonth() {
+    pinTestCurrency()
     // now = Aug 24: due Aug 25 but remind day (Aug 22, 09:00) already passed → roll to Sep 25 due, Sep 22 fire
     let specs = ReminderPlanner.plan(rules: [rule("Rent", amount: 500_000, day: 25, remind: 3)], debts: [], now: d(2026, 8, 24), calendar: testCal)
     #expect(specs[0].body == "Rent (₩500,000) is due on Sep 25.")
@@ -24,6 +26,7 @@ private func rule(_ name: String, amount: Decimal, day: Int, remind: Int) -> Rec
 }
 
 @Test func debtReminderOneDayBeforeDueSkippingPast() {
+    pinTestCurrency()
     let ram = UUID()
     let due = DebtSnapshot(id: UUID(), friendID: ram, friendName: "Ram", amount: 50_000, direction: .iGave, remaining: 50_000, settled: false, dueDate: d(2026, 8, 30, 0), date: d(2026, 8, 1), note: nil)
     let past = DebtSnapshot(id: UUID(), friendID: ram, friendName: "Ram", amount: 10_000, direction: .iGave, remaining: 10_000, settled: false, dueDate: d(2026, 8, 10, 0), date: d(2026, 8, 1), note: nil)
@@ -35,6 +38,7 @@ private func rule(_ name: String, amount: Decimal, day: Int, remind: Int) -> Rec
 }
 
 @Test func ruleLargeRemindDaysBeforeLoopsUntilFuture() {
+    pinTestCurrency()
     // day 25, remindDaysBefore 40, now = Aug 19
     // First due: Aug 25, remind: Aug 25 - 40 = Jul 16 (past)
     // Second due: Sep 25, remind: Sep 25 - 40 = Aug 16 (past)

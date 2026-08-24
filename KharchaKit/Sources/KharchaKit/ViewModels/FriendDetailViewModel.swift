@@ -6,6 +6,9 @@ public final class FriendDetailViewModel: ObservableObject {
         public var friendID: UUID
         public var friendName: String
         public var net: Decimal = 0
+        /// Sum of still-open amounts by direction (for the breakdown UI).
+        public var totalGiven: Decimal = 0
+        public var totalTaken: Decimal = 0
         public var debts: [DebtSnapshot] = []
         public var errorMessage: String?
 
@@ -32,6 +35,8 @@ public final class FriendDetailViewModel: ObservableObject {
 
             state.debts = debts
             state.net = balances[state.friendID] ?? 0
+            state.totalGiven = debts.filter { !$0.settled && $0.direction == .iGave }.reduce(0) { $0 + $1.remaining }
+            state.totalTaken = debts.filter { !$0.settled && $0.direction == .iTook }.reduce(0) { $0 + $1.remaining }
         } catch {
             state.errorMessage = (error as? LocalizedError)?.errorDescription ?? "Something went wrong."
         }
@@ -82,6 +87,24 @@ public final class FriendDetailViewModel: ObservableObject {
 
         do {
             _ = try await store.settleFriendDebts(friendID: state.friendID, amount: amount, direction: direction)
+            await load()
+        } catch {
+            state.errorMessage = (error as? LocalizedError)?.errorDescription ?? "Something went wrong."
+        }
+    }
+
+    /// Clear the whole balance — fully settle every open debt in both directions.
+    public func clearAll() async {
+        state.errorMessage = nil
+        let hasGave = state.debts.contains { !$0.settled && $0.direction == .iGave }
+        let hasTook = state.debts.contains { !$0.settled && $0.direction == .iTook }
+        guard hasGave || hasTook else {
+            state.errorMessage = "Nothing to clear."
+            return
+        }
+        do {
+            if hasGave { _ = try await store.settleFriendDebts(friendID: state.friendID, amount: nil, direction: .iGave) }
+            if hasTook { _ = try await store.settleFriendDebts(friendID: state.friendID, amount: nil, direction: .iTook) }
             await load()
         } catch {
             state.errorMessage = (error as? LocalizedError)?.errorDescription ?? "Something went wrong."

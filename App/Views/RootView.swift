@@ -9,6 +9,10 @@ import KharchaKit
 /// ViewModel (see task-9-report.md, "adaptations").
 struct RootView: View {
     @EnvironmentObject private var services: AppServices
+    @EnvironmentObject private var signIn: SignInManager
+    @ObservedObject private var navigator = AppNavigator.shared
+    @Environment(\.scenePhase) private var scenePhase
+    @AppStorage("onboardingDone") private var onboardingDone = false
 
     var body: some View {
         TabView {
@@ -32,6 +36,36 @@ struct RootView: View {
             }
             .tabItem { Label("More", systemImage: "ellipsis") }
         }
+        // Single brand accent across every screen (HIG: one consistent tint for
+        // interactivity), coordinated with the app logo.
+        .tint(.brandPrimary)
+        // Presented from OpenAddExpenseIntent (Spotlight/Siri "Add Expense"),
+        // the Home Screen widget (jebkharcha://add), or the Control Center control
+        // — independent of whichever tab is active.
+        .sheet(isPresented: $navigator.showAddExpense) {
+            NavigationStack {
+                TxnFormView(store: services.store)
+            }
+        }
+        .fullScreenCover(isPresented: Binding(get: { !onboardingDone }, set: { onboardingDone = !$0 })) {
+            OnboardingView()
+        }
+        .onOpenURL { navigator.handle(url: $0) }
+        // Start live sync if already signed in at launch, and react to sign-in/out.
+        .task {
+            if let uid = signIn.firebaseUID { services.sync.start(uid: uid) }
+        }
+        .onChange(of: signIn.firebaseUID) { _, uid in
+            if let uid { services.sync.start(uid: uid) } else { services.sync.stop() }
+        }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active {
+                navigator.consumePendingAddExpense()
+            } else {
+                // Leaving the foreground → flush local changes to the cloud.
+                services.sync.pushNow()
+            }
+        }
     }
 }
 
@@ -40,10 +74,63 @@ private struct MoreView: View {
 
     var body: some View {
         List {
-            NavigationLink("Budgets") { BudgetsView(store: store) }
-            NavigationLink("Reminders") { RemindersView(store: store) }
-            NavigationLink("Settings") { SettingsView(store: store) }
+            Section("Planning") {
+                NavigationLink { PlanView(store: store) } label: {
+                    MoreRow(icon: "chart.line.uptrend.xyaxis", tint: .brandPrimary,
+                            title: "Monthly Plan", subtitle: "Forecast this month's income and spending")
+                }
+                NavigationLink { BudgetsView(store: store) } label: {
+                    MoreRow(icon: "chart.pie", tint: .brandPrimary,
+                            title: "Budgets", subtitle: "Set spending limits per category")
+                }
+                NavigationLink { SavingsView(store: store) } label: {
+                    MoreRow(icon: "banknote", tint: .brandPrimary,
+                            title: "Savings", subtitle: "Pots, goals, and where to keep money")
+                }
+                NavigationLink { InstallmentsView(store: store) } label: {
+                    MoreRow(icon: "creditcard", tint: .brandPrimary,
+                            title: "Installments & Loans", subtitle: "Track what you pay off over months")
+                }
+                NavigationLink { RemindersView(store: store) } label: {
+                    MoreRow(icon: "bell", tint: .brandPrimary,
+                            title: "Reminders", subtitle: "Get alerts before bills are due")
+                }
+            }
+            Section("Account") {
+                NavigationLink { SettingsView(store: store) } label: {
+                    MoreRow(icon: "gearshape", tint: .secondary,
+                            title: "Settings", subtitle: "Currency, language, backup, export")
+                }
+            }
         }
         .navigationTitle("More")
+    }
+}
+
+/// A More-list row: tinted SF icon + title + one-line description (Settings-style),
+/// so each planning tool explains itself at a glance.
+private struct MoreRow: View {
+    let icon: String
+    let tint: Color
+    let title: LocalizedStringKey
+    let subtitle: LocalizedStringKey
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: icon)
+                .font(.body)
+                .foregroundStyle(.white)
+                .frame(width: 30, height: 30)
+                .background(tint)
+                .clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
+            VStack(alignment: .leading, spacing: 1) {
+                Text(title)
+                Text(subtitle)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .padding(.vertical, 2)
+        .accessibilityElement(children: .combine)
     }
 }

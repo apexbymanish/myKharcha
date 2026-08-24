@@ -8,6 +8,7 @@ struct FriendDetailView: View {
     @State private var showAddDebtSheet = false
     @State private var addDebtDirection: DebtDirection = .iGave
     @State private var showSettleAlert = false
+    @State private var showClearConfirm = false
 
     init(store: ExpenseStore, friendID: UUID, friendName: String) {
         self.store = store
@@ -15,8 +16,8 @@ struct FriendDetailView: View {
     }
 
     private var netPhrase: String {
-        if vm.state.net > 0 { return "\(vm.state.friendName) owes you \(AmountFormatter.krw(vm.state.net))" }
-        if vm.state.net < 0 { return "You owe \(vm.state.friendName) \(AmountFormatter.krw(abs(vm.state.net)))" }
+        if vm.state.net > 0 { return "\(vm.state.friendName) owes you \(AmountFormatter.money(vm.state.net))" }
+        if vm.state.net < 0 { return "You owe \(vm.state.friendName) \(AmountFormatter.money(abs(vm.state.net)))" }
         return "Settled up"
     }
 
@@ -24,6 +25,25 @@ struct FriendDetailView: View {
         List {
             Section {
                 Text(netPhrase).font(.title3.bold())
+
+                // Running totals of what's still open, by direction.
+                HStack {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("You gave").font(.caption).foregroundStyle(.secondary)
+                        Text(AmountFormatter.money(vm.state.totalGiven))
+                            .font(.callout.monospacedDigit())
+                            .foregroundStyle(Color.moneyIn)
+                    }
+                    Spacer()
+                    VStack(alignment: .trailing, spacing: 2) {
+                        Text("You took").font(.caption).foregroundStyle(.secondary)
+                        Text(AmountFormatter.money(vm.state.totalTaken))
+                            .font(.callout.monospacedDigit())
+                            .foregroundStyle(Color.moneyOut)
+                    }
+                }
+                .accessibilityElement(children: .combine)
+
                 HStack {
                     Button("I gave") {
                         addDebtDirection = .iGave
@@ -38,12 +58,14 @@ struct FriendDetailView: View {
                     .buttonStyle(.bordered)
 
                     Spacer()
+                }
 
-                    if vm.state.net != 0 {
-                        Button("Settle up") {
-                            showSettleAlert = true
-                        }
-                        .buttonStyle(.borderedProminent)
+                if vm.state.net != 0 {
+                    HStack {
+                        Button("Settle up") { showSettleAlert = true }
+                            .buttonStyle(.bordered)
+                        Button("Clear All", role: .destructive) { showClearConfirm = true }
+                            .buttonStyle(.borderedProminent)
                     }
                 }
             }
@@ -66,8 +88,16 @@ struct FriendDetailView: View {
                             }
                         }
                         Spacer()
-                        Text(AmountFormatter.krw(debt.remaining))
-                            .font(.callout.monospacedDigit())
+                        HStack(spacing: 4) {
+                            if debt.settled {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundStyle(.secondary)
+                                    .accessibilityLabel("Settled")
+                            }
+                            Text(AmountFormatter.money(debt.remaining))
+                                .font(.callout.monospacedDigit())
+                                .strikethrough(debt.settled)
+                        }
                     }
                     .opacity(debt.settled ? 0.4 : 1.0)
                     .swipeActions {
@@ -81,7 +111,7 @@ struct FriendDetailView: View {
             }
 
             if let error = vm.state.errorMessage {
-                Text(error).foregroundStyle(.red)
+                InlineError(message: error)
             }
         }
         .navigationTitle(vm.state.friendName)
@@ -97,6 +127,12 @@ struct FriendDetailView: View {
             keyboardType: .decimalPad
         ) { text in
             Task { await vm.settle(amountText: text.isEmpty ? nil : text) }
+        }
+        .confirmationDialog("Clear balance with \(vm.state.friendName)?", isPresented: $showClearConfirm, titleVisibility: .visible) {
+            Button("Clear All", role: .destructive) { Task { await vm.clearAll() } }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Marks every open amount as settled and resets the balance to zero.")
         }
         .task { await vm.load() }
         .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
@@ -126,7 +162,7 @@ private struct AddDebtSheet: View {
                 DatePicker("Due", selection: $dueDate, displayedComponents: .date)
             }
             if let error = vm.state.errorMessage {
-                Text(error).foregroundStyle(.red)
+                InlineError(message: error)
             }
         }
         .navigationTitle(direction == .iGave ? "I Gave" : "I Took")

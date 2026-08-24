@@ -11,7 +11,7 @@ public enum AddReminderHandler {
         return LogResult(
             txnID: rule.id,
             needsDuplicateConfirmation: false,
-            message: "I'll remind you about \(name) (\(AmountFormatter.krw(amount))) on \(formatter.string(from: due))."
+            message: "I'll remind you about \(name) (\(AmountFormatter.money(amount))) on \(formatter.string(from: due))."
         )
     }
 }

@@ -1,0 +1,708 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "%@" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "%@"
+          }
+        },
+        "ne" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "%@"
+          }
+        }
+      }
+    },
+    "%@ (%@) is due soon." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ (%2$@) is due soon."
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "%1$@(%2$@)의 마감일이 곧 다가옵니다."
+          }
+        },
+        "ne" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "%1$@ (%2$@) चाँडै तिर्नुपर्ने छ।"
+          }
+        }
+      }
+    },
+    "%@ / %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ / %2$@"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "%@ / %@"
+          }
+        },
+        "ne" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "%@ / %@"
+          }
+        }
+      }
+    },
+    "%@ payment (%@) is due on %@." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ payment (%2$@) is due on %3$@."
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "%1$@ 납부(%2$@)일이 %3$@입니다."
+          }
+        },
+        "ne" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "%1$@ भुक्तानी (%2$@) %3$@ मा तिर्नुपर्ने छ।"
+          }
+        }
+      }
+    },
+    "Add Reminder" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "리마인더 추가"
+          }
+        },
+        "ne" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "रिमाइन्डर थप्नुहोस्"
+          }
+        }
+      }
+    },
+    "Adds a recurring reminder in Kharcha." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Kharcha에 반복 리마인더를 추가합니다."
+          }
+        },
+        "ne" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Kharcha मा दोहोरिने रिमाइन्डर थप्छ।"
+          }
+        }
+      }
+    },
+    "After %@ of commitments, you can save %@ and safely spend %@ this month." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "After %1$@ of commitments, you can save %2$@ and safely spend %3$@ this month."
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "고정 지출 %1$@를 제외하면 이번 달에 %2$@를 저축하고 %3$@를 안심하고 지출할 수 있습니다."
+          }
+        },
+        "ne" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "%1$@ नियमित खर्च कटाएपछि, यस महिना तपाईं %2$@ बचत गर्न र %3$@ ढुक्कसँग खर्च गर्न सक्नुहुन्छ।"
+          }
+        }
+      }
+    },
+    "Amount" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "금액"
+          }
+        },
+        "ne" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "रकम"
+          }
+        }
+      }
+    },
+    "Budget Status" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "예산 현황"
+          }
+        },
+        "ne" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "बजेट स्थिति"
+          }
+        }
+      }
+    },
+    "Category" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "카테고리"
+          }
+        },
+        "ne" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "कोटी"
+          }
+        }
+      }
+    },
+    "Day of Month" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "매월 일자"
+          }
+        },
+        "ne" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "महिनाको गते"
+          }
+        }
+      }
+    },
+    "Debt Overview" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "채무 요약"
+          }
+        },
+        "ne" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "ऋण सारांश"
+          }
+        }
+      }
+    },
+    "Direction" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "방향"
+          }
+        },
+        "ne" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "दिशा"
+          }
+        }
+      }
+    },
+    "Friend" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "친구"
+          }
+        },
+        "ne" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "साथी"
+          }
+        }
+      }
+    },
+    "I gave" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "빌려줌"
+          }
+        },
+        "ne" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "मैले दिएँ"
+          }
+        }
+      }
+    },
+    "I took" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "빌림"
+          }
+        },
+        "ne" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "मैले लिएँ"
+          }
+        }
+      }
+    },
+    "Log Debt" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "채무 기록"
+          }
+        },
+        "ne" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "ऋण रेकर्ड गर्नुहोस्"
+          }
+        }
+      }
+    },
+    "Log Expense" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "지출 기록"
+          }
+        },
+        "ne" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "खर्च रेकर्ड गर्नुहोस्"
+          }
+        }
+      }
+    },
+    "Log Income" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "수입 기록"
+          }
+        },
+        "ne" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "आम्दानी रेकर्ड गर्नुहोस्"
+          }
+        }
+      }
+    },
+    "Logs an expense in Kharcha." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Kharcha에 지출을 기록합니다."
+          }
+        },
+        "ne" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Kharcha मा खर्च रेकर्ड गर्छ।"
+          }
+        }
+      }
+    },
+    "Logs income in Kharcha." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Kharcha에 수입을 기록합니다."
+          }
+        },
+        "ne" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Kharcha मा आम्दानी रेकर्ड गर्छ।"
+          }
+        }
+      }
+    },
+    "Logs money owed between you and a friend." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "나와 친구 사이에 오간 빚을 기록합니다."
+          }
+        },
+        "ne" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "तपाईं र साथीबीच तिर्नुपर्ने रकम रेकर्ड गर्छ।"
+          }
+        }
+      }
+    },
+    "Name" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "이름"
+          }
+        },
+        "ne" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "नाम"
+          }
+        }
+      }
+    },
+    "No open debts" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "미정산 채무 없음"
+          }
+        },
+        "ne" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "कुनै बाँकी ऋण छैन"
+          }
+        }
+      }
+    },
+    "Note" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "메모"
+          }
+        },
+        "ne" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "टिप्पणी"
+          }
+        }
+      }
+    },
+    "Owed to you" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "받을 돈"
+          }
+        },
+        "ne" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "तपाईंले पाउनुपर्ने"
+          }
+        }
+      }
+    },
+    "Period" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "기간"
+          }
+        },
+        "ne" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "अवधि"
+          }
+        }
+      }
+    },
+    "Remind Days Before" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "며칠 전에 알림"
+          }
+        },
+        "ne" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "कति दिन अगावै रिमाइन्डर"
+          }
+        }
+      }
+    },
+    "Settle Debt" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "채무 정산하기"
+          }
+        },
+        "ne" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "ऋण मिलाउनुहोस्"
+          }
+        }
+      }
+    },
+    "Settles some or all of what a friend owes you." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "친구가 갚을 돈의 일부 또는 전부를 정산합니다."
+          }
+        },
+        "ne" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "साथीले तपाईंलाई तिर्नुपर्ने रकमको केही वा सम्पूर्ण चुक्ता गर्छ।"
+          }
+        }
+      }
+    },
+    "Spending Summary" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "지출 요약"
+          }
+        },
+        "ne" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "खर्च सारांश"
+          }
+        }
+      }
+    },
+    "Spent %@" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "%@ 지출"
+          }
+        },
+        "ne" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "%@ खर्च"
+          }
+        }
+      }
+    },
+    "Subscriptions account for %@ of your commitments." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "구독이 고정 지출의 %@를 차지합니다."
+          }
+        },
+        "ne" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "तपाईंको नियमित खर्चको %@ सदस्यताले ओगट्छ।"
+          }
+        }
+      }
+    },
+    "Tells you how much you've spent." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "얼마를 지출했는지 알려줍니다."
+          }
+        },
+        "ne" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "तपाईंले कति खर्च गर्नुभयो भनेर बताउँछ।"
+          }
+        }
+      }
+    },
+    "Tells you how your budgets are tracking." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "예산이 어떻게 진행되고 있는지 알려줍니다."
+          }
+        },
+        "ne" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "तपाईंको बजेट कस्तो चलिरहेको छ भनेर बताउँछ।"
+          }
+        }
+      }
+    },
+    "Tells you who owes whom." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "누가 누구에게 빚졌는지 알려줍니다."
+          }
+        },
+        "ne" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "कसले कसलाई तिर्नुपर्ने हो भनेर बताउँछ।"
+          }
+        }
+      }
+    },
+    "this month" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "이번 달"
+          }
+        },
+        "ne" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "यस महिना"
+          }
+        }
+      }
+    },
+    "this week" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "이번 주"
+          }
+        },
+        "ne" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "यस हप्ता"
+          }
+        }
+      }
+    },
+    "To keep saving at this rate and cover your usual spending, aim to earn about %@ per month." : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "이 저축 속도를 유지하면서 평소 지출을 감당하려면 매월 약 %@를 벌어야 합니다."
+          }
+        },
+        "ne" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "यही दरमा बचत जारी राख्दै तपाईंको सामान्य खर्च धान्न, प्रति महिना लगभग %@ कमाउने लक्ष्य राख्नुहोस्।"
+          }
+        }
+      }
+    },
+    "today" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "오늘"
+          }
+        },
+        "ne" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "आज"
+          }
+        }
+      }
+    },
+    "You owe" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "갚을 돈"
+          }
+        },
+        "ne" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "तपाईंले तिर्नुपर्ने"
+          }
+        }
+      }
+    },
+    "Your commitments (%@) are %@ more than your income of %@. Consider trimming subscriptions or adding income." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Your commitments (%1$@) are %2$@ more than your income of %3$@. Consider trimming subscriptions or adding income."
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "고정 지출(%1$@)이 수입 %3$@보다 %2$@ 많습니다. 구독을 줄이거나 수입을 늘리는 것을 고려해 보세요."
+          }
+        },
+        "ne" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "तपाईंको नियमित खर्च (%1$@) तपाईंको आम्दानी %3$@ भन्दा %2$@ ले बढी छ। सदस्यता घटाउने वा आम्दानी थप्ने विचार गर्नुहोस्।"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.3"
+}

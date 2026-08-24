@@ -1,19 +1,35 @@
 import Foundation
+import os
 
 public enum AmountFormatter {
-    private static let formatter: NumberFormatter = {
-        let f = NumberFormatter()
-        f.numberStyle = .decimal
-        f.locale = Locale(identifier: "en_US_POSIX")
-        f.groupingSeparator = ","
-        f.usesGroupingSeparator = true
-        f.minimumFractionDigits = 0
-        f.maximumFractionDigits = 2
-        return f
-    }()
+    // Backing store: an unfair lock keeps the mutable currency code
+    // concurrency-safe (Siri handlers format money off the main actor).
+    private static let _currencyCode = OSAllocatedUnfairLock(
+        initialState: Locale.current.currency?.identifier ?? "USD"
+    )
 
-    public static func krw(_ amount: Decimal) -> String {
-        "₩" + (formatter.string(from: amount as NSDecimalNumber) ?? "\(amount)")
+    /// ISO 4217 currency code used when formatting money for display.
+    ///
+    /// Defaults to the device region's currency so every process (app + Siri
+    /// extension) is region-aware out of the box. The app overrides this at
+    /// launch from the user's stored preference (Settings → Currency).
+    public static var currencyCode: String {
+        get { _currencyCode.withLock { $0 } }
+        set { _currencyCode.withLock { $0 = newValue } }
+    }
+
+    /// Formats `amount` as money in the globally-configured `currencyCode`, using
+    /// the current locale for grouping, symbol placement, and the currency's
+    /// natural fraction-digit count (e.g. KRW shows none, USD shows two).
+    public static func money(_ amount: Decimal) -> String {
+        money(amount, currencyCode: currencyCode)
+    }
+
+    /// Currency-explicit variant — formats in the given ISO code regardless of
+    /// the global preference. Useful where a specific currency must be forced
+    /// (and for deterministic tests without mutating global state).
+    public static func money(_ amount: Decimal, currencyCode: String) -> String {
+        amount.formatted(.currency(code: currencyCode))
     }
 }
 

@@ -5,3 +5,5 @@ xcuserdata/
 .superpowers/
 DerivedData/
 *.xcuserdatad
+GoogleService-Info.plist
+*.xcworkspace/xcshareddata/

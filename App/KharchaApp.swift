@@ -12,9 +12,12 @@ import KharchaKit
 @MainActor
 final class AppServices: ObservableObject {
     let store: ExpenseStore
+    let sync: SyncEngine
 
     init() {
-        store = ExpenseStore(modelContainer: AppContainer.shared)
+        let store = ExpenseStore(modelContainer: AppContainer.shared)
+        self.store = store
+        self.sync = SyncEngine(store: store)
     }
 }
 
@@ -22,11 +25,13 @@ final class AppServices: ObservableObject {
 struct KharchaApp: App {
     @UIApplicationDelegateAdaptor(AppBootstrap.self) private var bootstrap
     @StateObject private var services = AppServices()
+    @StateObject private var signIn = SignInManager()
 
     var body: some Scene {
         WindowGroup {
             RootView()
                 .environmentObject(services)
+                .environmentObject(signIn)
         }
     }
 }

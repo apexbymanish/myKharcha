@@ -19,12 +19,12 @@ public struct SpendingCard: View {
     public var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Spent \(summary.periodLabel)").font(.caption).foregroundStyle(.secondary)
-            Text(AmountFormatter.krw(summary.total)).font(.title2.bold())
+            Text(AmountFormatter.money(summary.total)).font(.title2.bold())
             ForEach(summary.top, id: \.categoryName) { row in
                 HStack {
                     Text(row.categoryName).font(.callout)
                     Spacer()
-                    Text(AmountFormatter.krw(row.amount)).font(.callout.monospacedDigit())
+                    Text(AmountFormatter.money(row.amount)).font(.callout.monospacedDigit())
                 }
             }
         }
@@ -42,7 +42,7 @@ public struct BudgetCard: View {
                     HStack {
                         Text(status.categoryName).font(.callout)
                         Spacer()
-                        Text("\(AmountFormatter.krw(status.spent)) / \(AmountFormatter.krw(status.budget))")
+                        Text("\(AmountFormatter.money(status.spent)) / \(AmountFormatter.money(status.budget))")
                             .font(.caption.monospacedDigit())
                             .foregroundStyle(status.isOver ? .red : .secondary)
                     }
@@ -65,14 +65,14 @@ public struct DebtCard: View {
             if !overview.theyOweMe.isEmpty {
                 Text("Owed to you").font(.caption).foregroundStyle(.secondary)
                 ForEach(overview.theyOweMe, id: \.friendID) { row in
-                    HStack { Text(row.name); Spacer(); Text(AmountFormatter.krw(row.amount)).monospacedDigit() }
+                    HStack { Text(row.name); Spacer(); Text(AmountFormatter.money(row.amount)).monospacedDigit() }
                         .font(.callout)
                 }
             }
             if !overview.iOwe.isEmpty {
                 Text("You owe").font(.caption).foregroundStyle(.secondary)
                 ForEach(overview.iOwe, id: \.friendID) { row in
-                    HStack { Text(row.name); Spacer(); Text(AmountFormatter.krw(row.amount)).monospacedDigit() }
+                    HStack { Text(row.name); Spacer(); Text(AmountFormatter.money(row.amount)).monospacedDigit() }
                         .font(.callout)
                 }
             }

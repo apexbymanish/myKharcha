@@ -28,13 +28,13 @@ public enum SpendingQueryHandler {
             let total = try await store.spent(in: period, categoryID: categoryID, now: now, calendar: calendar)
             let message = total == 0
                 ? "You haven't spent anything \(periodLabel)."
-                : "You spent \(AmountFormatter.krw(total)) on \(categoryName ?? "that") \(periodLabel)."
+                : "You spent \(AmountFormatter.money(total)) on \(categoryName ?? "that") \(periodLabel)."
             return SpendingSummary(periodLabel: periodLabel, total: total, top: [], message: message)
         }
         let breakdown = try await store.spendingBreakdown(in: period, now: now, calendar: calendar)
         let message = breakdown.total == 0
             ? "You haven't spent anything \(periodLabel)."
-            : "You spent \(AmountFormatter.krw(breakdown.total)) \(periodLabel)."
+            : "You spent \(AmountFormatter.money(breakdown.total)) \(periodLabel)."
         return SpendingSummary(periodLabel: periodLabel, total: breakdown.total, top: Array(breakdown.categories.prefix(3)), message: message)
     }
 }

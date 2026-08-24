@@ -1,37 +1,60 @@
 /* LogExpenseIntent */
 "Log an expense in ${applicationName}" = "Log an expense in ${applicationName}";
+"Add an expense in ${applicationName}" = "Add an expense in ${applicationName}";
+"Record an expense in ${applicationName}" = "Record an expense in ${applicationName}";
+"New expense in ${applicationName}" = "New expense in ${applicationName}";
 "Log ${category} spending in ${applicationName}" = "Log ${category} spending in ${applicationName}";
+"Track a ${category} expense in ${applicationName}" = "Track a ${category} expense in ${applicationName}";
 "I spent money in ${applicationName}" = "I spent money in ${applicationName}";
 "${applicationName} expense" = "${applicationName} expense";
 
 /* LogIncomeIntent */
 "Log income in ${applicationName}" = "Log income in ${applicationName}";
+"Add income in ${applicationName}" = "Add income in ${applicationName}";
+"Record income in ${applicationName}" = "Record income in ${applicationName}";
 "I got paid in ${applicationName}" = "I got paid in ${applicationName}";
+"I received money in ${applicationName}" = "I received money in ${applicationName}";
 "${applicationName} income" = "${applicationName} income";
 
 /* SpendingQueryIntent */
 "How much did I spend in ${applicationName}" = "How much did I spend in ${applicationName}";
-"${applicationName} spending" = "${applicationName} spending";
+"How much have I spent in ${applicationName}" = "How much have I spent in ${applicationName}";
 "Check my spending in ${applicationName}" = "Check my spending in ${applicationName}";
+"Show my spending in ${applicationName}" = "Show my spending in ${applicationName}";
+"What did I spend on ${category} in ${applicationName}" = "What did I spend on ${category} in ${applicationName}";
+"${applicationName} spending" = "${applicationName} spending";
 
 /* BudgetStatusIntent */
 "How is my budget in ${applicationName}" = "How is my budget in ${applicationName}";
+"How are my budgets in ${applicationName}" = "How are my budgets in ${applicationName}";
+"Check my budget in ${applicationName}" = "Check my budget in ${applicationName}";
+"Am I over budget in ${applicationName}" = "Am I over budget in ${applicationName}";
 "${applicationName} budget" = "${applicationName} budget";
 
 /* AddReminderIntent */
 "Add a bill reminder in ${applicationName}" = "Add a bill reminder in ${applicationName}";
+"Add a reminder in ${applicationName}" = "Add a reminder in ${applicationName}";
+"Remind me about a bill in ${applicationName}" = "Remind me about a bill in ${applicationName}";
+"New bill reminder in ${applicationName}" = "New bill reminder in ${applicationName}";
 "${applicationName} reminder" = "${applicationName} reminder";
 
 /* LogDebtIntent */
 "Log a loan in ${applicationName}" = "Log a loan in ${applicationName}";
+"Add a loan in ${applicationName}" = "Add a loan in ${applicationName}";
 "I gave money to ${friend} in ${applicationName}" = "I gave money to ${friend} in ${applicationName}";
+"I lent money to ${friend} in ${applicationName}" = "I lent money to ${friend} in ${applicationName}";
 "I took money from ${friend} in ${applicationName}" = "I took money from ${friend} in ${applicationName}";
+"I borrowed money from ${friend} in ${applicationName}" = "I borrowed money from ${friend} in ${applicationName}";
 "${applicationName} loan" = "${applicationName} loan";
 
 /* SettleDebtIntent */
 "${friend} paid me back in ${applicationName}" = "${friend} paid me back in ${applicationName}";
+"I paid back ${friend} in ${applicationName}" = "I paid back ${friend} in ${applicationName}";
 "Settle up in ${applicationName}" = "Settle up in ${applicationName}";
+"Settle a debt in ${applicationName}" = "Settle a debt in ${applicationName}";
 
 /* DebtQueryIntent */
 "Who owes me money in ${applicationName}" = "Who owes me money in ${applicationName}";
+"Who do I owe in ${applicationName}" = "Who do I owe in ${applicationName}";
+"Show my debts in ${applicationName}" = "Show my debts in ${applicationName}";
 "${applicationName} debts" = "${applicationName} debts";

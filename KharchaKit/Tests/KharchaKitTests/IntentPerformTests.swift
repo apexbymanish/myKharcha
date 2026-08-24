@@ -53,7 +53,7 @@ extension IntentGlobalStateTests {
         try await store.seedDefaultCategoriesIfNeeded()
 
         let suggested = try await CategoryEntityQuery().suggestedEntities()
-        #expect(suggested.count == 8)
+        #expect(suggested.count == 10)
     }
 
     @Test func friendEntityQueryFindsFuzzyMatch() async throws {

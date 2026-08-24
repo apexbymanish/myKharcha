@@ -20,7 +20,7 @@ struct RemindersView: View {
                     HStack {
                         Text(rule.name).font(.headline)
                         Spacer()
-                        Text(AmountFormatter.krw(rule.amount)).font(.callout.monospacedDigit())
+                        Text(AmountFormatter.money(rule.amount)).font(.callout.monospacedDigit())
                     }
                     HStack {
                         Text("Day \(rule.dayOfMonth) (next: \(vm.nextDueText(for: rule)))")
@@ -49,7 +49,7 @@ struct RemindersView: View {
                 }
             }
             if let error = vm.state.errorMessage {
-                Text(error).foregroundStyle(.red)
+                InlineError(message: error)
             }
             if notificationsDenied {
                 Text("Notifications are off — reminders won't fire. Enable them in Settings.")
@@ -65,6 +65,7 @@ struct RemindersView: View {
                 } label: {
                     Image(systemName: "plus")
                 }
+                .accessibilityLabel("Add reminder")
             }
         }
         .sheet(isPresented: $showAddSheet) {
@@ -111,7 +112,7 @@ private struct AddReminderSheet: View {
                 Toggle("Auto-log", isOn: $autoLog)
             }
             if let error = vm.state.errorMessage {
-                Text(error).foregroundStyle(.red)
+                InlineError(message: error)
             }
         }
         .navigationTitle("Add Reminder")

@@ -13,7 +13,7 @@ struct SettingsViewModelTests {
         let vm = SettingsViewModel(store: store)
         await vm.load()
 
-        #expect(vm.state.categories.count == 8)
+        #expect(vm.state.categories.count == 10)
     }
 
     @Test

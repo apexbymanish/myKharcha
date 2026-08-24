@@ -2,14 +2,15 @@ import Testing
 import Foundation
 @testable import KharchaKit
 
-@Test func seedInsertsEightDefaultsOnce() async throws {
+@Test func seedInsertsDefaultsOnce() async throws {
     let store = try makeStore()
     try await store.seedDefaultCategoriesIfNeeded()
     try await store.seedDefaultCategoriesIfNeeded() // idempotent
     let names = try await store.categories().map(\.name)
-    #expect(names.count == 8)
+    #expect(names.count == 10)
     #expect(names.contains("Food"))
     #expect(names.contains("Rent"))
+    #expect(names.contains("Salary"))   // income default
     #expect(names.contains("Other"))
 }
 

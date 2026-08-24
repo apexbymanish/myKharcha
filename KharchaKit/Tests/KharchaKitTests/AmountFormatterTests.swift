@@ -2,11 +2,21 @@ import Testing
 import Foundation
 @testable import KharchaKit
 
-@Test func krwFormatsGroupedWithoutTrailingZeros() {
-    #expect(AmountFormatter.krw(12_000) == "₩12,000")
-    #expect(AmountFormatter.krw(Decimal(string: "12000.5")!) == "₩12,000.5")
-    #expect(AmountFormatter.krw(0) == "₩0")
-    #expect(AmountFormatter.krw(3_000_000) == "₩3,000,000")
+@Test func moneyRespectsConfiguredCurrency() {
+    // Currency-explicit overload → no shared global mutation, so this stays
+    // deterministic under parallel test execution.
+    let krw = AmountFormatter.money(12_000, currencyCode: "KRW")
+    let usd = AmountFormatter.money(12_000, currencyCode: "USD")
+
+    // Same number, different currency → different rendered strings.
+    #expect(krw != usd)
+    // Fraction-digit count is currency-defined and locale-independent:
+    // KRW has no minor unit, USD has two.
+    #expect(!krw.contains(".00"))
+    #expect(usd.contains(".00"))
+    // Each renders its own currency symbol.
+    #expect(krw.contains("₩"))
+    #expect(usd.contains("$"))
 }
 
 @Test func siriDoubleConversionIsExactToTwoPlaces() {

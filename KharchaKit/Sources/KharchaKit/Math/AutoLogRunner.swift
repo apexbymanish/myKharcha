@@ -20,7 +20,8 @@ public enum AutoLogRunner {
     @discardableResult
     public static func run(store: ExpenseStore, watermark: AutoLogWatermark, now: Date, calendar: Calendar) async throws -> Int {
         let rules = try await store.recurringRules().filter(\.autoLog)
-        guard !rules.isEmpty else {
+        let autoInstallments = try await store.activeInstallments(now: now, calendar: calendar).filter(\.autoLog)
+        guard !rules.isEmpty || !autoInstallments.isEmpty else {
             watermark.setLastRun(now)
             return 0
         }
@@ -42,6 +43,27 @@ public enum AutoLogRunner {
                     note: rule.name, date: occurrence, source: .manual
                 )
                 insertedCount += 1
+            }
+        }
+
+        // Auto-log installments the same way: one recorded payment per missed due
+        // date, bounded by the remaining term. Idempotent via the per-installment
+        // ledger (a due date already in the ledger is skipped), independent of the
+        // watermark — mirroring the rule dedup above.
+        for inst in autoInstallments {
+            let ledger = try await store.installmentPayments(installmentID: inst.id)
+            var remainingToRecord = inst.remainingCount
+            let occurrences = AutoLogCatchUp.dueOccurrences(dayOfMonth: inst.dayOfMonth, since: since, now: now, calendar: calendar)
+            for occurrence in occurrences {
+                guard remainingToRecord > 0 else { break }
+                let alreadyPaid = ledger.contains { calendar.isDate($0.date, inSameDayAs: occurrence) }
+                guard !alreadyPaid else { continue }
+
+                _ = try await store.recordInstallmentPayment(
+                    installmentID: inst.id, amount: inst.monthlyAmount, date: occurrence, now: now, calendar: calendar
+                )
+                insertedCount += 1
+                remainingToRecord -= 1
             }
         }
 

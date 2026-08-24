@@ -2,7 +2,7 @@ import Foundation
 import SwiftData
 
 public enum KharchaContainerFactory {
-    public static let appGroupID = "group.com.manish.kharcha"
+    public static let appGroupID = "group.com.manish.jebkharcha"
 
     public static func appGroup(identifier: String = appGroupID) throws -> ModelContainer {
         try ModelContainer(

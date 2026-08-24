@@ -177,7 +177,7 @@ public struct SettleDebtIntent: AppIntent {
             let balances = try await store.netBalances()
             if let netOwed = balances[friend.id], netOwed > 0 {
                 try await requestConfirmation(
-                    dialog: IntentDialog(stringLiteral: "Settle everything \(friend.name) owes you (\(AmountFormatter.krw(netOwed)))?")
+                    dialog: IntentDialog(stringLiteral: "Settle everything \(friend.name) owes you (\(AmountFormatter.money(netOwed)))?")
                 )
             }
         }

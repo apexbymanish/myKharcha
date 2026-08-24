@@ -27,11 +27,11 @@ struct BudgetsView: View {
                             .foregroundStyle(.primary)
                         Spacer()
                         if let s = status(for: category) {
-                            Text("\(AmountFormatter.krw(s.spent)) / \(AmountFormatter.krw(s.budget))")
+                            Text("\(AmountFormatter.money(s.spent)) / \(AmountFormatter.money(s.budget))")
                                 .font(.caption)
-                                .foregroundStyle(s.isOver ? .red : .secondary)
+                                .foregroundStyle(s.isOver ? Color.moneyOut : .secondary)
                         } else if let budget = category.monthlyBudget {
-                            Text(AmountFormatter.krw(budget)).font(.caption).foregroundStyle(.secondary)
+                            Text(AmountFormatter.money(budget)).font(.caption).foregroundStyle(.secondary)
                         } else {
                             Text("No budget").font(.caption).foregroundStyle(.secondary)
                         }
@@ -39,7 +39,7 @@ struct BudgetsView: View {
                 }
             }
             if let error = vm.state.errorMessage {
-                Text(error).foregroundStyle(.red)
+                InlineError(message: error)
             }
         }
         .navigationTitle("Budgets")

@@ -8,14 +8,16 @@ public struct CategorySnapshot: Sendable, Equatable {
     public let colorHex: String
     public let monthlyBudget: Decimal?
     public let isFallback: Bool
+    public let kind: CategoryKind
 
-    public init(id: UUID, name: String, symbol: String, colorHex: String, monthlyBudget: Decimal?, isFallback: Bool = false) {
+    public init(id: UUID, name: String, symbol: String, colorHex: String, monthlyBudget: Decimal?, isFallback: Bool = false, kind: CategoryKind = .expense) {
         self.id = id
         self.name = name
         self.symbol = symbol
         self.colorHex = colorHex
         self.monthlyBudget = monthlyBudget
         self.isFallback = isFallback
+        self.kind = kind
     }
 }
 
@@ -25,30 +27,96 @@ public actor ExpenseStore {
     // MARK: Categories
 
     @discardableResult
-    public func addCategory(name: String, symbol: String, colorHex: String, monthlyBudget: Decimal?) throws -> CategorySnapshot {
-        let category = Category(name: name, symbol: symbol, colorHex: colorHex, monthlyBudget: monthlyBudget)
+    public func addCategory(name: String, symbol: String, colorHex: String, monthlyBudget: Decimal?, kind: CategoryKind = .expense) throws -> CategorySnapshot {
+        let category = Category(name: name, symbol: symbol, colorHex: colorHex, monthlyBudget: monthlyBudget, kind: kind)
         modelContext.insert(category)
         try modelContext.save()
         return snapshot(category)
     }
 
-    public static let defaultCategories: [(name: String, symbol: String, colorHex: String)] = [
-        ("Food", "fork.knife", "#E07A5F"),
-        ("Transport", "bus", "#3D405B"),
-        ("Rent", "house", "#8E7DBE"),
-        ("Subscriptions", "arrow.triangle.2.circlepath", "#5F797B"),
-        ("Shopping", "bag", "#F2CC8F"),
-        ("Health", "cross.case", "#81B29A"),
-        ("Entertainment", "gamecontroller", "#E5989B"),
-        ("Other", "tag", "#9A9A9A")
+    public static let defaultCategories: [(name: String, symbol: String, colorHex: String, kind: CategoryKind)] = [
+        ("Food", "fork.knife", "#E07A5F", .expense),
+        ("Transport", "bus", "#3D405B", .expense),
+        ("Rent", "house", "#8E7DBE", .expense),
+        ("Subscriptions", "arrow.triangle.2.circlepath", "#5F797B", .expense),
+        ("Shopping", "bag", "#F2CC8F", .expense),
+        ("Health", "cross.case", "#81B29A", .expense),
+        ("Entertainment", "gamecontroller", "#E5989B", .expense),
+        ("Salary", "dollarsign.circle", "#2A9D8F", .income),
+        ("Gift", "gift", "#E76F51", .income),
+        ("Other", "tag", "#9A9A9A", .any)
     ]
 
     public func seedDefaultCategoriesIfNeeded() throws {
         guard try modelContext.fetch(FetchDescriptor<Category>()).isEmpty else { return }
         for c in Self.defaultCategories {
-            modelContext.insert(Category(name: c.name, symbol: c.symbol, colorHex: c.colorHex, monthlyBudget: nil, isFallback: c.name == "Other"))
+            modelContext.insert(Category(name: c.name, symbol: c.symbol, colorHex: c.colorHex, monthlyBudget: nil, isFallback: c.name == "Other", kind: c.kind))
         }
         try modelContext.save()
+    }
+
+    /// Clean up categories carried over from older versions or sync:
+    /// 1. Merge categories that share a name (reassigning their transactions,
+    ///    recurring rules, and installments to one keeper, then tombstoning the
+    ///    duplicates) — fixes the "two Other" case.
+    /// 2. When `applyIncomeHeuristic` is set, tag obviously-income categories
+    ///    (Salary, Bonus, Refund, …) as income so they stop showing under Expense.
+    /// Idempotent: safe to run on every launch (pass the heuristic flag only once).
+    @discardableResult
+    public func reconcileCategories(applyIncomeHeuristic: Bool) throws -> Int {
+        let cats = try modelContext.fetch(FetchDescriptor<Category>())
+        let txns = try modelContext.fetch(FetchDescriptor<Txn>())
+        let rules = try modelContext.fetch(FetchDescriptor<RecurringRule>())
+        let installments = try modelContext.fetch(FetchDescriptor<Installment>())
+
+        var groups: [String: [Category]] = [:]
+        for c in cats {
+            groups[c.name.trimmingCharacters(in: .whitespaces).lowercased(), default: []].append(c)
+        }
+
+        var merged = 0
+        for (_, group) in groups where group.count > 1 {
+            let keeper = group.first(where: \.isFallback) ?? group.sorted { $0.updatedAt < $1.updatedAt }.first!
+            let dupeIDs = Set(group.filter { $0.id != keeper.id }.map(\.id))
+            for txn in txns where txn.category.map({ dupeIDs.contains($0.id) }) == true {
+                txn.category = keeper; txn.updatedAt = .now
+            }
+            for rule in rules where rule.category.map({ dupeIDs.contains($0.id) }) == true {
+                rule.category = keeper; rule.updatedAt = .now
+            }
+            for inst in installments where inst.categoryID.map({ dupeIDs.contains($0) }) == true {
+                inst.categoryID = keeper.id; inst.updatedAt = .now
+            }
+            for dupe in group where dupe.id != keeper.id {
+                recordTombstone(id: dupe.id, collection: "categories")
+                modelContext.delete(dupe)
+                merged += 1
+            }
+        }
+
+        // The fallback ("Other") must apply to both kinds so the income category
+        // grid is never empty for users whose data predates income categories.
+        for c in try modelContext.fetch(FetchDescriptor<Category>()) where c.isFallback && c.kind != .any {
+            c.kind = .any
+            c.updatedAt = .now
+        }
+
+        if applyIncomeHeuristic {
+            let incomeNames: Set<String> = [
+                "salary", "wage", "wages", "paycheck", "pay", "bonus", "refund", "interest",
+                "gift", "dividend", "dividends", "cashback", "cash back", "income", "allowance",
+                "stipend", "commission", "reimbursement"
+            ]
+            for c in try modelContext.fetch(FetchDescriptor<Category>()) where c.kind == .expense {
+                if incomeNames.contains(c.name.trimmingCharacters(in: .whitespaces).lowercased()) {
+                    c.kind = .income
+                    c.updatedAt = .now
+                }
+            }
+        }
+
+        try modelContext.save()
+        return merged
     }
 
     public func categories() throws -> [CategorySnapshot] {
@@ -108,6 +176,15 @@ public actor ExpenseStore {
 
     public func spent(in period: Period, categoryID: UUID?, now: Date, calendar: Calendar) throws -> Decimal {
         try total(kind: .expense, period: period, categoryID: categoryID, now: now, calendar: calendar)
+    }
+
+    /// Total expenses within an arbitrary half-open date range — used by the pay-cycle
+    /// planner, whose window (payday-to-payday) doesn't align with a `Period`.
+    public func spent(from start: Date, to end: Date) throws -> Decimal {
+        let range = start..<end
+        return try modelContext.fetch(FetchDescriptor<Txn>())
+            .filter { $0.kind == .expense && range.contains($0.date) }
+            .reduce(Decimal(0)) { $0 + $1.amount }
     }
 
     public func income(in period: Period, now: Date, calendar: Calendar) throws -> Decimal {
@@ -181,7 +258,7 @@ public actor ExpenseStore {
     }
 
     private func snapshot(_ c: Category) -> CategorySnapshot {
-        CategorySnapshot(id: c.id, name: c.name, symbol: c.symbol, colorHex: c.colorHex, monthlyBudget: c.monthlyBudget, isFallback: c.isFallback)
+        CategorySnapshot(id: c.id, name: c.name, symbol: c.symbol, colorHex: c.colorHex, monthlyBudget: c.monthlyBudget, isFallback: c.isFallback, kind: c.kind)
     }
 
     /// Single-pass per-category expense breakdown for a period (Siri "how much did I spend").
@@ -383,6 +460,7 @@ public actor ExpenseStore {
             rule.category = other
             rule.updatedAt = .now
         }
+        recordTombstone(id: categoryID, collection: "categories")
         modelContext.delete(category)
         try modelContext.save()
     }
@@ -391,7 +469,11 @@ public actor ExpenseStore {
         guard let friend = try fetchFriend(id: friendID) else { throw StoreError.notFound }
         let debts = try modelContext.fetch(FetchDescriptor<Debt>()).filter { $0.friend?.id == friendID }
         guard debts.allSatisfy(\.settled) else { throw StoreError.friendHasOpenDebts }
-        for debt in debts { modelContext.delete(debt) }
+        for debt in debts {
+            recordTombstone(id: debt.id, collection: "debts")
+            modelContext.delete(debt)
+        }
+        recordTombstone(id: friendID, collection: "friends")
         modelContext.delete(friend)
         try modelContext.save()
     }
@@ -400,6 +482,7 @@ public actor ExpenseStore {
         guard let txn = try modelContext.fetch(FetchDescriptor<Txn>()).first(where: { $0.id == txnID }) else {
             throw StoreError.notFound
         }
+        recordTombstone(id: txnID, collection: "txns")
         modelContext.delete(txn)
         try modelContext.save()
     }
@@ -452,8 +535,21 @@ public actor ExpenseStore {
         guard let rule = try modelContext.fetch(FetchDescriptor<RecurringRule>()).first(where: { $0.id == ruleID }) else {
             throw StoreError.notFound
         }
+        recordTombstone(id: ruleID, collection: "rules")
         modelContext.delete(rule)
         try modelContext.save()
+    }
+
+    /// Upsert a single tombstone (one per deleted record id). Does not save;
+    /// callers save alongside the deletion. Internal so the savings extension
+    /// can record deletions the same way.
+    func recordTombstone(id: UUID, collection: String) {
+        if let existing = try? modelContext.fetch(FetchDescriptor<Tombstone>()).first(where: { $0.id == id }) {
+            existing.collection = collection
+            existing.deletedAt = .now
+        } else {
+            modelContext.insert(Tombstone(id: id, collection: collection))
+        }
     }
 
     private func snapshot(_ rule: RecurringRule) -> RecurringRuleSnapshot {
