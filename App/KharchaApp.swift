@@ -13,6 +13,7 @@ import KharchaKit
 final class AppServices: ObservableObject {
     let store: ExpenseStore
     let sync: SyncEngine
+    let updateChecker = AppUpdateChecker()
 
     init() {
         let store = ExpenseStore(modelContainer: AppContainer.shared)
@@ -32,6 +33,7 @@ struct KharchaApp: App {
             RootView()
                 .environmentObject(services)
                 .environmentObject(signIn)
+                .environmentObject(services.updateChecker)
                 .onOpenURL { _ in
                     // Universal Link from jebkharcha-7e514.web.app/kharcha —
                     // app is already open or launching. No extra navigation

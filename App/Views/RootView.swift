@@ -10,9 +10,11 @@ import KharchaKit
 struct RootView: View {
     @EnvironmentObject private var services: AppServices
     @EnvironmentObject private var signIn: SignInManager
+    @EnvironmentObject private var updateChecker: AppUpdateChecker
     @ObservedObject private var navigator = AppNavigator.shared
     @Environment(\.scenePhase) private var scenePhase
     @AppStorage("onboardingDone") private var onboardingDone = false
+    @State private var showOptionalUpdateAlert = false
 
     var body: some View {
         TabView {
@@ -50,10 +52,26 @@ struct RootView: View {
         .fullScreenCover(isPresented: Binding(get: { !onboardingDone }, set: { onboardingDone = !$0 })) {
             OnboardingView()
         }
+        .fullScreenCover(isPresented: Binding(
+            get: { if case .mandatory = updateChecker.kind { return true }; return false },
+            set: { _ in }
+        )) {
+            if case .mandatory(let msg) = updateChecker.kind {
+                MandatoryUpdateView(message: msg) { updateChecker.openAppStore() }
+            }
+        }
+        .alert("Update Available", isPresented: $showOptionalUpdateAlert) {
+            Button("Update") { updateChecker.openAppStore() }
+            Button("Not Now", role: .cancel) {}
+        } message: {
+            if case .optional(let msg) = updateChecker.kind { Text(msg) }
+        }
         .onOpenURL { navigator.handle(url: $0) }
         // Start live sync if already signed in at launch, and react to sign-in/out.
         .task {
             if let uid = signIn.firebaseUID { services.sync.start(uid: uid) }
+            await updateChecker.check()
+            if case .optional = updateChecker.kind { showOptionalUpdateAlert = true }
         }
         .onChange(of: signIn.firebaseUID) { _, uid in
             if let uid { services.sync.start(uid: uid) } else { services.sync.stop() }
