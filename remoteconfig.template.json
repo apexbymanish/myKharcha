@@ -1,0 +1,44 @@
+{
+  "conditions": [],
+  "parameters": {
+    "ios_min_version": {
+      "defaultValue": {
+        "value": ""
+      },
+      "description": "Oldest iOS build still allowed. Users below this see a non-dismissible force-update screen. Leave empty to disable.",
+      "valueType": "STRING"
+    },
+    "ios_latest_version": {
+      "defaultValue": {
+        "value": ""
+      },
+      "description": "Current App Store version. Users below this see an optional update alert. Leave empty to disable.",
+      "valueType": "STRING"
+    },
+    "ios_update_message": {
+      "defaultValue": {
+        "value": "A new version of Kharcha is available with improvements and fixes."
+      },
+      "description": "Message shown in the optional update alert (Update / Not Now).",
+      "valueType": "STRING"
+    },
+    "ios_force_message": {
+      "defaultValue": {
+        "value": "This version of Kharcha is no longer supported. Please update to continue."
+      },
+      "description": "Message shown on the mandatory full-screen update block.",
+      "valueType": "STRING"
+    }
+  },
+  "parameterGroups": {
+    "App Update": {
+      "description": "Controls optional and mandatory in-app update prompts for iOS. Set version strings to activate; leave empty to disable.",
+      "parameters": {
+        "ios_min_version": {},
+        "ios_latest_version": {},
+        "ios_update_message": {},
+        "ios_force_message": {}
+      }
+    }
+  }
+}

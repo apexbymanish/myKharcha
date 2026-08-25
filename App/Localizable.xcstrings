@@ -2,7 +2,20 @@
   "sourceLanguage" : "en",
   "strings" : {
     "" : {
-
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : ""
+          }
+        },
+        "ne" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : ""
+          }
+        }
+      }
     },
     "(-%@)" : {
       "localizations" : {
@@ -92,6 +105,18 @@
           "stringUnit" : {
             "state" : "new",
             "value" : "%1$@%2$@ vs prior"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "%1$@%2$@ 이전 대비"
+          }
+        },
+        "ne" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "%1$@%2$@ अघिल्लोभन्दा"
           }
         }
       }
@@ -605,7 +630,20 @@
       }
     },
     "Back up" : {
-
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "백업하기"
+          }
+        },
+        "ne" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "ब्याकअप गर्नुहोस्"
+          }
+        }
+      }
     },
     "Back Up Now" : {
       "localizations" : {
@@ -864,7 +902,20 @@
       }
     },
     "Clear selection" : {
-
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "선택 지우기"
+          }
+        },
+        "ne" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "चयन हटाउनुहोस्"
+          }
+        }
+      }
     },
     "Close" : {
       "localizations" : {
@@ -2127,7 +2178,20 @@
       }
     },
     "Log your first expense or income — tap ➕ above." : {
-
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "첫 지출이나 수입을 기록하세요 — 위의 ➕를 누르세요."
+          }
+        },
+        "ne" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "तपाईंको पहिलो खर्च वा आम्दानी रेकर्ड गर्नुहोस् — माथिको ➕ थिच्नुहोस्।"
+          }
+        }
+      }
     },
     "Marks every open amount as settled and resets the balance to zero." : {
       "localizations" : {
@@ -2514,7 +2578,20 @@
       }
     },
     "No transactions" : {
-
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "거래 없음"
+          }
+        },
+        "ne" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "कुनै कारोबार छैन"
+          }
+        }
+      }
     },
     "No transactions yet" : {
       "localizations" : {
@@ -2565,7 +2642,20 @@
       }
     },
     "Nothing logged today — add one?" : {
-
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "오늘 기록 없음 — 추가할까요?"
+          }
+        },
+        "ne" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "आज केही रेकर्ड गरिएन — एउटा थप्ने?"
+          }
+        }
+      }
     },
     "Notifications are off — reminders won't fire. Enable them in Settings." : {
       "localizations" : {
@@ -3417,7 +3507,20 @@
       }
     },
     "Selected" : {
-
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "선택됨"
+          }
+        },
+        "ne" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "छानिएको"
+          }
+        }
+      }
     },
     "Series" : {
       "localizations" : {
@@ -3788,7 +3891,20 @@
       }
     },
     "Synced" : {
-
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "동기화됨"
+          }
+        },
+        "ne" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "सिंक भयो"
+          }
+        }
+      }
     },
     "Target amount" : {
       "localizations" : {
@@ -3935,7 +4051,20 @@
       }
     },
     "Today" : {
-
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "오늘"
+          }
+        },
+        "ne" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "आज"
+          }
+        }
+      }
     },
     "Total" : {
       "localizations" : {
@@ -4162,7 +4291,20 @@
       }
     },
     "Yesterday" : {
-
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "어제"
+          }
+        },
+        "ne" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "हिजो"
+          }
+        }
+      }
     },
     "You can change both later in Settings." : {
       "localizations" : {
