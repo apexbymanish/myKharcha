@@ -150,6 +150,20 @@ struct SettingsView: View {
                 }
             }
 
+            Section {
+                ShareLink(
+                    item: URL(string: "https://doc.dynamc.link/kharcha")!,
+                    subject: Text("Try Kharcha — free spending tracker"),
+                    message: Text("I track my spending with Kharcha. It's free!")
+                ) {
+                    Label("Share Kharcha", systemImage: "square.and.arrow.up")
+                }
+            } header: {
+                Text("Share")
+            } footer: {
+                Text("Invite friends and family to try Kharcha.")
+            }
+
             if let error = vm.state.errorMessage {
                 InlineError(message: error)
             }
