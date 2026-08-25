@@ -152,7 +152,7 @@ struct SettingsView: View {
 
             Section {
                 ShareLink(
-                    item: URL(string: "https://apps.apple.com/app/id6804884920")!,
+                    item: URL(string: "https://jebkharcha-7e514.web.app/kharcha")!,
                     subject: Text("Try Kharcha — free spending tracker"),
                     message: Text("I track my spending with Kharcha. It's free!")
                 ) {

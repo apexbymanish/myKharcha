@@ -32,6 +32,11 @@ struct KharchaApp: App {
             RootView()
                 .environmentObject(services)
                 .environmentObject(signIn)
+                .onOpenURL { _ in
+                    // Universal Link from jebkharcha-7e514.web.app/kharcha —
+                    // app is already open or launching. No extra navigation
+                    // needed for the basic share flow.
+                }
         }
     }
 }

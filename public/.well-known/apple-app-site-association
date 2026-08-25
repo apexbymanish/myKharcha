@@ -1,0 +1,12 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["2LZ2H9STBD.com.manish.jebkharcha"],
+        "components": [
+          { "/": "/kharcha*" }
+        ]
+      }
+    ]
+  }
+}
