@@ -1,6 +1,6 @@
 import Foundation
 
-public struct RecurringRuleSnapshot: Sendable, Equatable {
+public struct RecurringRuleSnapshot: Sendable, Equatable, Identifiable {
     public let id: UUID
     public let name: String
     public let amount: Decimal

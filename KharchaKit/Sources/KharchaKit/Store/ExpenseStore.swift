@@ -540,6 +540,30 @@ public actor ExpenseStore {
         try modelContext.save()
     }
 
+    public func updateRecurringRule(
+        id: UUID, name: String, amount: Decimal, categoryID: UUID?,
+        dayOfMonth: Int, remindDaysBefore: Int, autoLog: Bool
+    ) throws {
+        guard amount > 0 else { throw StoreError.invalidAmount }
+        guard (1...31).contains(dayOfMonth) else { throw StoreError.invalidDayOfMonth }
+        guard let rule = try modelContext.fetch(FetchDescriptor<RecurringRule>()).first(where: { $0.id == id }) else {
+            throw StoreError.notFound
+        }
+        rule.name = name
+        rule.amount = amount
+        rule.dayOfMonth = dayOfMonth
+        rule.remindDaysBefore = remindDaysBefore
+        rule.autoLog = autoLog
+        if let categoryID {
+            guard let found = try fetchCategory(id: categoryID) else { throw StoreError.notFound }
+            rule.category = found
+        } else {
+            rule.category = nil
+        }
+        rule.updatedAt = .now
+        try modelContext.save()
+    }
+
     /// Upsert a single tombstone (one per deleted record id). Does not save;
     /// callers save alongside the deletion. Internal so the savings extension
     /// can record deletions the same way.

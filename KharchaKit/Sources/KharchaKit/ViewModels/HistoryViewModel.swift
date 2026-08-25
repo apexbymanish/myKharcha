@@ -4,6 +4,8 @@ import Foundation
 public final class HistoryViewModel: ObservableObject {
     public struct Section: Sendable, Equatable {
         public let title: String
+        /// Net total for this month: income − expenses. Negative means more spent than earned.
+        public let totalExpenses: Decimal
         public let rows: [TxnRow]
     }
 
@@ -15,6 +17,8 @@ public final class HistoryViewModel: ObservableObject {
         public var filterCategoryName: String?
         /// When set, the list is limited to this day (tapped in the calendar grid).
         public var dayFilter: Date?
+        /// Text search across note and category name.
+        public var searchText: String = ""
         public var categories: [CategorySnapshot] = []
         public var errorMessage: String?
     }
@@ -53,6 +57,12 @@ public final class HistoryViewModel: ObservableObject {
         await reloadSections(calendar: calendar)
     }
 
+    /// Filter by free-text across note and category name. Empty string clears the filter.
+    public func setSearchFilter(_ text: String, calendar: Calendar = .current) async {
+        state.searchText = text
+        await reloadSections(calendar: calendar)
+    }
+
     public func delete(_ id: UUID, calendar: Calendar = .current) async {
         do {
             try await store.deleteTxn(txnID: id)
@@ -67,10 +77,16 @@ public final class HistoryViewModel: ObservableObject {
         do {
             let all = try await store.txnRows()
             state.allRows = all
+            let query = state.searchText.trimmingCharacters(in: .whitespacesAndNewlines)
             let rows = all
                 .filter { state.filterKind == nil || $0.kind == state.filterKind! }
                 .filter { state.filterCategoryName == nil || $0.categoryName == state.filterCategoryName! }
                 .filter { state.dayFilter == nil || calendar.isDate($0.date, inSameDayAs: state.dayFilter!) }
+                .filter {
+                    query.isEmpty
+                        || $0.categoryName.localizedCaseInsensitiveContains(query)
+                        || $0.note?.localizedCaseInsensitiveContains(query) == true
+                }
                 .sorted { $0.date > $1.date }
 
             let grouped = Dictionary(grouping: rows) { row in
@@ -84,7 +100,15 @@ public final class HistoryViewModel: ObservableObject {
             titleFormatter.timeZone = calendar.timeZone
 
             state.sections = grouped.keys.sorted(by: >).map { key in
-                Section(title: titleFormatter.string(from: grouped[key]![0].date), rows: grouped[key]!)
+                let sectionRows = grouped[key]!
+                let expenses = sectionRows
+                    .filter { $0.kind == .expense }
+                    .reduce(Decimal(0)) { $0 + $1.amount }
+                return Section(
+                    title: titleFormatter.string(from: sectionRows[0].date),
+                    totalExpenses: expenses,
+                    rows: sectionRows
+                )
             }
         } catch {
             state.errorMessage = (error as? LocalizedError)?.errorDescription ?? "Something went wrong."

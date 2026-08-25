@@ -155,13 +155,19 @@ struct PlanView: View {
                     }
                 }
             }
-            planRow("Fixed monthly bills", AmountFormatter.money(plan.commitmentsTotal), "list.bullet.rectangle")
+            planNavRow("Fixed monthly bills", AmountFormatter.money(plan.commitmentsTotal), "list.bullet.rectangle") {
+                RemindersView(store: store)
+            }
             if plan.subscriptionsTotal > 0 {
                 planRow("Subscriptions", AmountFormatter.money(plan.subscriptionsTotal), "arrow.triangle.2.circlepath", secondary: true)
             }
-            planRow("Put aside for savings", AmountFormatter.money(plan.recommendedSavings), "arrow.down.to.line", tint: .moneyIn)
-            planRow("Left to spend freely", AmountFormatter.money(plan.safeToSpend), "checkmark.seal",
-                    tint: plan.safeToSpend < 0 ? .moneyOut : .moneyIn, bold: true)
+            planNavRow("Put aside for savings", AmountFormatter.money(plan.recommendedSavings), "arrow.down.to.line", tint: .moneyIn) {
+                SavingsView(store: store)
+            }
+            planNavRow("Left to spend freely", AmountFormatter.money(plan.safeToSpend), "checkmark.seal",
+                    tint: plan.safeToSpend < 0 ? .moneyOut : .moneyIn, bold: true) {
+                BudgetsView(store: store)
+            }
         } header: {
             Text("Your plan")
         } footer: {
@@ -180,6 +186,20 @@ struct PlanView: View {
                 .foregroundStyle(secondary ? AnyShapeStyle(.secondary) : AnyShapeStyle(tint ?? .primary))
         }
         .padding(.leading, secondary ? 20 : 0)
+    }
+
+    private func planNavRow<D: View>(_ title: LocalizedStringKey, _ value: String, _ icon: String, tint: Color? = nil, bold: Bool = false, @ViewBuilder destination: () -> D) -> some View {
+        NavigationLink(destination: destination()) {
+            HStack {
+                Label(title, systemImage: icon)
+                    .foregroundStyle(AnyShapeStyle(tint ?? .primary))
+                    .font(.body)
+                Spacer()
+                Text(value)
+                    .font(bold ? .body.monospacedDigit().weight(.semibold) : .body.monospacedDigit())
+                    .foregroundStyle(AnyShapeStyle(tint ?? .primary))
+            }
+        }
     }
 
     // MARK: Advice (Apple Intelligence)

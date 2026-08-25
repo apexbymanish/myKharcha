@@ -1,16 +1,11 @@
-import FirebaseRemoteConfig
 import UIKit
 import SwiftUI
 
-/// Checks Firebase Remote Config on launch and determines whether this build
-/// needs an update. Does not block the app if the network is unavailable —
-/// failures are silent and treated as "no update required".
-///
-/// Remote Config keys to set in the Firebase Console:
-///   ios_min_version       — oldest version still allowed (e.g. "1.2.0")
-///   ios_latest_version    — current App Store version (e.g. "1.3.0")
-///   ios_update_message    — shown for optional updates
-///   ios_force_message     — shown for mandatory updates
+/// Checks for app updates. The Remote Config implementation is disabled until
+/// FirebaseRemoteConfig is linked to the Kharcha target in Xcode Build Phases.
+/// To re-enable: add FirebaseRemoteConfig to Link Binary With Libraries, then
+/// restore the FirebaseRemoteConfig import and check() body from git history
+/// (commit f3622e0).
 @MainActor
 final class AppUpdateChecker: ObservableObject {
 
@@ -25,46 +20,11 @@ final class AppUpdateChecker: ObservableObject {
     private static let storeURL = URL(string: "https://apps.apple.com/app/id6804884920")!
 
     func check() async {
-        let rc = RemoteConfig.remoteConfig()
-
-        let settings = RemoteConfigSettings()
-        settings.minimumFetchInterval = 3600
-        rc.configSettings = settings
-
-        rc.setDefaults([
-            "ios_min_version":    "" as NSObject,
-            "ios_latest_version": "" as NSObject,
-            "ios_update_message": "A new version of Kharcha is available with improvements and fixes." as NSObject,
-            "ios_force_message":  "This version of Kharcha is no longer supported. Please update to continue." as NSObject,
-        ])
-
-        do {
-            try await rc.fetch()
-            try await rc.activate()
-        } catch {
-            return
-        }
-
-        guard let current = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String else { return }
-
-        let minVersion    = rc["ios_min_version"].stringValue ?? ""
-        let latestVersion = rc["ios_latest_version"].stringValue ?? ""
-
-        if !minVersion.isEmpty, isOlder(current, than: minVersion) {
-            let msg = rc["ios_force_message"].stringValue ?? ""
-            kind = .mandatory(message: msg)
-        } else if !latestVersion.isEmpty, isOlder(current, than: latestVersion) {
-            let msg = rc["ios_update_message"].stringValue ?? ""
-            kind = .optional(message: msg)
-        }
+        // Remote Config check disabled — see comment above.
     }
 
     func openAppStore() {
         UIApplication.shared.open(Self.storeURL)
-    }
-
-    private func isOlder(_ a: String, than b: String) -> Bool {
-        a.compare(b, options: .numeric) == .orderedAscending
     }
 }
 

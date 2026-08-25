@@ -88,13 +88,14 @@ struct StatBlock: View {
     let amount: String
     var tint: Color = .primary
     var alignment: HorizontalAlignment = .leading
+    @EnvironmentObject private var privacy: PrivacyManager
 
     var body: some View {
         VStack(alignment: alignment, spacing: 2) {
             Text(title)
                 .font(.caption)
                 .foregroundStyle(.secondary)
-            Text(amount)
+            Text(privacy.isRevealed ? amount : "••••••")
                 .font(.title2.bold())
                 .foregroundStyle(tint)
         }
@@ -202,6 +203,7 @@ struct FriendDebtChip: View {
 
 struct TxnRowView: View {
     let row: TxnRow
+    @EnvironmentObject private var privacy: PrivacyManager
 
     var body: some View {
         HStack {
@@ -214,7 +216,9 @@ struct TxnRowView: View {
             }
             Spacer()
             VStack(alignment: .trailing, spacing: 2) {
-                Text((row.kind == .expense ? "-" : "+") + AmountFormatter.money(row.amount))
+                Text(privacy.isRevealed
+                     ? (row.kind == .expense ? "-" : "+") + AmountFormatter.money(row.amount)
+                     : "••••••")
                     .font(.callout.monospacedDigit())
                     .foregroundStyle(row.kind == .expense ? Color.primary : Color.moneyIn)
                 Text(row.date, style: .date)
@@ -289,6 +293,7 @@ struct PayCycleCard: View {
     let plan: PayCyclePlan
 
     @Environment(\.dynamicTypeSize) private var typeSize
+    @EnvironmentObject private var privacy: PrivacyManager
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -305,7 +310,7 @@ struct PayCycleCard: View {
             if typeSize.isAccessibilitySize {
                 VStack(alignment: .leading, spacing: 8) {
                     StatBlock(
-                        title: String(localized: "Left this cycle"),
+                        title: String(localized: "Left to spend"),
                         amount: AmountFormatter.money(plan.remaining),
                         tint: plan.isOverspent ? .moneyOut : .primary
                     )
@@ -318,7 +323,7 @@ struct PayCycleCard: View {
             } else {
                 HStack {
                     StatBlock(
-                        title: String(localized: "Left this cycle"),
+                        title: String(localized: "Left to spend"),
                         amount: AmountFormatter.money(plan.remaining),
                         tint: plan.isOverspent ? .moneyOut : .primary
                     )
@@ -330,15 +335,26 @@ struct PayCycleCard: View {
                     )
                 }
             }
+            if plan.savingsReserved > 0 {
+                Label(
+                    "\(AmountFormatter.money(plan.savingsReserved)) reserved for savings (\(plan.savingsRatePercent)%)",
+                    systemImage: "banknote"
+                )
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            }
         }
         .padding(.vertical, 4)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("Pay cycle")
         .accessibilityValue(
-            "\(plan.daysUntilPayday) days until payday. "
-            + "\(AmountFormatter.money(plan.remaining)) left this cycle"
-            + (plan.isOverspent ? ", over your salary" : "")
-            + ". Safe to spend \(AmountFormatter.money(plan.safeToSpendPerDay)) per day."
+            privacy.isRevealed
+            ? "\(plan.daysUntilPayday) days until payday. "
+                + "\(AmountFormatter.money(plan.remaining)) left to spend this cycle"
+                + (plan.isOverspent ? ", over budget" : "")
+                + ". Safe to spend \(AmountFormatter.money(plan.safeToSpendPerDay)) per day."
+                + (plan.savingsReserved > 0 ? " \(AmountFormatter.money(plan.savingsReserved)) reserved for savings." : "")
+            : "\(plan.daysUntilPayday) days until payday. Amounts hidden."
         )
     }
 }
@@ -346,14 +362,17 @@ struct PayCycleCard: View {
 // MARK: - Month at a glance (Home's inline budget health + due-soon strip)
 
 /// A compact status strip shown below the balance hero — never requires a tap.
-/// Shows budget health (on track vs over) and any installment due within 7 days.
-/// Hidden by HomeView when both sets are empty.
+/// Items due within 3 days are promoted to a prominent amber card.
+/// Items due in 4–7 days stay as a compact strip.
+/// Hidden by HomeView when both budgets and dueSoonItems are empty.
 struct MonthGlanceCard: View {
     let budgets: [BudgetStatus]
     let dueSoonItems: [HomeViewModel.State.DueSoonItem]
 
     private var onTrack: Int { budgets.filter { !$0.isOver }.count }
     private var overBudget: Int { budgets.filter { $0.isOver }.count }
+    private var urgentItems: [HomeViewModel.State.DueSoonItem] { dueSoonItems.filter { $0.daysUntil <= 3 } }
+    private var soonItems: [HomeViewModel.State.DueSoonItem] { dueSoonItems.filter { $0.daysUntil > 3 } }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -366,23 +385,60 @@ struct MonthGlanceCard: View {
                         .font(.subheadline)
                 }
             }
-            if !budgets.isEmpty && !dueSoonItems.isEmpty {
-                Divider()
+            if !urgentItems.isEmpty {
+                if !budgets.isEmpty { Divider() }
+                ForEach(urgentItems) { item in
+                    HStack(spacing: 10) {
+                        Image(systemName: item.daysUntil == 0 ? "exclamationmark.circle.fill" : "clock.badge.exclamationmark.fill")
+                            .foregroundStyle(item.daysUntil == 0 ? Color.moneyOut : Color.orange)
+                            .font(.title3)
+                        VStack(alignment: .leading, spacing: 1) {
+                            Text(item.name)
+                                .font(.subheadline.weight(.semibold))
+                            Text(urgencyText(for: item))
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        Spacer()
+                        Text(AmountFormatter.money(item.amount))
+                            .font(.callout.monospacedDigit().weight(.semibold))
+                            .foregroundStyle(item.daysUntil == 0 ? Color.moneyOut : Color.orange)
+                    }
+                    .padding(10)
+                    .background((item.daysUntil == 0 ? Color.moneyOut : Color.orange).opacity(0.10))
+                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                }
             }
-            if !dueSoonItems.isEmpty {
+            if !soonItems.isEmpty {
+                if !budgets.isEmpty || !urgentItems.isEmpty { Divider() }
                 HStack(spacing: 8) {
                     Image(systemName: "calendar.badge.clock")
                         .foregroundStyle(.orange)
                         .font(.subheadline)
-                    Text(dueSoonLabel)
+                    Text(soonLabel)
                         .font(.subheadline)
                 }
             }
         }
         .padding(.vertical, 2)
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel([budgetLabel, dueSoonItems.isEmpty ? nil : dueSoonLabel]
-            .compactMap { $0 }.joined(separator: ". "))
+        .accessibilityLabel(accessibilityText)
+    }
+
+    private func urgencyText(for item: HomeViewModel.State.DueSoonItem) -> String {
+        switch item.daysUntil {
+        case 0: return "Due today"
+        case 1: return "Due tomorrow"
+        default: return "Due in \(item.daysUntil) days"
+        }
+    }
+
+    private var soonLabel: String {
+        if soonItems.count == 1 {
+            let item = soonItems[0]
+            return "\(item.name) · \(AmountFormatter.money(item.amount)) due soon"
+        }
+        return "\(soonItems.count) payments due soon"
     }
 
     private var budgetLabel: String {
@@ -393,13 +449,14 @@ struct MonthGlanceCard: View {
         return onTrack == 1 ? "1 budget on track" : "All \(onTrack) budgets on track"
     }
 
-    private var dueSoonLabel: String {
-        guard !dueSoonItems.isEmpty else { return "" }
-        if dueSoonItems.count == 1 {
-            let item = dueSoonItems[0]
-            return "\(item.name) · \(AmountFormatter.money(item.amount)) due soon"
+    private var accessibilityText: String {
+        var parts: [String] = []
+        if !budgets.isEmpty { parts.append(budgetLabel) }
+        for item in urgentItems {
+            parts.append("\(item.name), \(urgencyText(for: item)), \(AmountFormatter.money(item.amount))")
         }
-        return "\(dueSoonItems.count) payments due soon"
+        if !soonItems.isEmpty { parts.append(soonLabel) }
+        return parts.joined(separator: ". ")
     }
 }
 
@@ -464,5 +521,30 @@ struct SpendingDonutChart: View {
         // The chart itself is decorative; the legend rows carry the numbers, so
         // expose a single summary rather than unlabeled wedges to VoiceOver.
         .accessibilityElement(children: .contain)
+    }
+}
+
+// MARK: - Undo toast
+
+/// Bottom-edge toast shown after a destructive-ish action (mark paid, record payment).
+/// Auto-dismissed by the caller after ~4 seconds; tap "Undo" to reverse immediately.
+struct UndoToast: View {
+    let message: String
+    let onUndo: () -> Void
+
+    var body: some View {
+        HStack {
+            Text(message)
+                .font(.subheadline)
+            Spacer()
+            Button("Undo", action: onUndo)
+                .font(.subheadline.bold())
+                .foregroundStyle(Color.brandPrimary)
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
+        .padding(.horizontal, 16)
+        .padding(.bottom, 8)
     }
 }

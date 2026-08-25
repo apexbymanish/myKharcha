@@ -11,9 +11,12 @@ struct RootView: View {
     @EnvironmentObject private var services: AppServices
     @EnvironmentObject private var signIn: SignInManager
     @EnvironmentObject private var updateChecker: AppUpdateChecker
+    @EnvironmentObject private var privacy: PrivacyManager
     @ObservedObject private var navigator = AppNavigator.shared
     @Environment(\.scenePhase) private var scenePhase
     @AppStorage("onboardingDone") private var onboardingDone = false
+    @AppStorage(PayPreference.dayKey, store: PayPreference.defaults) private var paydayDay = 1
+    @AppStorage(PayPreference.salaryKey, store: PayPreference.defaults) private var monthlySalary = 0.0
     @State private var showOptionalUpdateAlert = false
 
     var body: some View {
@@ -79,7 +82,23 @@ struct RootView: View {
         .onChange(of: scenePhase) { _, phase in
             if phase == .active {
                 navigator.consumePendingAddExpense()
+                // Catch up any recurring rules or installments that became due
+                // while the app was in the background. Idempotent — the watermark
+                // prevents re-inserting already-logged occurrences.
+                Task {
+                    try? await AutoLogRunner.run(
+                        store: services.store,
+                        watermark: DefaultsWatermark(),
+                        now: Date(),
+                        calendar: .current
+                    )
+                    await NotificationScheduler.shared.resync(store: services.store)
+                    if monthlySalary > 0 {
+                        await NotificationScheduler.shared.schedulePaydayNudge(paydayDay: paydayDay)
+                    }
+                }
             } else {
+                if phase == .background { privacy.lock() }
                 // Leaving the foreground → flush local changes to the cloud.
                 services.sync.pushNow()
             }

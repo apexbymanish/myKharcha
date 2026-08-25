@@ -15,26 +15,46 @@ public struct PayCyclePlan: Sendable, Equatable {
     /// Whole days from the start of today until the next payday (never below 1, so
     /// the per-day figure stays finite on payday itself).
     public let daysUntilPayday: Int
+    /// Savings rate (0–100 %) to deduct before computing the spendable budget.
+    /// Implements "pay yourself first": savings are reserved upfront so the daily
+    /// allowance is already net of the savings target.
+    public let savingsRatePercent: Int
 
-    public init(salary: Decimal, spentThisCycle: Decimal, cycleStart: Date, nextPayday: Date, daysUntilPayday: Int) {
+    public init(
+        salary: Decimal,
+        spentThisCycle: Decimal,
+        cycleStart: Date,
+        nextPayday: Date,
+        daysUntilPayday: Int,
+        savingsRatePercent: Int = 0
+    ) {
         self.salary = salary
         self.spentThisCycle = spentThisCycle
         self.cycleStart = cycleStart
         self.nextPayday = nextPayday
         self.daysUntilPayday = daysUntilPayday
+        self.savingsRatePercent = max(0, min(savingsRatePercent, 100))
     }
 
-    /// Money left for the rest of the cycle, floored at zero (you can't "un-spend").
-    public var remaining: Decimal { max(0, salary - spentThisCycle) }
+    /// Amount reserved for savings this cycle (salary × rate%). Paid to yourself first.
+    public var savingsReserved: Decimal {
+        salary * Decimal(savingsRatePercent) / 100
+    }
 
-    /// A steady daily allowance that spends the remaining balance exactly by payday.
+    /// Spendable budget after savings reservation.
+    private var spendableSalary: Decimal { salary - savingsReserved }
+
+    /// Spendable money left for the rest of the cycle, floored at zero.
+    public var remaining: Decimal { max(0, spendableSalary - spentThisCycle) }
+
+    /// A steady daily allowance that exhausts the spendable remaining balance exactly by payday.
     public var safeToSpendPerDay: Decimal {
         guard daysUntilPayday > 0 else { return remaining }
         return remaining / Decimal(daysUntilPayday)
     }
 
-    /// True when the cycle's spending has already exceeded the salary.
-    public var isOverspent: Bool { spentThisCycle > salary }
+    /// True when spending has exceeded the spendable budget (savings already excluded).
+    public var isOverspent: Bool { spentThisCycle > spendableSalary }
 }
 
 public enum PayCyclePlanner {
@@ -73,14 +93,22 @@ public enum PayCyclePlanner {
 
     /// Build a plan given the money already spent this cycle (the caller sums it
     /// from the store over `cycleStart ..< nextPayday`).
-    public static func plan(now: Date, dayOfMonth: Int, salary: Decimal, spentThisCycle: Decimal, calendar: Calendar) -> PayCyclePlan {
+    public static func plan(
+        now: Date,
+        dayOfMonth: Int,
+        salary: Decimal,
+        spentThisCycle: Decimal,
+        savingsRatePercent: Int = 0,
+        calendar: Calendar
+    ) -> PayCyclePlan {
         let c = cycle(now: now, dayOfMonth: dayOfMonth, calendar: calendar)
         return PayCyclePlan(
             salary: salary,
             spentThisCycle: spentThisCycle,
             cycleStart: c.start,
             nextPayday: c.next,
-            daysUntilPayday: c.daysUntilNext
+            daysUntilPayday: c.daysUntilNext,
+            savingsRatePercent: savingsRatePercent
         )
     }
 }

@@ -4,13 +4,18 @@ import Foundation
 public final class HomeViewModel: ObservableObject {
     public struct State: Sendable {
         /// An active installment whose next due date falls within 7 days.
-        public struct DueSoonItem: Sendable, Equatable {
+        public struct DueSoonItem: Sendable, Equatable, Identifiable {
+            public let id: UUID
             public let name: String
             public let amount: Decimal
+            /// Days until due from today's start-of-day (0 = today, 1 = tomorrow, 2–7 = this week).
+            public let daysUntil: Int
         }
 
         public var monthSpent: Decimal = 0
         public var monthIncome: Decimal = 0
+        /// True when `monthIncome` is the salary fallback (no logged income this month).
+        public var monthIncomeIsFromSalary: Bool = false
         public var budgets: [BudgetStatus] = []
         public var friendRows: [DebtRow] = []
         public var recent: [TxnRow] = []
@@ -35,14 +40,17 @@ public final class HomeViewModel: ObservableObject {
         self.store = store
     }
 
-    /// `payday`/`monthlySalary` come from the app's shared preferences (set in
-    /// Settings). When both are present and salary > 0, a `PayCyclePlan` is built;
-    /// otherwise the plan section stays hidden.
+    /// `payday`/`monthlySalary`/`savingsRatePercent` come from the app's shared
+    /// preferences (set in Settings). When both payday and salary > 0, a
+    /// `PayCyclePlan` is built; otherwise the plan section stays hidden.
+    /// `monthlySalary` is also used as a fallback for "Income this month" when
+    /// no income transactions have been logged yet this month.
     public func load(
         now: Date = Date(),
         calendar: Calendar = .current,
         payday: Int? = nil,
-        monthlySalary: Decimal? = nil
+        monthlySalary: Decimal? = nil,
+        savingsRatePercent: Int = 0
     ) async {
         state.errorMessage = nil
         state.isLoading = true
@@ -53,7 +61,17 @@ public final class HomeViewModel: ObservableObject {
             state.monthSpent = spent
 
             let income = try await store.income(in: .month, now: now, calendar: calendar)
-            state.monthIncome = income
+            if income > 0 {
+                state.monthIncome = income
+                state.monthIncomeIsFromSalary = false
+            } else if let salary = monthlySalary, salary > 0 {
+                // No income logged yet — show salary so the hero card isn't empty.
+                state.monthIncome = salary
+                state.monthIncomeIsFromSalary = true
+            } else {
+                state.monthIncome = 0
+                state.monthIncomeIsFromSalary = false
+            }
 
             let budgets = try await store.budgetStatuses(now: now, calendar: calendar)
             state.budgets = budgets
@@ -71,7 +89,8 @@ public final class HomeViewModel: ObservableObject {
                     spentThisCycle: spentThisCycle,
                     cycleStart: cycle.start,
                     nextPayday: cycle.next,
-                    daysUntilPayday: cycle.daysUntilNext
+                    daysUntilPayday: cycle.daysUntilNext,
+                    savingsRatePercent: savingsRatePercent
                 )
             } else {
                 state.payPlan = nil
@@ -82,12 +101,10 @@ public final class HomeViewModel: ObservableObject {
             var friendRows: [DebtRow] = []
             for friend in friends {
                 let balance = balances[friend.id] ?? 0
-                // Skip zero-net friends; store signed net
                 if balance != 0 {
                     friendRows.append(DebtRow(friendID: friend.id, name: friend.name, amount: balance))
                 }
             }
-            // Sort: positive (they owe me) descending, then negative (I owe) by abs descending
             friendRows.sort { a, b in
                 let aNet = a.amount
                 let bNet = b.amount
@@ -99,14 +116,20 @@ public final class HomeViewModel: ObservableObject {
 
             let rows = try await store.txnRows()
             let sorted = rows.sorted { $0.date > $1.date }
-            state.recent = Array(sorted.prefix(10))
+            // Progressive disclosure: home shows the 5 most recent; History has the full ledger.
+            state.recent = Array(sorted.prefix(5))
             state.weekBars = ActivitySeries.bars(rows, period: .week, now: now, calendar: calendar)
 
             let installs = try await store.activeInstallments(now: now, calendar: calendar)
             state.dueSoonItems = installs.compactMap { snap in
                 let next = HomeViewModel.nextDue(dayOfMonth: snap.dayOfMonth, from: now, calendar: calendar)
                 guard next.timeIntervalSince(now) <= 7 * 24 * 3600 else { return nil }
-                return State.DueSoonItem(name: snap.name, amount: snap.monthlyAmount)
+                let days = max(0, calendar.dateComponents(
+                    [.day],
+                    from: calendar.startOfDay(for: now),
+                    to: calendar.startOfDay(for: next)
+                ).day ?? 0)
+                return State.DueSoonItem(id: snap.id, name: snap.name, amount: snap.monthlyAmount, daysUntil: days)
             }
         } catch {
             state.errorMessage = (error as? LocalizedError)?.errorDescription ?? "Something went wrong."
@@ -127,11 +150,12 @@ public final class HomeViewModel: ObservableObject {
         now: Date = Date(),
         calendar: Calendar = .current,
         payday: Int? = nil,
-        monthlySalary: Decimal? = nil
+        monthlySalary: Decimal? = nil,
+        savingsRatePercent: Int = 0
     ) async {
         do {
             try await store.deleteTxn(txnID: id)
-            await load(now: now, calendar: calendar, payday: payday, monthlySalary: monthlySalary)
+            await load(now: now, calendar: calendar, payday: payday, monthlySalary: monthlySalary, savingsRatePercent: savingsRatePercent)
         } catch {
             state.errorMessage = (error as? LocalizedError)?.errorDescription ?? "Something went wrong."
         }

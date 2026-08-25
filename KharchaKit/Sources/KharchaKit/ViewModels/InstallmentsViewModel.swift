@@ -6,6 +6,7 @@ public final class InstallmentsViewModel: ObservableObject {
     public struct State: Sendable {
         public var active: [InstallmentSnapshot] = []
         public var finished: [InstallmentSnapshot] = []
+        public var paidThisMonthIDs: Set<UUID> = []
         public var errorMessage: String?
     }
 
@@ -20,6 +21,40 @@ public final class InstallmentsViewModel: ObservableObject {
             let all = try await store.installments(now: now, calendar: calendar)
             state.active = all.filter(\.isActive)
             state.finished = all.filter { !$0.isActive }
+            var paid: Set<UUID> = []
+            for inst in state.active {
+                let payments = try await store.installmentPayments(installmentID: inst.id)
+                if payments.contains(where: { calendar.isDate($0.date, equalTo: now, toGranularity: .month) }) {
+                    paid.insert(inst.id)
+                }
+            }
+            state.paidThisMonthIDs = paid
+        } catch {
+            state.errorMessage = (error as? LocalizedError)?.errorDescription ?? "Something went wrong."
+        }
+    }
+
+    /// Records this month's payment at the standard monthly amount.
+    /// Returns the installment payment UUID so the caller can present an undo action.
+    @discardableResult
+    public func recordPayment(installmentID: UUID, now: Date = Date(), calendar: Calendar = .current) async -> UUID? {
+        guard let item = state.active.first(where: { $0.id == installmentID }) else { return nil }
+        do {
+            _ = try await store.recordInstallmentPayment(installmentID: installmentID, amount: item.monthlyAmount, date: now, now: now, calendar: calendar)
+            let payments = try await store.installmentPayments(installmentID: installmentID)
+            let paymentID = payments.first { calendar.isDate($0.date, inSameDayAs: now) }?.id
+            await load(now: now, calendar: calendar)
+            return paymentID
+        } catch {
+            state.errorMessage = (error as? LocalizedError)?.errorDescription ?? "Something went wrong."
+            return nil
+        }
+    }
+
+    public func undoRecordPayment(paymentID: UUID) async {
+        do {
+            try await store.deleteInstallmentPayment(id: paymentID)
+            await load()
         } catch {
             state.errorMessage = (error as? LocalizedError)?.errorDescription ?? "Something went wrong."
         }

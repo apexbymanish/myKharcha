@@ -58,4 +58,42 @@ final class NotificationScheduler {
         let trigger = UNCalendarNotificationTrigger(dateMatching: comps, repeats: false)
         try? await center.add(UNNotificationRequest(identifier: id, content: content, trigger: trigger))
     }
+
+    /// Fires a test notification in 5 seconds — enough time to background the app.
+    func fireTestNow() async {
+        let center = UNUserNotificationCenter.current()
+        guard (try? await center.requestAuthorization(options: [.alert, .sound])) == true else { return }
+        center.removePendingNotificationRequests(withIdentifiers: [prefix + "test"])
+        let content = UNMutableNotificationContent()
+        content.title = "Test Reminder"
+        content.body = "Notification system is working!"
+        content.sound = .default
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 5, repeats: false)
+        try? await center.add(UNNotificationRequest(identifier: prefix + "test", content: content, trigger: trigger))
+    }
+
+    /// Schedules a salary-day nudge at 9 am on the next payday.
+    /// Safe to call repeatedly — skips scheduling if a nudge is already pending for that date.
+    /// Auto-reschedules each month because this is called whenever the app becomes active,
+    /// and a fired notification is no longer "pending", so the next open schedules the following month.
+    func schedulePaydayNudge(paydayDay: Int, now: Date = Date(), calendar: Calendar = .current) async {
+        let center = UNUserNotificationCenter.current()
+        guard (try? await center.requestAuthorization(options: [.alert, .sound])) == true else { return }
+
+        let id = prefix + "payday.nudge"
+        let pending = await center.pendingNotificationRequests()
+        guard !pending.contains(where: { $0.identifier == id }) else { return }
+
+        let nextPayday = PayCyclePlanner.cycle(now: now, dayOfMonth: paydayDay, calendar: calendar).next
+        guard let fire = calendar.date(bySettingHour: 9, minute: 0, second: 0, of: nextPayday) else { return }
+
+        let content = UNMutableNotificationContent()
+        content.title = String(localized: "Salary day!")
+        content.body = String(localized: "Your money is in. Open Jeb Kharcha to plan your month.")
+        content.sound = .default
+
+        let comps = calendar.dateComponents([.year, .month, .day, .hour, .minute], from: fire)
+        let trigger = UNCalendarNotificationTrigger(dateMatching: comps, repeats: false)
+        try? await center.add(UNNotificationRequest(identifier: id, content: content, trigger: trigger))
+    }
 }
