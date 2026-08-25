@@ -52,6 +52,9 @@ struct PlanView: View {
                 InlineError(message: error)
             }
         }
+        // Drag the list down to dismiss the keyboard — the decimalPad has no
+        // Return key, so this is the most reliable dismiss gesture on iOS.
+        .scrollDismissesKeyboard(.interactively)
         .navigationTitle("Monthly Plan")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -133,7 +136,7 @@ struct PlanView: View {
         } header: {
             Text("Income")
         } footer: {
-            Text("Pre-filled from your salary in Settings. Paste a payslip or message to detect it automatically — foreign amounts are converted to your currency.")
+            Text("Enter what you earn each month. You can also paste a payslip or bank message and the app will read the amount — even in another currency.")
         }
     }
 
@@ -145,34 +148,38 @@ struct PlanView: View {
                 HStack(spacing: 10) {
                     Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(Color.moneyOut)
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("Over-committed by \(AmountFormatter.money(plan.shortfall))")
+                        Text("Bills exceed income by \(AmountFormatter.money(plan.shortfall))")
                             .font(.subheadline.weight(.semibold))
-                        Text("Your commitments exceed your income.")
+                        Text("Cut a recurring bill or raise your income to get back on track.")
                             .font(.caption).foregroundStyle(.secondary)
                     }
                 }
             }
-            planRow("Commitments", AmountFormatter.money(plan.commitmentsTotal), "list.bullet.rectangle")
+            planRow("Fixed monthly bills", AmountFormatter.money(plan.commitmentsTotal), "list.bullet.rectangle")
             if plan.subscriptionsTotal > 0 {
-                planRow("of which subscriptions", AmountFormatter.money(plan.subscriptionsTotal), "arrow.triangle.2.circlepath")
+                planRow("Subscriptions", AmountFormatter.money(plan.subscriptionsTotal), "arrow.triangle.2.circlepath", secondary: true)
             }
-            planRow("Recommended savings", AmountFormatter.money(plan.recommendedSavings), "arrow.down.to.line", tint: .moneyIn)
-            planRow("Safe to spend", AmountFormatter.money(plan.safeToSpend), "checkmark.seal",
+            planRow("Put aside for savings", AmountFormatter.money(plan.recommendedSavings), "arrow.down.to.line", tint: .moneyIn)
+            planRow("Left to spend freely", AmountFormatter.money(plan.safeToSpend), "checkmark.seal",
                     tint: plan.safeToSpend < 0 ? .moneyOut : .moneyIn, bold: true)
         } header: {
-            Text("This month")
+            Text("Your plan")
+        } footer: {
+            Text("Fixed bills are read from your Recurring Reminders and Installments. Add or edit them there.")
         }
     }
 
-    private func planRow(_ title: LocalizedStringKey, _ value: String, _ icon: String, tint: Color? = nil, bold: Bool = false) -> some View {
+    private func planRow(_ title: LocalizedStringKey, _ value: String, _ icon: String, tint: Color? = nil, bold: Bool = false, secondary: Bool = false) -> some View {
         HStack {
             Label(title, systemImage: icon)
-                .foregroundStyle(tint == nil ? .primary : tint!)
+                .foregroundStyle(secondary ? AnyShapeStyle(.secondary) : AnyShapeStyle(tint ?? .primary))
+                .font(secondary ? .callout : .body)
             Spacer()
             Text(value)
-                .font(bold ? .body.monospacedDigit().weight(.semibold) : .body.monospacedDigit())
-                .foregroundStyle(tint == nil ? .primary : tint!)
+                .font(bold ? .body.monospacedDigit().weight(.semibold) : (secondary ? .callout.monospacedDigit() : .body.monospacedDigit()))
+                .foregroundStyle(secondary ? AnyShapeStyle(.secondary) : AnyShapeStyle(tint ?? .primary))
         }
+        .padding(.leading, secondary ? 20 : 0)
     }
 
     // MARK: Advice (Apple Intelligence)
@@ -212,7 +219,7 @@ struct PlanView: View {
                     .foregroundStyle(Color.brandPrimary)
             }
         } footer: {
-            Text("To cover your commitments and usual spending while still saving \(savingsRate)%, aim to earn about this per month.")
+            Text("To cover all your bills, usual spending, and still save \(savingsRate)% — you'd need to earn at least this much per month.")
         }
     }
 
