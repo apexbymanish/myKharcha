@@ -32,13 +32,6 @@ struct KharchaApp: App {
             RootView()
                 .environmentObject(services)
                 .environmentObject(signIn)
-                .onOpenURL { url in
-                    // Universal Link from doc.dynamc.link — the app is already
-                    // open or has just been launched. No additional navigation
-                    // needed for the basic share flow. Add routing here when
-                    // deep-link paths (e.g. /invite/CODE) are introduced.
-                    _ = url
-                }
         }
     }
 }
