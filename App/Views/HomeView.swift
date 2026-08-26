@@ -6,6 +6,7 @@ struct HomeView: View {
     let store: ExpenseStore
     @StateObject private var vm: HomeViewModel
     @EnvironmentObject private var signIn: SignInManager
+    @EnvironmentObject private var privacy: PrivacyManager
     @State private var showAddSheet = false
     @State private var showImportSheet = false
     @State private var editingRow: TxnRow?
@@ -15,6 +16,7 @@ struct HomeView: View {
     @State private var showProfileNav = false
     @AppStorage(PayPreference.dayKey, store: PayPreference.defaults) private var paydayDay = 1
     @AppStorage(PayPreference.salaryKey, store: PayPreference.defaults) private var monthlySalary = 0.0
+    @AppStorage("plan.savingsRatePercent", store: PayPreference.defaults) private var savingsRate = 20
 
     init(store: ExpenseStore) {
         self.store = store
@@ -24,7 +26,15 @@ struct HomeView: View {
     private var salaryDecimal: Decimal? { monthlySalary > 0 ? Decimal(monthlySalary) : nil }
 
     private func reload() async {
-        await vm.load(payday: paydayDay, monthlySalary: salaryDecimal)
+        await vm.load(payday: paydayDay, monthlySalary: salaryDecimal, savingsRatePercent: savingsRate)
+    }
+
+    private var incomeTitle: String {
+        vm.state.monthIncomeIsFromSalary ? "Monthly salary" : "Income this month"
+    }
+
+    private func masked(_ amount: String) -> String {
+        privacy.isRevealed ? amount : "••••••"
     }
 
     // MARK: - Grouped recent
@@ -54,9 +64,9 @@ struct HomeView: View {
             Section {
                 BalanceHeroCard(
                     spentTitle: "Spent this month",
-                    spent: AmountFormatter.money(vm.state.monthSpent),
-                    incomeTitle: "Income this month",
-                    income: AmountFormatter.money(vm.state.monthIncome)
+                    spent: masked(AmountFormatter.money(vm.state.monthSpent)),
+                    incomeTitle: LocalizedStringKey(incomeTitle),
+                    income: masked(AmountFormatter.money(vm.state.monthIncome))
                 )
                 .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
                 .listRowBackground(Color.clear)
@@ -124,7 +134,11 @@ struct HomeView: View {
 
             if let plan = vm.state.payPlan {
                 Section("Plan") {
-                    PayCycleCard(plan: plan)
+                    Button { showPlanNav = true } label: {
+                        PayCycleCard(plan: plan)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityHint("Opens Monthly Plan")
                 }
             }
 
@@ -209,7 +223,7 @@ struct HomeView: View {
                             .accessibilityHint("Edits this transaction")
                             .swipeActions {
                                 Button("Delete", role: .destructive) {
-                                    Task { await vm.deleteTxn(row.id, payday: paydayDay, monthlySalary: salaryDecimal) }
+                                    Task { await vm.deleteTxn(row.id, payday: paydayDay, monthlySalary: salaryDecimal, savingsRatePercent: savingsRate) }
                                 }
                             }
                         }
@@ -221,7 +235,7 @@ struct HomeView: View {
                 InlineError(message: error)
             }
         }
-        .navigationTitle("Kharcha")
+        .navigationTitle("Jeb Kharcha")
         .navigationDestination(isPresented: $showPlanNav) { PlanView(store: store) }
         .navigationDestination(isPresented: $showProfileNav) { ProfileView(store: store) }
         .toolbar {
@@ -232,6 +246,18 @@ struct HomeView: View {
                     Image(systemName: "doc.text.magnifyingglass")
                 }
                 .accessibilityLabel("Import from text")
+            }
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    if privacy.isRevealed {
+                        privacy.lock()
+                    } else {
+                        Task { await privacy.requestReveal() }
+                    }
+                } label: {
+                    Image(systemName: privacy.isRevealed ? "eye" : "eye.slash")
+                }
+                .accessibilityLabel(privacy.isRevealed ? "Hide amounts" : "Show amounts")
             }
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
@@ -285,6 +311,7 @@ struct HomeView: View {
         .refreshable { await reload() }
         .onChange(of: paydayDay) { _, _ in Task { await reload() } }
         .onChange(of: monthlySalary) { _, _ in Task { await reload() } }
+        .onChange(of: savingsRate) { _, _ in Task { await reload() } }
         .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
             Task { await reload() }
         }

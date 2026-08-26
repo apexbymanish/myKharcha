@@ -27,18 +27,36 @@ struct KharchaApp: App {
     @UIApplicationDelegateAdaptor(AppBootstrap.self) private var bootstrap
     @StateObject private var services = AppServices()
     @StateObject private var signIn = SignInManager()
+    @StateObject private var privacy = PrivacyManager()
+    @State private var splashVisible = true
 
     var body: some Scene {
         WindowGroup {
-            RootView()
-                .environmentObject(services)
-                .environmentObject(signIn)
-                .environmentObject(services.updateChecker)
-                .onOpenURL { _ in
-                    // Universal Link from jebkharcha-7e514.web.app/kharcha —
-                    // app is already open or launching. No extra navigation
-                    // needed for the basic share flow.
+            ZStack {
+                RootView()
+                    .environmentObject(services)
+                    .environmentObject(signIn)
+                    .environmentObject(services.updateChecker)
+                    .environmentObject(privacy)
+                    .onOpenURL { _ in
+                        // Universal Link from jebkharcha-7e514.web.app/kharcha —
+                        // app is already open or launching. No extra navigation
+                        // needed for the basic share flow.
+                    }
+
+                if splashVisible {
+                    SplashView()
+                        .transition(.opacity)
+                        .zIndex(1)
                 }
+            }
+            .task {
+                // Hold for 0.8 s then fade out over 0.3 s.
+                try? await Task.sleep(nanoseconds: 800_000_000)
+                withAnimation(.easeOut(duration: 0.3)) {
+                    splashVisible = false
+                }
+            }
         }
     }
 }

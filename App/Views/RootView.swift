@@ -77,10 +77,18 @@ struct RootView: View {
             if case .optional = updateChecker.kind { showOptionalUpdateAlert = true }
         }
         .onChange(of: signIn.firebaseUID) { _, uid in
-            if let uid { services.sync.start(uid: uid) } else { services.sync.stop() }
+            if let uid {
+                services.sync.start(uid: uid)
+            } else {
+                // Flush any pending local changes before tearing down the sync session.
+                services.sync.pushNow()
+                services.sync.stop()
+            }
         }
         .onChange(of: scenePhase) { _, phase in
             if phase == .active {
+                signIn.refreshCredentialState()
+                services.sync.retryInitialPullIfNeeded()
                 navigator.consumePendingAddExpense()
                 // Catch up any recurring rules or installments that became due
                 // while the app was in the background. Idempotent — the watermark

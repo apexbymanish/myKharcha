@@ -4,8 +4,8 @@ import Foundation
 public final class HistoryViewModel: ObservableObject {
     public struct Section: Sendable, Equatable {
         public let title: String
-        /// Net total for this month: income − expenses. Negative means more spent than earned.
         public let totalExpenses: Decimal
+        public let totalIncome: Decimal
         public let rows: [TxnRow]
     }
 
@@ -21,10 +21,24 @@ public final class HistoryViewModel: ObservableObject {
         public var searchText: String = ""
         public var categories: [CategorySnapshot] = []
         public var errorMessage: String?
+        /// The month shown in the calendar heat grid — navigable independently.
+        public var calendarMonth: Date = Date()
+
+        /// True when any kind or category filter is active.
+        public var hasActiveFilters: Bool {
+            filterKind != nil || filterCategoryName != nil
+        }
     }
 
     @Published public private(set) var state = State()
     private let store: ExpenseStore
+
+    /// Localized "Month Year" formatter, created once (DateFormatter is expensive).
+    private static let sectionTitleFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.setLocalizedDateFormatFromTemplate("MMMMyyyy")
+        return f
+    }()
 
     public init(store: ExpenseStore) {
         self.store = store
@@ -63,6 +77,21 @@ public final class HistoryViewModel: ObservableObject {
         await reloadSections(calendar: calendar)
     }
 
+    /// Clears all active filters (kind, category, day) in one shot.
+    public func clearAllFilters(calendar: Calendar = .current) async {
+        state.filterKind = nil
+        state.filterCategoryName = nil
+        state.dayFilter = nil
+        await reloadSections(calendar: calendar)
+    }
+
+    /// Navigate the calendar heat grid to a different month; also clears the day filter.
+    public func setCalendarMonth(_ date: Date, calendar: Calendar = .current) async {
+        state.calendarMonth = date
+        state.dayFilter = nil
+        await reloadSections(calendar: calendar)
+    }
+
     public func delete(_ id: UUID, calendar: Calendar = .current) async {
         do {
             try await store.deleteTxn(txnID: id)
@@ -94,19 +123,18 @@ public final class HistoryViewModel: ObservableObject {
                 return c.year! * 100 + c.month!
             }
 
-            let titleFormatter = DateFormatter()
-            titleFormatter.dateFormat = "MMMM yyyy"
-            titleFormatter.locale = Locale(identifier: "en_US_POSIX")
-            titleFormatter.timeZone = calendar.timeZone
-
             state.sections = grouped.keys.sorted(by: >).map { key in
                 let sectionRows = grouped[key]!
                 let expenses = sectionRows
                     .filter { $0.kind == .expense }
                     .reduce(Decimal(0)) { $0 + $1.amount }
+                let income = sectionRows
+                    .filter { $0.kind == .income }
+                    .reduce(Decimal(0)) { $0 + $1.amount }
                 return Section(
-                    title: titleFormatter.string(from: sectionRows[0].date),
+                    title: Self.sectionTitleFormatter.string(from: sectionRows[0].date),
                     totalExpenses: expenses,
+                    totalIncome: income,
                     rows: sectionRows
                 )
             }

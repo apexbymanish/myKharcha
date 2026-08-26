@@ -47,7 +47,8 @@ struct ImportView: View {
                             row: row,
                             categories: vm.state.categories,
                             onToggle: { vm.setInclude(row.id, $0) },
-                            onCategory: { vm.setCategory(row.id, $0) }
+                            onCategory: { vm.setCategory(row.id, $0) },
+                            onNote: { vm.setNote(row.id, $0) }
                         )
                     }
                 } header: {
@@ -98,30 +99,45 @@ private struct ImportRowView: View {
     let categories: [CategorySnapshot]
     let onToggle: (Bool) -> Void
     let onCategory: (UUID?) -> Void
+    let onNote: (String) -> Void
 
     private var includeBinding: Binding<Bool> {
         Binding(get: { row.include }, set: onToggle)
     }
+    private var noteBinding: Binding<String> {
+        Binding(get: { row.note }, set: onNote)
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            HStack {
-                Toggle(isOn: includeBinding) {
-                    HStack(spacing: 6) {
-                        Text((row.kind == .income ? "+" : "") + AmountFormatter.money(row.amount))
-                            .font(.body.monospacedDigit())
-                            .foregroundStyle(row.kind == .income ? Color.moneyIn : .primary)
-                        if row.kind == .income {
-                            Text("Income")
-                                .font(.caption2.bold())
-                                .padding(.horizontal, 6).padding(.vertical, 2)
-                                .background(Color.moneyIn.opacity(0.2))
-                                .foregroundStyle(Color.moneyIn)
-                                .clipShape(Capsule())
-                        }
-                    }
+            // Toggle and amount are separate so the amount Text can be long-pressed
+            // to copy without conflicting with the Toggle's tap gesture.
+            HStack(spacing: 10) {
+                Toggle(isOn: includeBinding) { EmptyView() }
+                    .toggleStyle(.switch)
+                    .labelsHidden()
+                    .fixedSize()
+                Text((row.kind == .income ? "+" : "") + AmountFormatter.money(row.amount))
+                    .font(.body.monospacedDigit())
+                    .foregroundStyle(row.kind == .income ? Color.moneyIn : .primary)
+                    .textSelection(.enabled)
+                if row.kind == .income {
+                    Text("Income")
+                        .font(.caption2.bold())
+                        .padding(.horizontal, 6).padding(.vertical, 2)
+                        .background(Color.moneyIn.opacity(0.2))
+                        .foregroundStyle(Color.moneyIn)
+                        .clipShape(Capsule())
                 }
-                .toggleStyle(.switch)
+                Spacer()
+                if row.isDuplicate {
+                    Text("Duplicate")
+                        .font(.caption2.bold())
+                        .padding(.horizontal, 6).padding(.vertical, 2)
+                        .background(Color.moneyOut.opacity(0.2))
+                        .foregroundStyle(Color.moneyOut)
+                        .clipShape(Capsule())
+                }
             }
             if let orig = row.originalAmount, let code = row.originalCurrency {
                 Text("\(AmountFormatter.money(orig, currencyCode: code)) → \(AmountFormatter.money(row.amount))")
@@ -132,17 +148,10 @@ private struct ImportRowView: View {
                 Text(row.date, style: .date)
                     .font(.caption)
                     .foregroundStyle(.secondary)
-                if !row.note.isEmpty {
-                    Text(row.note).font(.caption)
-                }
-                if row.isDuplicate {
-                    Text("Duplicate")
-                        .font(.caption2.bold())
-                        .padding(.horizontal, 6).padding(.vertical, 2)
-                        .background(Color.moneyOut.opacity(0.2))
-                        .foregroundStyle(Color.moneyOut)
-                        .clipShape(Capsule())
-                }
+                // Note is editable so users can correct what the parser detected.
+                TextField("Add note…", text: noteBinding)
+                    .font(.caption)
+                    .foregroundStyle(row.note.isEmpty ? .tertiary : .primary)
             }
             Menu {
                 Button("Uncategorized") { onCategory(nil) }

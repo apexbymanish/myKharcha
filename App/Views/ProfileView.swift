@@ -6,8 +6,9 @@ import KharchaKit
 struct ProfileView: View {
     let store: ExpenseStore
     @EnvironmentObject private var signIn: SignInManager
-    @State private var isSyncing = false
-    @State private var statusMessage: String?
+    @EnvironmentObject private var services: AppServices
+    @State private var isManualSyncing = false
+    @State private var manualStatusMessage: LocalizedStringKey?
     @State private var showRestoreConfirm = false
 
     private var initials: String {
@@ -43,24 +44,24 @@ struct ProfileView: View {
                 Button {
                     Task { await backUp() }
                 } label: {
-                    if isSyncing {
+                    if isManualSyncing || services.sync.isSyncing {
                         HStack { ProgressView(); Text("Working…") }
                     } else {
                         Label("Back Up Now", systemImage: "arrow.up.doc")
                     }
                 }
-                .disabled(isSyncing || signIn.firebaseUID == nil)
+                .disabled(isManualSyncing || services.sync.isSyncing || signIn.firebaseUID == nil)
 
                 Button {
                     showRestoreConfirm = true
                 } label: {
                     Label("Restore from Backup", systemImage: "arrow.down.doc")
                 }
-                .disabled(isSyncing || signIn.firebaseUID == nil)
+                .disabled(isManualSyncing || services.sync.isSyncing || signIn.firebaseUID == nil)
             } header: {
                 Text("Backup & Sync")
             } footer: {
-                Text(statusMessage ?? "Your expenses sync automatically across your devices.")
+                syncStatusFooter
             }
 
             Section {
@@ -77,28 +78,47 @@ struct ProfileView: View {
         }
     }
 
+    @ViewBuilder
+    private var syncStatusFooter: some View {
+        if signIn.firebaseAuthFailed {
+            Label("Backup connection failed. Sign out and sign in again to reconnect.", systemImage: "exclamationmark.triangle.fill")
+                .foregroundStyle(.orange)
+        } else if let msg = manualStatusMessage {
+            Text(msg)
+        } else if services.sync.hasSyncError {
+            Label("Sync failed. Check your connection or tap Back Up Now to retry.", systemImage: "exclamationmark.triangle.fill")
+                .foregroundStyle(.orange)
+        } else if let date = services.sync.lastSyncedAt {
+            Text("Last synced \(date, style: .relative) ago.")
+        } else {
+            Text("Your expenses sync automatically across your devices.")
+        }
+    }
+
     private func backUp() async {
         guard let uid = signIn.firebaseUID else { return }
-        isSyncing = true
-        defer { isSyncing = false }
+        isManualSyncing = true
+        manualStatusMessage = nil
+        defer { isManualSyncing = false }
         do {
             try await FirestoreSync(uid: uid, store: store).pushAll()
-            statusMessage = "Backed up just now."
+            manualStatusMessage = "Backed up just now."
         } catch {
-            statusMessage = "Backup failed."
+            manualStatusMessage = "Backup failed. Check your connection."
         }
     }
 
     private func restore() async {
         guard let uid = signIn.firebaseUID else { return }
-        isSyncing = true
-        defer { isSyncing = false }
+        isManualSyncing = true
+        manualStatusMessage = nil
+        defer { isManualSyncing = false }
         do {
             try await FirestoreSync(uid: uid, store: store).pullAll()
-            statusMessage = "Restored from backup."
+            manualStatusMessage = "Restored from backup."
             NotificationCenter.default.post(name: .kharchaRemoteDidChange, object: nil)
         } catch {
-            statusMessage = "Restore failed."
+            manualStatusMessage = "Restore failed. Check your connection."
         }
     }
 }

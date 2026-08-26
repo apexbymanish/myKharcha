@@ -7,9 +7,11 @@ import KharchaKit
 /// came out ahead or spent more than you earned.
 ///
 /// Pass `prevBars` to show "+X% vs prior" deltas beneath each figure.
+/// Pass `isRevealed: false` to redact amounts (PrivacyManager locked state).
 struct ActivitySummaryHeader: View {
     let bars: [ActivityBar]
     var prevBars: [ActivityBar]? = nil
+    var isRevealed: Bool = true
 
     private var received: Decimal { bars.reduce(0) { $0 + $1.income } }
     private var spent: Decimal { bars.reduce(0) { $0 + $1.expense } }
@@ -31,8 +33,14 @@ struct ActivitySummaryHeader: View {
         }
         .padding(.vertical, 2)
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("Received \(AmountFormatter.money(received)), spent \(AmountFormatter.money(spent)). "
-            + (isLoss ? "Net loss \(AmountFormatter.money(abs(net)))" : "Net gain \(AmountFormatter.money(net))"))
+        .accessibilityLabel(isRevealed
+            ? "Received \(AmountFormatter.money(received)), spent \(AmountFormatter.money(spent)). "
+                + (isLoss ? "Net loss \(AmountFormatter.money(abs(net)))" : "Net gain \(AmountFormatter.money(net))")
+            : "Amounts hidden")
+    }
+
+    private func masked(_ amount: Decimal) -> String {
+        isRevealed ? AmountFormatter.money(amount) : "••••"
     }
 
     private func statColumn(
@@ -41,10 +49,10 @@ struct ActivitySummaryHeader: View {
     ) -> some View {
         VStack(alignment: alignment, spacing: 2) {
             Text(title).font(.caption).foregroundStyle(.secondary)
-            Text(AmountFormatter.money(amount))
+            Text(masked(amount))
                 .font(.subheadline.monospacedDigit().weight(.semibold))
-                .foregroundStyle(tint)
-            if let p = prev {
+                .foregroundStyle(isRevealed ? tint : Color.secondary)
+            if let p = prev, isRevealed {
                 Text(pctDelta(current: amount, prev: p))
                     .font(.caption2)
                     .foregroundStyle(.secondary)
@@ -58,13 +66,14 @@ struct ActivitySummaryHeader: View {
             HStack(spacing: 3) {
                 Image(systemName: isLoss ? "arrow.down.right" : "arrow.up.right")
                     .font(.caption.weight(.bold))
-                Text(AmountFormatter.money(abs(net)))
+                Text(masked(abs(net)))
                     .font(.subheadline.monospacedDigit().weight(.semibold))
             }
-            .foregroundStyle(isLoss ? Color.moneyOut : Color.moneyIn)
-            // Net is directional so show absolute Δ rather than a percentage
-            // (percentage is undefined when prior net was 0 or negative).
-            if let pr = prevReceived, let ps = prevSpent {
+            .foregroundStyle(isRevealed
+                ? (isLoss ? Color.moneyOut : Color.moneyIn)
+                : Color.secondary)
+            // Net delta: show only when revealed and prior data exists.
+            if isRevealed, let pr = prevReceived, let ps = prevSpent {
                 let prevNet = pr - ps
                 let delta = net - prevNet
                 Text("\(delta >= 0 ? "+" : "")\(AmountFormatter.money(delta)) vs prior")
@@ -74,10 +83,13 @@ struct ActivitySummaryHeader: View {
         }
     }
 
-    /// "+12% vs prior" / "−8% vs prior" / "—" when no prior data.
+    /// "+12% vs prior" / "−8% vs prior" / "< +1%" for sub-1% changes / "—" when no prior data.
     private func pctDelta(current: Decimal, prev: Decimal) -> String {
         guard prev != 0 else { return current == 0 ? "—" : "new" }
         let pct = Double(truncating: ((current - prev) / prev * 100) as NSDecimalNumber)
+        if pct != 0 && abs(pct) < 1 {
+            return (pct > 0 ? "< +1%" : "< −1%") + " vs prior"
+        }
         let sign = pct >= 0 ? "+" : ""
         return "\(sign)\(Int(pct.rounded()))% vs prior"
     }
@@ -170,6 +182,8 @@ struct MiniTrendChart: View {
 
 /// Per-category spend/income breakdown for a single time bucket (day or month).
 /// Shown in History below the bar chart when the user taps a bar.
+/// Always shows all transactions for the bucket regardless of active list filters,
+/// since it corresponds to the unfiltered chart bars above.
 struct BarSelectionBreakdown: View {
     let allRows: [TxnRow]
     let date: Date
@@ -253,9 +267,7 @@ struct BarSelectionBreakdown: View {
         switch period {
         case .year:
             return date.formatted(.dateTime.month(.wide).year())
-        case .month:
-            return date.formatted(.dateTime.weekday(.wide).month(.abbreviated).day())
-        case .week:
+        case .month, .week:
             return date.formatted(.dateTime.weekday(.wide).month(.abbreviated).day())
         }
     }
@@ -263,10 +275,12 @@ struct BarSelectionBreakdown: View {
 
 /// A month calendar where each day is tinted by its net (green = net income,
 /// red = net spend) and tappable to filter the list to that day.
+/// Pass `isRevealed: false` to neutralize color coding and hide amounts in accessibility.
 struct MonthHeatGrid: View {
-    let bars: [ActivityBar]          // daily bars for one calendar month
+    let bars: [ActivityBar]
     let calendar: Calendar
     let selectedDay: Date?
+    var isRevealed: Bool = true
     let onSelect: (Date) -> Void
 
     private var leadingBlanks: Int {
@@ -297,7 +311,8 @@ struct MonthHeatGrid: View {
                     DayCell(
                         bar: bar,
                         day: calendar.component(.day, from: bar.date),
-                        isSelected: selectedDay.map { calendar.isDate($0, inSameDayAs: bar.date) } ?? false
+                        isSelected: selectedDay.map { calendar.isDate($0, inSameDayAs: bar.date) } ?? false,
+                        isRevealed: isRevealed
                     )
                     .onTapGesture { onSelect(bar.date) }
                 }
@@ -309,11 +324,18 @@ struct MonthHeatGrid: View {
         let bar: ActivityBar
         let day: Int
         let isSelected: Bool
+        var isRevealed: Bool = true
 
         private var fill: Color {
+            guard isRevealed else { return Color.secondary.opacity(0.10) }
             if bar.net > 0 { return .moneyIn.opacity(0.22) }
             if bar.net < 0 { return .moneyOut.opacity(0.22) }
             return Color.secondary.opacity(0.10)
+        }
+
+        private var dotColor: Color {
+            guard isRevealed else { return .secondary }
+            return bar.net >= 0 ? Color.moneyIn : Color.moneyOut
         }
 
         var body: some View {
@@ -321,7 +343,7 @@ struct MonthHeatGrid: View {
                 Text("\(day)").font(.caption2)
                 if !bar.isEmpty {
                     Circle()
-                        .fill(bar.net >= 0 ? Color.moneyIn : Color.moneyOut)
+                        .fill(dotColor)
                         .frame(width: 5, height: 5)
                 } else {
                     Circle().fill(.clear).frame(width: 5, height: 5)
@@ -336,8 +358,13 @@ struct MonthHeatGrid: View {
                     .stroke(Color.brandPrimary, lineWidth: isSelected ? 2 : 0)
             )
             .accessibilityElement(children: .ignore)
-            .accessibilityLabel("Day \(day)")
-            .accessibilityValue(bar.isEmpty ? "No activity" : "Net \(AmountFormatter.money(bar.net))")
+            .accessibilityLabel(bar.date.formatted(.dateTime.month(.wide).day()))
+            .accessibilityValue(
+                bar.isEmpty ? "No activity"
+                    : isRevealed ? "Net \(AmountFormatter.money(bar.net))"
+                    : "Amounts hidden"
+            )
+            .accessibilityAddTraits(isSelected ? .isSelected : [])
         }
     }
 }

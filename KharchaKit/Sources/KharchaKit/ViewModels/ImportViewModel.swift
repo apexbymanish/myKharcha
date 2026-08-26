@@ -126,6 +126,11 @@ public final class ImportViewModel: ObservableObject {
         state.rows[i].categoryID = categoryID
     }
 
+    public func setNote(_ id: UUID, _ value: String) {
+        guard let i = state.rows.firstIndex(where: { $0.id == id }) else { return }
+        state.rows[i].note = value
+    }
+
     /// Insert every included row as a manual expense; reports how many landed.
     public func importSelected() async {
         state.errorMessage = nil

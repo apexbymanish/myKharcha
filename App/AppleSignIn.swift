@@ -16,6 +16,9 @@ final class SignInManager: ObservableObject {
     /// The Firebase Auth UID once the Apple credential has been exchanged.
     /// Observers (e.g. sync) key off changes to this.
     @Published private(set) var firebaseUID: String? = Auth.auth().currentUser?.uid
+    /// True when the Apple credential succeeded but the Firebase exchange failed.
+    /// Cleared on sign-out. Use to surface a "backup unavailable" warning.
+    @Published private(set) var firebaseAuthFailed = false
     /// Display name / email captured at first Apple sign-in (Apple only provides
     /// them once) and persisted, falling back to the Firebase user.
     @Published private(set) var displayName: String? = SignInManager.storedName ?? Auth.auth().currentUser?.displayName
@@ -77,6 +80,7 @@ final class SignInManager: ObservableObject {
                     if self.email == nil { self.email = result.user.email }
                 } catch {
                     // Firebase exchange failed — the local Apple sign-in still holds.
+                    self.firebaseAuthFailed = true
                 }
             }
         case .failure:
@@ -88,6 +92,7 @@ final class SignInManager: ObservableObject {
         KeychainStore.appleUserID = nil
         userID = nil
         firebaseUID = nil
+        firebaseAuthFailed = false
         displayName = nil
         email = nil
         Self.defaults.removeObject(forKey: "profile.name")

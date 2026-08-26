@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 77;
+	objectVersion = 63;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -12,6 +12,11 @@
 		111785BD48CCEA7EEB8AD720 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28183456CBEAB046E6AC7829 /* Theme.swift */; };
 		16B589669E10043DBBDA2386 /* RemindersView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4ABA52414CD34EBD8EB3CE1 /* RemindersView.swift */; };
 		201DD3C9D16397855B31A709 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69FEAF37EE3107CA468FAED2 /* RootView.swift */; };
+		24DC0675303D30CD00D581FB /* InfoPlist.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 24DC0673303D30CD00D581FB /* InfoPlist.xcstrings */; };
+		24DC0676303D30CD00D581FB /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 24DC0674303D30CD00D581FB /* Localizable.xcstrings */; };
+		24DC0688303D7AC800D581FB /* PrivacyManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24DC0687303D7AC800D581FB /* PrivacyManager.swift */; };
+		24DC068A303D7C4100D581FB /* AppUpdateChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24DC0689303D7C4100D581FB /* AppUpdateChecker.swift */; };
+		24DC068C303DD18C00D581FB /* SplashView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24DC068B303DD18C00D581FB /* SplashView.swift */; };
 		2F936B922B1C50E76C08C463 /* CurrencyPreference.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEE3A422870C98FB94EF78AB /* CurrencyPreference.swift */; };
 		32C5F60669B04F632ADD0B19 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = FE154007F5FAC9B9C1C521F8 /* FirebaseFirestore */; };
 		3BA4A022DF6B6F8726650E6B /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2AC177A02071D0D0843C2B /* HistoryView.swift */; };
@@ -105,6 +110,28 @@
 		1E7D1088EC76A3D6B3266C65 /* ko */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ko; path = ko.lproj/AppShortcuts.strings; sourceTree = "<group>"; };
 		210E3A40B033E1C645DFEA8C /* AppBootstrap.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppBootstrap.swift; sourceTree = "<group>"; };
 		249B7DBA649188A1C67510B1 /* InstallmentDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InstallmentDetailView.swift; sourceTree = "<group>"; };
+		24DC0671303D30CD00D581FB /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/AppShortcuts.strings"; sourceTree = "<group>"; };
+		24DC0673303D30CD00D581FB /* InfoPlist.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = InfoPlist.xcstrings; sourceTree = "<group>"; };
+		24DC0674303D30CD00D581FB /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
+		24DC0677303D30D100D581FB /* hi */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = hi; path = hi.lproj/AppShortcuts.strings; sourceTree = "<group>"; };
+		24DC0678303D30D500D581FB /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/AppShortcuts.strings; sourceTree = "<group>"; };
+		24DC0679303D30D800D581FB /* fr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = fr; path = fr.lproj/AppShortcuts.strings; sourceTree = "<group>"; };
+		24DC067A303D30DC00D581FB /* ar */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ar; path = ar.lproj/AppShortcuts.strings; sourceTree = "<group>"; };
+		24DC067B303D30E000D581FB /* bn */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = bn; path = bn.lproj/AppShortcuts.strings; sourceTree = "<group>"; };
+		24DC067C303D30E400D581FB /* pt-BR */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "pt-BR"; path = "pt-BR.lproj/AppShortcuts.strings"; sourceTree = "<group>"; };
+		24DC067D303D30E700D581FB /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = ru.lproj/AppShortcuts.strings; sourceTree = "<group>"; };
+		24DC067E303D30EB00D581FB /* ur */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ur; path = ur.lproj/AppShortcuts.strings; sourceTree = "<group>"; };
+		24DC067F303D30EE00D581FB /* id */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = id; path = id.lproj/AppShortcuts.strings; sourceTree = "<group>"; };
+		24DC0680303D30F100D581FB /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/AppShortcuts.strings; sourceTree = "<group>"; };
+		24DC0681303D30F500D581FB /* ja */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ja; path = ja.lproj/AppShortcuts.strings; sourceTree = "<group>"; };
+		24DC0682303D30F900D581FB /* mr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = mr; path = mr.lproj/AppShortcuts.strings; sourceTree = "<group>"; };
+		24DC0683303D30FC00D581FB /* te */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = te; path = te.lproj/AppShortcuts.strings; sourceTree = "<group>"; };
+		24DC0684303D310000D581FB /* tr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = tr; path = tr.lproj/AppShortcuts.strings; sourceTree = "<group>"; };
+		24DC0685303D310400D581FB /* ta */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ta; path = ta.lproj/AppShortcuts.strings; sourceTree = "<group>"; };
+		24DC0686303D310700D581FB /* vi */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = vi; path = vi.lproj/AppShortcuts.strings; sourceTree = "<group>"; };
+		24DC0687303D7AC800D581FB /* PrivacyManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyManager.swift; sourceTree = "<group>"; };
+		24DC0689303D7C4100D581FB /* AppUpdateChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppUpdateChecker.swift; sourceTree = "<group>"; };
+		24DC068B303DD18C00D581FB /* SplashView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashView.swift; sourceTree = "<group>"; };
 		28183456CBEAB046E6AC7829 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		2A34CE6439C8216233EFABD4 /* FriendsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendsView.swift; sourceTree = "<group>"; };
 		2F2521668CBB9D4ABDCFC25D /* AppContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppContainer.swift; sourceTree = "<group>"; };
@@ -118,11 +145,11 @@
 		5E5032379BA7BAADBF750B5A /* SavingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavingsView.swift; sourceTree = "<group>"; };
 		5FC6FFA3B42CC2731E0B3C8B /* AppleSignIn.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleSignIn.swift; sourceTree = "<group>"; };
 		61EF15F1DD792AA7A1D99D80 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
-		62B253CD42B237423480E375 /* KharchaKit */ = {isa = PBXFileReference; lastKnownFileType = folder; name = KharchaKit; path = KharchaKit; sourceTree = SOURCE_ROOT; };
+		62B253CD42B237423480E375 /* KharchaKit */ = {isa = PBXFileReference; lastKnownFileType = folder; path = KharchaKit; sourceTree = SOURCE_ROOT; };
 		69FEAF37EE3107CA468FAED2 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
 		703015A09CB6B09846D29DF8 /* InstallmentsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InstallmentsView.swift; sourceTree = "<group>"; };
 		798E304D56508DA05FAA2F08 /* KharchaExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KharchaExtension.swift; sourceTree = "<group>"; };
-		82202E5095E40A6F67FE0B67 /* Kharcha.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Kharcha.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		82202E5095E40A6F67FE0B67 /* Kharcha.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Kharcha.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		85EBCD6310EE53C7B1487AB2 /* KharchaWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KharchaWidget.swift; sourceTree = "<group>"; };
 		90A7B0277CF72370073A5B38 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		937792B55087B957FB2294FD /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/AppShortcuts.strings; sourceTree = "<group>"; };
@@ -204,6 +231,8 @@
 				28183456CBEAB046E6AC7829 /* Theme.swift */,
 				4E4D0A8B2A15CFCCB8C96370 /* Resources */,
 				56A889442EFEAF7A510DB45D /* Views */,
+				24DC0687303D7AC800D581FB /* PrivacyManager.swift */,
+				24DC0689303D7C4100D581FB /* AppUpdateChecker.swift */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -258,6 +287,7 @@
 				5E5032379BA7BAADBF750B5A /* SavingsView.swift */,
 				08E503EBB2AE805185B83A7E /* SettingsView.swift */,
 				CE89EF311C80735B99534F5A /* TxnFormView.swift */,
+				24DC068B303DD18C00D581FB /* SplashView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -273,6 +303,8 @@
 		BDA9E555240DA0C236241046 /* Widget */ = {
 			isa = PBXGroup;
 			children = (
+				24DC0673303D30CD00D581FB /* InfoPlist.xcstrings */,
+				24DC0674303D30CD00D581FB /* Localizable.xcstrings */,
 				D6FF8FE34EC6EB27B2C0E259 /* Info.plist */,
 				DEFF6F2888A8305DFBBE80F8 /* KharchaWidget.entitlements */,
 				85EBCD6310EE53C7B1487AB2 /* KharchaWidget.swift */,
@@ -334,6 +366,7 @@
 			buildConfigurationList = D78642A2063F009FD05DAF9D /* Build configuration list for PBXNativeTarget "KharchaWidget" */;
 			buildPhases = (
 				FA062991AC0CAF9C4A172E96 /* Sources */,
+				24DC0672303D30CD00D581FB /* Resources */,
 			);
 			buildRules = (
 			);
@@ -378,6 +411,23 @@
 				en,
 				ko,
 				ne,
+				"zh-Hans",
+				hi,
+				es,
+				fr,
+				ar,
+				bn,
+				"pt-BR",
+				ru,
+				ur,
+				id,
+				de,
+				ja,
+				mr,
+				te,
+				tr,
+				ta,
+				vi,
 			);
 			mainGroup = 1047968AA68E02962BA35230;
 			minimizedProjectReferenceProxies = 1;
@@ -385,7 +435,6 @@
 				2F3EF282FFB41E9FE701972C /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 				C87C904710E31C63AA67E5BE /* XCLocalSwiftPackageReference "KharchaKit" */,
 			);
-			preferredProjectObjectVersion = 77;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -397,6 +446,15 @@
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		24DC0672303D30CD00D581FB /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				24DC0675303D30CD00D581FB /* InfoPlist.xcstrings in Resources */,
+				24DC0676303D30CD00D581FB /* Localizable.xcstrings in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		267C3F21C7A6B21D841AD626 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -434,6 +492,7 @@
 				2F936B922B1C50E76C08C463 /* CurrencyPreference.swift in Sources */,
 				A39C8707E12A8D3B0A069665 /* FirestoreSync.swift in Sources */,
 				85AA35126F79C2A9EDDD6554 /* FrankfurterRateService.swift in Sources */,
+				24DC068A303D7C4100D581FB /* AppUpdateChecker.swift in Sources */,
 				A6E5B3D9C3AA768690D1703C /* FriendDetailView.swift in Sources */,
 				E036C51F34E1B1F3EA61E5BC /* FriendsView.swift in Sources */,
 				3BA4A022DF6B6F8726650E6B /* HistoryView.swift in Sources */,
@@ -443,8 +502,10 @@
 				760E53929D70E082DD2C28B3 /* InstallmentsView.swift in Sources */,
 				E7D09FB8DA5781CE85EF6389 /* KharchaApp.swift in Sources */,
 				6069A68846AA50BC0652548A /* KharchaShortcuts.swift in Sources */,
+				24DC0688303D7AC800D581FB /* PrivacyManager.swift in Sources */,
 				4EA295C514095F8614356165 /* NotificationScheduler.swift in Sources */,
 				B9E8249D0A7E5D5F5D447892 /* OnboardingView.swift in Sources */,
+				24DC068C303DD18C00D581FB /* SplashView.swift in Sources */,
 				AEAA4C6A20FED8571186B9FE /* PlanView.swift in Sources */,
 				B66C4F4965A2059588FDEC44 /* ProfileView.swift in Sources */,
 				16B589669E10043DBBDA2386 /* RemindersView.swift in Sources */,
@@ -495,6 +556,23 @@
 				937792B55087B957FB2294FD /* en */,
 				1E7D1088EC76A3D6B3266C65 /* ko */,
 				E349D7658EC0B182BAFA4634 /* ne */,
+				24DC0671303D30CD00D581FB /* zh-Hans */,
+				24DC0677303D30D100D581FB /* hi */,
+				24DC0678303D30D500D581FB /* es */,
+				24DC0679303D30D800D581FB /* fr */,
+				24DC067A303D30DC00D581FB /* ar */,
+				24DC067B303D30E000D581FB /* bn */,
+				24DC067C303D30E400D581FB /* pt-BR */,
+				24DC067D303D30E700D581FB /* ru */,
+				24DC067E303D30EB00D581FB /* ur */,
+				24DC067F303D30EE00D581FB /* id */,
+				24DC0680303D30F100D581FB /* de */,
+				24DC0681303D30F500D581FB /* ja */,
+				24DC0682303D30F900D581FB /* mr */,
+				24DC0683303D30FC00D581FB /* te */,
+				24DC0684303D310000D581FB /* tr */,
+				24DC0685303D310400D581FB /* ta */,
+				24DC0686303D310700D581FB /* vi */,
 			);
 			name = AppShortcuts.strings;
 			sourceTree = "<group>";
@@ -599,15 +677,20 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_ENTITLEMENTS = App/Kharcha.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 2LZ2H9STBD;
 				INFOPLIST_FILE = App/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Jeb Kharcha";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				MARKETING_VERSION = 1.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.manish.jebkharcha;
 				SDKROOT = iphoneos;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -620,15 +703,20 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_ENTITLEMENTS = App/Kharcha.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 2LZ2H9STBD;
 				INFOPLIST_FILE = App/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Jeb Kharcha";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				MARKETING_VERSION = 1.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.manish.jebkharcha;
 				SDKROOT = iphoneos;
 				SWIFT_EMIT_LOC_STRINGS = YES;

@@ -295,6 +295,20 @@ struct PayCycleCard: View {
     @Environment(\.dynamicTypeSize) private var typeSize
     @EnvironmentObject private var privacy: PrivacyManager
 
+    private var accessibilityValueString: String {
+        guard privacy.isRevealed else {
+            return "\(plan.daysUntilPayday) days until payday. Amounts hidden."
+        }
+        var value = "\(plan.daysUntilPayday) days until payday. "
+        value += "\(AmountFormatter.money(plan.remaining)) left to spend this cycle"
+        if plan.isOverspent { value += ", over budget" }
+        value += ". Safe to spend \(AmountFormatter.money(plan.safeToSpendPerDay)) per day."
+        if plan.savingsReserved > 0 {
+            value += " \(AmountFormatter.money(plan.savingsReserved)) reserved for savings."
+        }
+        return value
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
@@ -337,7 +351,7 @@ struct PayCycleCard: View {
             }
             if plan.savingsReserved > 0 {
                 Label(
-                    "\(AmountFormatter.money(plan.savingsReserved)) reserved for savings (\(plan.savingsRatePercent)%)",
+                    "\(AmountFormatter.money(plan.savingsReserved)) reserved for savings  (\(plan.savingsRatePercent)%)",
                     systemImage: "banknote"
                 )
                 .font(.caption)
@@ -347,15 +361,7 @@ struct PayCycleCard: View {
         .padding(.vertical, 4)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("Pay cycle")
-        .accessibilityValue(
-            privacy.isRevealed
-            ? "\(plan.daysUntilPayday) days until payday. "
-                + "\(AmountFormatter.money(plan.remaining)) left to spend this cycle"
-                + (plan.isOverspent ? ", over budget" : "")
-                + ". Safe to spend \(AmountFormatter.money(plan.safeToSpendPerDay)) per day."
-                + (plan.savingsReserved > 0 ? " \(AmountFormatter.money(plan.savingsReserved)) reserved for savings." : "")
-            : "\(plan.daysUntilPayday) days until payday. Amounts hidden."
-        )
+        .accessibilityValue(accessibilityValueString)
     }
 }
 

@@ -12,6 +12,7 @@ struct OnboardingView: View {
                 store: UserDefaults(suiteName: KharchaContainerFactory.appGroupID) ?? .standard)
     private var currencyCode: String = Locale.current.currency?.identifier ?? "USD"
     @AppStorage(PayPreference.salaryKey, store: PayPreference.defaults) private var monthlySalary = 0.0
+    @AppStorage(PayPreference.dayKey, store: PayPreference.defaults) private var paydayDay = 1
 
     var body: some View {
         NavigationStack {
@@ -67,7 +68,7 @@ struct OnboardingView: View {
                     .font(.title.weight(.semibold))
                     .foregroundStyle(.white)
             }
-            Text("Welcome to myKharcha")
+            Text("Welcome to Jeb Kharcha")
                 .font(.largeTitle.bold())
             Text("Your calm, private money tracker.")
                 .font(.title3)
@@ -112,7 +113,14 @@ struct OnboardingView: View {
                     .multilineTextAlignment(.trailing)
                     .frame(maxWidth: 140)
             }
-            Text("You can change both later in Settings.")
+            Divider()
+            HStack {
+                Label("Payday (day of month)", systemImage: "calendar.badge.checkmark")
+                Spacer()
+                Stepper("\(paydayDay)", value: $paydayDay, in: 1...31)
+                    .fixedSize()
+            }
+            Text("You can change these later in Settings.")
                 .font(.caption).foregroundStyle(.secondary)
         }
         .padding(16)
