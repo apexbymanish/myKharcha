@@ -14,13 +14,54 @@ struct TxnFormView: View {
 
     @FocusState private var amountFocused: Bool
 
+    @AppStorage(CurrencyPreference.defaultsKey, store: PayPreference.defaults)
+    private var currencyCode = AmountFormatter.currencyCode
+
+    private var currencySymbol: String {
+        Locale(identifier: "en_US@currency=\(currencyCode)").currencySymbol ?? currencyCode
+    }
+
+    // Adds thousands commas while preserving a trailing decimal and any fraction
+    // digits already typed. Uses en_US grouping so it always matches our "." decimal.
+    private func formatAmountText(_ text: String) -> String {
+        guard !text.isEmpty else { return text }
+        let stripped = text.replacingOccurrences(of: ",", with: "")
+        let endsWithDot = stripped.hasSuffix(".")
+        let parts = stripped.components(separatedBy: ".")
+        let intStr = parts[0]
+        let fracStr = parts.count > 1 ? parts[1] : nil
+        guard !intStr.isEmpty, let intVal = Int64(intStr) else { return text }
+        let nf = NumberFormatter()
+        nf.locale = Locale(identifier: "en_US")
+        nf.numberStyle = .decimal
+        let formatted = nf.string(from: NSNumber(value: intVal)) ?? intStr
+        if let frac = fracStr { return formatted + "." + frac }
+        if endsWithDot { return formatted + "." }
+        return formatted
+    }
+
     init(store: ExpenseStore, editing row: TxnRow? = nil) {
         _vm = StateObject(wrappedValue: TxnFormViewModel(store: store))
         self.editingRow = row
     }
 
     private var amountBinding: Binding<String> {
-        Binding(get: { vm.state.amountText }, set: vm.setAmountText)
+        Binding(
+            get: { formatAmountText(vm.state.amountText) },
+            set: { vm.setAmountText($0.replacingOccurrences(of: ",", with: "")) }
+        )
+    }
+    private var instTotalBinding: Binding<String> {
+        Binding(
+            get: { formatAmountText(vm.state.instTotalText) },
+            set: { vm.setInstTotal($0.replacingOccurrences(of: ",", with: "")) }
+        )
+    }
+    private var instMonthlyBinding: Binding<String> {
+        Binding(
+            get: { formatAmountText(vm.state.instMonthlyText) },
+            set: { vm.setInstMonthly($0.replacingOccurrences(of: ",", with: "")) }
+        )
     }
     private var kindBinding: Binding<TxnKind> {
         Binding(get: { vm.state.kind }, set: vm.setKind)
@@ -44,6 +85,7 @@ struct TxnFormView: View {
                 InlineError(message: error)
             }
         }
+        .scrollDismissesKeyboard(.interactively)
         .navigationTitle(navTitle)
         .navigationBarTitleDisplayMode(typeSize.isAccessibilitySize ? .inline : .automatic)
         .toolbar {
@@ -52,10 +94,6 @@ struct TxnFormView: View {
             }
             ToolbarItem(placement: .confirmationAction) {
                 Button("Save") { Task { await vm.save() } }
-            }
-            ToolbarItemGroup(placement: .keyboard) {
-                Spacer()
-                Button("Done") { amountFocused = false }
             }
         }
         .task {
@@ -80,13 +118,22 @@ struct TxnFormView: View {
 
     @ViewBuilder private var oneTimeFields: some View {
         Section {
-            // Amount is the hero: large, right-aligned, auto-focused.
-            TextField("0", text: amountBinding)
-                .keyboardType(.decimalPad)
-                .font(.system(.largeTitle, design: .rounded).weight(.bold))
-                .multilineTextAlignment(.center)
-                .focused($amountFocused)
-                .padding(.vertical, 4)
+            // Hero amount: currency symbol on the left, number right-aligned.
+            // firstTextBaseline alignment keeps the symbol visually anchored to
+            // the number even when dynamic-type sizes differ.
+            HStack(alignment: .firstTextBaseline, spacing: 6) {
+                Text(currencySymbol)
+                    .font(.system(.title2, design: .rounded).weight(.semibold))
+                    .foregroundStyle(.secondary)
+                    .minimumScaleFactor(0.7)
+                    .lineLimit(1)
+                TextField("0", text: amountBinding)
+                    .keyboardType(.decimalPad)
+                    .font(.system(.largeTitle, design: .rounded).weight(.bold))
+                    .multilineTextAlignment(.trailing)
+                    .focused($amountFocused)
+            }
+            .padding(.vertical, 4)
             Picker("Kind", selection: kindBinding) {
                 Text("Expense").tag(TxnKind.expense)
                 Text("Income").tag(TxnKind.income)
@@ -143,16 +190,28 @@ struct TxnFormView: View {
         }
 
         Section {
-            TextField("Total amount", text: Binding(get: { vm.state.instTotalText }, set: vm.setInstTotal))
-                .keyboardType(.decimalPad)
+            HStack(spacing: 4) {
+                Text(currencySymbol)
+                    .foregroundStyle(.secondary)
+                    .minimumScaleFactor(0.7)
+                    .lineLimit(1)
+                TextField("Total amount", text: instTotalBinding)
+                    .keyboardType(.decimalPad)
+            }
             Stepper("Months: \(vm.state.instMonths)", value: Binding(get: { vm.state.instMonths }, set: vm.setInstMonths), in: 1...120)
             HStack {
                 Text("Monthly")
                 Spacer()
-                TextField("0", text: Binding(get: { vm.state.instMonthlyText }, set: vm.setInstMonthly))
-                    .keyboardType(.decimalPad)
-                    .multilineTextAlignment(.trailing)
-                    .frame(maxWidth: 160)
+                HStack(spacing: 4) {
+                    Text(currencySymbol)
+                        .foregroundStyle(.secondary)
+                        .minimumScaleFactor(0.7)
+                        .lineLimit(1)
+                    TextField("0", text: instMonthlyBinding)
+                        .keyboardType(.decimalPad)
+                        .multilineTextAlignment(.trailing)
+                        .frame(maxWidth: 140)
+                }
             }
         } footer: {
             Text("The monthly amount is total ÷ months — edit it if your actual payment differs.")

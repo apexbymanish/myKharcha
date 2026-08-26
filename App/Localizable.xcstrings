@@ -4403,6 +4403,9 @@
         }
       }
     },
+    "Add note…" : {
+
+    },
     "Add one from ➕ (choose Installment) to pay a purchase over months or track a loan." : {
       "localizations" : {
         "ar" : {
@@ -18335,6 +18338,9 @@
         }
       }
     },
+    "jeb kharcha" : {
+
+    },
     "Jeb Kharcha" : {
       "localizations" : {
         "ar" : {
@@ -18558,6 +18564,9 @@
           }
         }
       }
+    },
+    "K" : {
+
     },
     "Kind" : {
       "localizations" : {
@@ -24987,6 +24996,9 @@
         }
       }
     },
+    "Over budget by" : {
+
+    },
     "Over-committed by %@" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -30643,6 +30655,7 @@
       }
     },
     "Reveal your financial details" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -34674,6 +34687,9 @@
           }
         }
       }
+    },
+    "Stop new spending" : {
+
     },
     "Subscriptions" : {
       "localizations" : {

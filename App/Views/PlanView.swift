@@ -1,5 +1,6 @@
 import SwiftUI
 import KharchaKit
+import UserNotifications
 
 /// Monthly Plan: enter (or paste) your income, and the app evaluates the month —
 /// commitments, subscriptions, recommended savings, safe-to-spend, a suggested
@@ -14,27 +15,39 @@ struct PlanView: View {
     @AppStorage(PayPreference.salaryKey, store: PayPreference.defaults) private var monthlySalary = 0.0
     @AppStorage("plan.savingsRatePercent", store: PayPreference.defaults) private var savingsRate = 20
 
+    @State private var incomeText = ""
     @State private var pasteText = ""
     @State private var showPaste = false
     @State private var alertScheduled = false
-    @FocusState private var focusedField: Field?
+    @FocusState private var pasteFocused: Bool
 
-    /// The text inputs that raise the keyboard, so a toolbar "Done" can dismiss it.
-    private enum Field { case income, paste }
+    @AppStorage(CurrencyPreference.defaultsKey, store: PayPreference.defaults)
+    private var currencyCode = AmountFormatter.currencyCode
+
+    private var currencySymbol: String {
+        Locale(identifier: "en_US@currency=\(currencyCode)").currencySymbol ?? currencyCode
+    }
+
+    private func formatAmountText(_ text: String) -> String {
+        guard !text.isEmpty else { return text }
+        let stripped = text.replacingOccurrences(of: ",", with: "")
+        let endsWithDot = stripped.hasSuffix(".")
+        let parts = stripped.components(separatedBy: ".")
+        let intStr = parts[0]
+        let fracStr = parts.count > 1 ? parts[1] : nil
+        guard !intStr.isEmpty, let intVal = Int64(intStr) else { return text }
+        let nf = NumberFormatter()
+        nf.locale = Locale(identifier: "en_US")
+        nf.numberStyle = .decimal
+        let formatted = nf.string(from: NSNumber(value: intVal)) ?? intStr
+        if let frac = fracStr { return formatted + "." + frac }
+        if endsWithDot { return formatted + "." }
+        return formatted
+    }
 
     init(store: ExpenseStore) {
         self.store = store
         _vm = StateObject(wrappedValue: MonthlyPlanViewModel(store: store, rates: FrankfurterRateService()))
-    }
-
-    // Optional-Double binding so an income of 0 shows an empty field (placeholder
-    // "0") rather than a literal "0" that new digits append to — typing 3000000
-    // into a "0" field otherwise reads as 30000000.
-    private var incomeBinding: Binding<Double?> {
-        Binding(
-            get: { vm.state.income == 0 ? nil : NSDecimalNumber(decimal: vm.state.income).doubleValue },
-            set: { vm.setIncome(Decimal($0 ?? 0)) }
-        )
     }
 
     var body: some View {
@@ -52,9 +65,7 @@ struct PlanView: View {
                 InlineError(message: error)
             }
         }
-        // Drag the list down to dismiss the keyboard — the decimalPad has no
-        // Return key, so this is the most reliable dismiss gesture on iOS.
-        .scrollDismissesKeyboard(.interactively)
+        .scrollDismissesKeyboard(.immediately)
         .navigationTitle("Monthly Plan")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -62,14 +73,14 @@ struct PlanView: View {
                 Button("Clear") { clearAll() }
                     .disabled(pasteText.isEmpty && !vm.state.adviceFromModel)
             }
-            // decimalPad has no return key, so give the keyboard an explicit Done.
-            ToolbarItemGroup(placement: .keyboard) {
-                Spacer()
-                Button("Done") { focusedField = nil }
-            }
         }
         .task {
             await vm.load(income: Decimal(monthlySalary), savingsRatePercent: savingsRate)
+            if monthlySalary > 0 {
+                incomeText = formatAmountText((Decimal(monthlySalary) as NSDecimalNumber).stringValue)
+            }
+            let pending = await UNUserNotificationCenter.current().pendingNotificationRequests()
+            alertScheduled = pending.contains(where: { $0.identifier == "kharcha.plan.summary" })
         }
         .onChange(of: savingsRate) { _, newValue in
             vm.setSavingsRate(newValue)
@@ -80,9 +91,11 @@ struct PlanView: View {
     /// plan from the Settings salary (which also reverts an AI-reworded summary to
     /// the exact engine text).
     private func clearAll() {
+        let rawSalary = monthlySalary > 0 ? (Decimal(monthlySalary) as NSDecimalNumber).stringValue : ""
+        incomeText = rawSalary.isEmpty ? "" : formatAmountText(rawSalary)
         pasteText = ""
         showPaste = false
-        focusedField = nil
+        pasteFocused = false
         alertScheduled = false
         Task { await vm.load(income: Decimal(monthlySalary), savingsRatePercent: savingsRate) }
     }
@@ -94,11 +107,28 @@ struct PlanView: View {
             HStack {
                 Label("Monthly income", systemImage: "banknote")
                 Spacer()
-                TextField("0", value: incomeBinding, format: .number)
-                    .keyboardType(.decimalPad)
-                    .multilineTextAlignment(.trailing)
-                    .frame(maxWidth: 160)
-                    .focused($focusedField, equals: .income)
+                HStack(spacing: 4) {
+                    Text(currencySymbol)
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                        .minimumScaleFactor(0.7)
+                        .lineLimit(1)
+                    TextField("0", text: $incomeText)
+                        .keyboardType(.decimalPad)
+                        .multilineTextAlignment(.trailing)
+                        .frame(maxWidth: 130)
+                }
+                .onChange(of: incomeText) {
+                    // First pass: reformat with grouping separators.
+                    // Return early so the second onChange (with the already-formatted
+                    // string) does the actual parse — avoids double-writing storage.
+                    let formatted = formatAmountText(incomeText)
+                    if formatted != incomeText { incomeText = formatted; return }
+                    let raw = incomeText.replacingOccurrences(of: ",", with: "")
+                    let parsed = Decimal(string: raw) ?? 0
+                    vm.setIncome(parsed)
+                    monthlySalary = (parsed as NSDecimalNumber).doubleValue
+                }
             }
             Picker(selection: $savingsRate) {
                 ForEach([5, 10, 15, 20, 25, 30, 40, 50, 80], id: \.self) { pct in
@@ -111,9 +141,9 @@ struct PlanView: View {
             DisclosureGroup(isExpanded: $showPaste) {
                 TextField("Paste payslip or bank message…", text: $pasteText, axis: .vertical)
                     .lineLimit(2...6)
-                    .focused($focusedField, equals: .paste)
+                    .focused($pasteFocused)
                 Button {
-                    focusedField = nil
+                    pasteFocused = false
                     Task { await vm.parseIncome(pasteText) }
                 } label: {
                     if vm.state.isParsingIncome {
@@ -125,7 +155,7 @@ struct PlanView: View {
                 .disabled(pasteText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || vm.state.isParsingIncome)
                 Button(role: .destructive) {
                     pasteText = ""
-                    focusedField = nil
+                    pasteFocused = false
                 } label: {
                     Label("Clear pasted text", systemImage: "xmark.circle")
                 }

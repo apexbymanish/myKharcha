@@ -55,6 +55,9 @@ public struct PayCyclePlan: Sendable, Equatable {
 
     /// True when spending has exceeded the spendable budget (savings already excluded).
     public var isOverspent: Bool { spentThisCycle > spendableSalary }
+
+    /// How far over budget (positive when overspent, zero otherwise).
+    public var overspentBy: Decimal { max(0, spentThisCycle - spendableSalary) }
 }
 
 public enum PayCyclePlanner {

@@ -300,9 +300,12 @@ struct PayCycleCard: View {
             return "\(plan.daysUntilPayday) days until payday. Amounts hidden."
         }
         var value = "\(plan.daysUntilPayday) days until payday. "
-        value += "\(AmountFormatter.money(plan.remaining)) left to spend this cycle"
-        if plan.isOverspent { value += ", over budget" }
-        value += ". Safe to spend \(AmountFormatter.money(plan.safeToSpendPerDay)) per day."
+        if plan.isOverspent {
+            value += "Over budget by \(AmountFormatter.money(plan.overspentBy)). Avoid new spending."
+        } else {
+            value += "\(AmountFormatter.money(plan.remaining)) left to spend this cycle."
+            value += " Safe to spend \(AmountFormatter.money(plan.safeToSpendPerDay)) per day."
+        }
         if plan.savingsReserved > 0 {
             value += " \(AmountFormatter.money(plan.savingsReserved)) reserved for savings."
         }
@@ -324,12 +327,16 @@ struct PayCycleCard: View {
             if typeSize.isAccessibilitySize {
                 VStack(alignment: .leading, spacing: 8) {
                     StatBlock(
-                        title: String(localized: "Left to spend"),
-                        amount: AmountFormatter.money(plan.remaining),
+                        title: plan.isOverspent
+                            ? String(localized: "Over budget by")
+                            : String(localized: "Left to spend"),
+                        amount: AmountFormatter.money(plan.isOverspent ? plan.overspentBy : plan.remaining),
                         tint: plan.isOverspent ? .moneyOut : .primary
                     )
                     StatBlock(
-                        title: String(localized: "Safe to spend / day"),
+                        title: plan.isOverspent
+                            ? String(localized: "Stop new spending")
+                            : String(localized: "Safe to spend / day"),
                         amount: AmountFormatter.money(plan.safeToSpendPerDay),
                         tint: plan.isOverspent ? .moneyOut : .moneyIn
                     )
@@ -337,12 +344,16 @@ struct PayCycleCard: View {
             } else {
                 HStack {
                     StatBlock(
-                        title: String(localized: "Left to spend"),
-                        amount: AmountFormatter.money(plan.remaining),
+                        title: plan.isOverspent
+                            ? String(localized: "Over budget by")
+                            : String(localized: "Left to spend"),
+                        amount: AmountFormatter.money(plan.isOverspent ? plan.overspentBy : plan.remaining),
                         tint: plan.isOverspent ? .moneyOut : .primary
                     )
                     StatBlock(
-                        title: String(localized: "Safe to spend / day"),
+                        title: plan.isOverspent
+                            ? String(localized: "Stop new spending")
+                            : String(localized: "Safe to spend / day"),
                         amount: AmountFormatter.money(plan.safeToSpendPerDay),
                         tint: plan.isOverspent ? .moneyOut : .moneyIn,
                         alignment: .trailing

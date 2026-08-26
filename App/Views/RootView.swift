@@ -11,7 +11,6 @@ struct RootView: View {
     @EnvironmentObject private var services: AppServices
     @EnvironmentObject private var signIn: SignInManager
     @EnvironmentObject private var updateChecker: AppUpdateChecker
-    @EnvironmentObject private var privacy: PrivacyManager
     @ObservedObject private var navigator = AppNavigator.shared
     @Environment(\.scenePhase) private var scenePhase
     @AppStorage("onboardingDone") private var onboardingDone = false
@@ -85,8 +84,8 @@ struct RootView: View {
                 services.sync.stop()
             }
         }
-        .onChange(of: scenePhase) { _, phase in
-            if phase == .active {
+        .onChange(of: scenePhase) {
+            if scenePhase == .active {
                 signIn.refreshCredentialState()
                 services.sync.retryInitialPullIfNeeded()
                 navigator.consumePendingAddExpense()
@@ -106,7 +105,6 @@ struct RootView: View {
                     }
                 }
             } else {
-                if phase == .background { privacy.lock() }
                 // Leaving the foreground → flush local changes to the cloud.
                 services.sync.pushNow()
             }
