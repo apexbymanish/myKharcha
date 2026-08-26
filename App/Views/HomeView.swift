@@ -249,11 +249,7 @@ struct HomeView: View {
             }
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
-                    if privacy.isRevealed {
-                        privacy.lock()
-                    } else {
-                        Task { await privacy.requestReveal() }
-                    }
+                    privacy.toggle()
                 } label: {
                     Image(systemName: privacy.isRevealed ? "eye" : "eye.slash")
                 }
