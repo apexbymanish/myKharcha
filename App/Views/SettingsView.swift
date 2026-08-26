@@ -171,7 +171,7 @@ struct SettingsView: View {
 
             Section {
                 ShareLink(
-                    item: URL(string: "https://jebkharcha-7e514.web.app/kharcha")!,
+                    item: URL(string: "https://jebkharcha.dnmc.app/kharcha")!,
                     subject: Text("Try Kharcha — free spending tracker"),
                     message: Text("I track my spending with Kharcha. It's free!")
                 ) {
