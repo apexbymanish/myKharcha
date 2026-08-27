@@ -135,7 +135,18 @@ struct PlanView: View {
                     Text("\(pct)%").tag(pct)
                 }
             } label: {
-                Label("Save", systemImage: "arrow.down.to.line")
+                Label {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Save")
+                        if monthlySalary > 0 {
+                            Text(AmountFormatter.money(Decimal(monthlySalary) * Decimal(savingsRate) / 100))
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                } icon: {
+                    Image(systemName: "arrow.down.to.line")
+                }
             }
 
             DisclosureGroup(isExpanded: $showPaste) {

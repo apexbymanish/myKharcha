@@ -10,6 +10,8 @@ public final class HomeViewModel: ObservableObject {
             public let amount: Decimal
             /// Days until due from today's start-of-day (0 = today, 1 = tomorrow, 2–7 = this week).
             public let daysUntil: Int
+            /// True when the installment is set to auto-log — no user action needed.
+            public let autoLog: Bool
         }
 
         public var monthSpent: Decimal = 0
@@ -29,6 +31,19 @@ public final class HomeViewModel: ObservableObject {
         public var payPlan: PayCyclePlan?
         /// Active installments whose next due date is within the next 7 days.
         public var dueSoonItems: [DueSoonItem] = []
+
+        /// The single nearest upcoming bill (recurring rule or installment) when
+        /// nothing is due within 7 days. Nil when dueSoonItems is non-empty or
+        /// when no reminders/installments are configured at all.
+        public struct NextUpcomingItem: Sendable, Equatable {
+            public let name: String
+            public let amount: Decimal   // 0 if unset / no amount to show
+            public let daysUntil: Int    // days from today's start-of-day
+            /// True when this item is set to auto-log — no user action needed.
+            public let autoLog: Bool
+        }
+        public var nextUpcomingItem: NextUpcomingItem?
+
         public var isLoading = false
         public var errorMessage: String?
     }
@@ -129,7 +144,36 @@ public final class HomeViewModel: ObservableObject {
                     from: calendar.startOfDay(for: now),
                     to: calendar.startOfDay(for: next)
                 ).day ?? 0)
-                return State.DueSoonItem(id: snap.id, name: snap.name, amount: snap.monthlyAmount, daysUntil: days)
+                return State.DueSoonItem(id: snap.id, name: snap.name, amount: snap.monthlyAmount, daysUntil: days, autoLog: snap.autoLog)
+            }
+
+            // "Next upcoming" hint — surface the nearest future bill when nothing
+            // is urgently due, so the Home screen always has forward context.
+            if state.dueSoonItems.isEmpty {
+                let rules = try await store.recurringRules()
+                var candidates: [(name: String, amount: Decimal, dueDate: Date, autoLog: Bool)] = []
+                for rule in rules {
+                    let due = HomeViewModel.nextDue(dayOfMonth: rule.dayOfMonth, from: now, calendar: calendar)
+                    candidates.append((rule.name, rule.amount, due, rule.autoLog))
+                }
+                // Include installments that are beyond the 7-day window.
+                for snap in installs {
+                    let due = HomeViewModel.nextDue(dayOfMonth: snap.dayOfMonth, from: now, calendar: calendar)
+                    candidates.append((snap.name, snap.monthlyAmount, due, snap.autoLog))
+                }
+                if let nearest = candidates.min(by: { $0.dueDate < $1.dueDate }) {
+                    let days = max(0, calendar.dateComponents(
+                        [.day],
+                        from: calendar.startOfDay(for: now),
+                        to: calendar.startOfDay(for: nearest.dueDate)
+                    ).day ?? 0)
+                    state.nextUpcomingItem = State.NextUpcomingItem(
+                        name: nearest.name, amount: nearest.amount, daysUntil: days, autoLog: nearest.autoLog)
+                } else {
+                    state.nextUpcomingItem = nil
+                }
+            } else {
+                state.nextUpcomingItem = nil
             }
         } catch {
             state.errorMessage = (error as? LocalizedError)?.errorDescription ?? "Something went wrong."

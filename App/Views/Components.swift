@@ -218,7 +218,7 @@ struct TxnRowView: View {
             VStack(alignment: .trailing, spacing: 2) {
                 Text(privacy.isRevealed
                      ? (row.kind == .expense ? "-" : "+") + AmountFormatter.money(row.amount)
-                     : "••••••")
+                     : (row.kind == .expense ? "-" : "+") + "••••••")
                     .font(.callout.monospacedDigit())
                     .foregroundStyle(row.kind == .expense ? Color.primary : Color.moneyIn)
                 Text(row.date, style: .date)
@@ -388,8 +388,10 @@ struct MonthGlanceCard: View {
 
     private var onTrack: Int { budgets.filter { !$0.isOver }.count }
     private var overBudget: Int { budgets.filter { $0.isOver }.count }
-    private var urgentItems: [HomeViewModel.State.DueSoonItem] { dueSoonItems.filter { $0.daysUntil <= 3 } }
-    private var soonItems: [HomeViewModel.State.DueSoonItem] { dueSoonItems.filter { $0.daysUntil > 3 } }
+    // Auto-pay items never show as urgent — user delegated them to the app.
+    private var urgentItems: [HomeViewModel.State.DueSoonItem] { dueSoonItems.filter { $0.daysUntil <= 3 && !$0.autoLog } }
+    private var autoItems: [HomeViewModel.State.DueSoonItem] { dueSoonItems.filter { $0.autoLog } }
+    private var soonItems: [HomeViewModel.State.DueSoonItem] { dueSoonItems.filter { $0.daysUntil > 3 && !$0.autoLog } }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -402,6 +404,7 @@ struct MonthGlanceCard: View {
                         .font(.subheadline)
                 }
             }
+            // Manual items due ≤3 days — urgent, needs user action.
             if !urgentItems.isEmpty {
                 if !budgets.isEmpty { Divider() }
                 ForEach(urgentItems) { item in
@@ -426,8 +429,21 @@ struct MonthGlanceCard: View {
                     .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                 }
             }
-            if !soonItems.isEmpty {
+            // Auto-pay items — calm confirmation, no urgency.
+            if !autoItems.isEmpty {
                 if !budgets.isEmpty || !urgentItems.isEmpty { Divider() }
+                HStack(spacing: 8) {
+                    Image(systemName: "bolt.circle.fill")
+                        .foregroundStyle(Color.moneyIn)
+                        .font(.subheadline)
+                    Text(autoLabel)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            // Manual items due 4–7 days — soft heads-up.
+            if !soonItems.isEmpty {
+                if !budgets.isEmpty || !urgentItems.isEmpty || !autoItems.isEmpty { Divider() }
                 HStack(spacing: 8) {
                     Image(systemName: "calendar.badge.clock")
                         .foregroundStyle(.orange)
@@ -448,6 +464,13 @@ struct MonthGlanceCard: View {
         case 1: return "Due tomorrow"
         default: return "Due in \(item.daysUntil) days"
         }
+    }
+
+    private var autoLabel: String {
+        if autoItems.count == 1 {
+            return "\(autoItems[0].name) · auto-logging"
+        }
+        return "\(autoItems.count) payments auto-logging"
     }
 
     private var soonLabel: String {
@@ -472,6 +495,7 @@ struct MonthGlanceCard: View {
         for item in urgentItems {
             parts.append("\(item.name), \(urgencyText(for: item)), \(AmountFormatter.money(item.amount))")
         }
+        if !autoItems.isEmpty { parts.append(autoLabel) }
         if !soonItems.isEmpty { parts.append(soonLabel) }
         return parts.joined(separator: ". ")
     }

@@ -59,19 +59,6 @@ final class NotificationScheduler {
         try? await center.add(UNNotificationRequest(identifier: id, content: content, trigger: trigger))
     }
 
-    /// Fires a test notification in 5 seconds — enough time to background the app.
-    func fireTestNow() async {
-        let center = UNUserNotificationCenter.current()
-        guard (try? await center.requestAuthorization(options: [.alert, .sound])) == true else { return }
-        center.removePendingNotificationRequests(withIdentifiers: [prefix + "test"])
-        let content = UNMutableNotificationContent()
-        content.title = "Test Reminder"
-        content.body = "Notification system is working!"
-        content.sound = .default
-        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 5, repeats: false)
-        try? await center.add(UNNotificationRequest(identifier: prefix + "test", content: content, trigger: trigger))
-    }
-
     /// Schedules a salary-day nudge at 9 am on the next payday.
     /// Safe to call repeatedly — skips scheduling if a nudge is already pending for that date.
     /// Auto-reschedules each month because this is called whenever the app becomes active,

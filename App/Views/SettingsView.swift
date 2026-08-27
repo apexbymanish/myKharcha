@@ -9,7 +9,6 @@ struct SettingsView: View {
     @EnvironmentObject private var signIn: SignInManager
     @State private var showAddCategoryAlert = false
     @State private var exportURL: URL?
-    @State private var testNotifSent = false
     @AppStorage(CurrencyPreference.defaultsKey,
                 store: UserDefaults(suiteName: KharchaContainerFactory.appGroupID) ?? .standard)
     private var currencyCode: String = Locale.current.currency?.identifier ?? "USD"
@@ -112,24 +111,6 @@ struct SettingsView: View {
                 Text("Pay Cycle")
             } footer: {
                 Text("Set your payday and monthly salary to see days until payday and a safe daily spend on Home. Leave salary at 0 to hide it.")
-            }
-
-            Section {
-                Button {
-                    testNotifSent = false
-                    Task {
-                        await NotificationScheduler.shared.fireTestNow()
-                        testNotifSent = true
-                    }
-                } label: {
-                    Label(testNotifSent ? "Scheduled — background the app!" : "Send Test Notification",
-                          systemImage: testNotifSent ? "checkmark.circle.fill" : "bell.badge")
-                        .foregroundStyle(testNotifSent ? Color.moneyIn : Color.brandPrimary)
-                }
-            } header: {
-                Text("Notifications")
-            } footer: {
-                Text("Fires a test notification in 5 seconds. Background the app after tapping to see it.")
             }
 
             Section("Language") {

@@ -33,6 +33,20 @@ struct HistoryView: View {
         vm.state.hasActiveFilters || vm.state.dayFilter != nil || !vm.state.searchText.isEmpty
     }
 
+    /// Human-readable summary of all active filters, e.g. "Expenses · Food · Oct 15".
+    private var activeFilterSummary: String {
+        var parts: [String] = []
+        if let kind = vm.state.filterKind {
+            parts.append(kind == .expense ? String(localized: "Expenses") : String(localized: "Income"))
+        }
+        if let cat = vm.state.filterCategoryName { parts.append(cat) }
+        if let day = vm.state.dayFilter {
+            parts.append(day.formatted(.dateTime.month(.abbreviated).day()))
+        }
+        if !vm.state.searchText.isEmpty { parts.append("\"\(vm.state.searchText)\"") }
+        return parts.joined(separator: " · ")
+    }
+
     var body: some View {
         List {
             if vm.state.allRows.isEmpty && vm.state.errorMessage == nil {
@@ -47,6 +61,32 @@ struct HistoryView: View {
                 chartsSection
                 calendarSection
             }
+            // Active filter banner — tells the user exactly what is being filtered.
+            if hasActiveFilter {
+                Section {
+                    HStack(spacing: 8) {
+                        Image(systemName: "line.3.horizontal.decrease.circle.fill")
+                            .foregroundStyle(Color.brandPrimary)
+                            .font(.callout)
+                        Text(activeFilterSummary)
+                            .font(.subheadline)
+                            .foregroundStyle(Color.brandPrimary)
+                            .lineLimit(1)
+                        Spacer()
+                        Button {
+                            Task {
+                                searchText = ""
+                                await vm.clearAllFilters()
+                            }
+                        } label: {
+                            Text("Clear")
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(Color.brandPrimary)
+                        }
+                    }
+                }
+            }
+
             ForEach(vm.state.sections, id: \.title) { section in
                 Section {
                     ForEach(section.rows, id: \.id) { row in
