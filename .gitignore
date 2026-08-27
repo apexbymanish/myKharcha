@@ -7,3 +7,4 @@ DerivedData/
 *.xcuserdatad
 GoogleService-Info.plist
 *.xcworkspace/xcshareddata/
+AuthKey_*.p8
