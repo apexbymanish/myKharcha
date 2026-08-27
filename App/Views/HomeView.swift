@@ -10,7 +10,6 @@ struct HomeView: View {
     @State private var showAddSheet = false
     @State private var showImportSheet = false
     @State private var editingRow: TxnRow?
-    @State private var showEditSheet = false
     @State private var showBackupSheet = false
     @State private var showPlanNav = false
     @State private var showProfileNav = false
@@ -300,7 +299,6 @@ struct HomeView: View {
                         ForEach(group.rows, id: \.id) { row in
                             Button {
                                 editingRow = row
-                                showEditSheet = true
                             } label: {
                                 TxnRowView(row: row)
                             }
@@ -404,12 +402,11 @@ struct HomeView: View {
                 TxnFormView(store: store)
             }
         }
-        .sheet(isPresented: $showEditSheet, onDismiss: {
-            editingRow = nil
+        .sheet(item: $editingRow, onDismiss: {
             Task { await reload() }
-        }) {
+        }) { row in
             NavigationStack {
-                TxnFormView(store: store, editing: editingRow)
+                TxnFormView(store: store, editing: row)
             }
         }
         .sheet(isPresented: $showImportSheet, onDismiss: { Task { await reload() } }) {

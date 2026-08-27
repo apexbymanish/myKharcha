@@ -7,7 +7,6 @@ struct HistoryView: View {
     @StateObject private var vm: HistoryViewModel
     @EnvironmentObject private var privacy: PrivacyManager
     @State private var editingRow: TxnRow?
-    @State private var showEditSheet = false
     @State private var period: ActivityPeriod = .month
     @State private var searchText = ""
     @State private var selectedBarDate: Date?
@@ -170,7 +169,6 @@ struct HistoryView: View {
                             ForEach(section.rows, id: \.id) { row in
                                 Button {
                                     editingRow = row
-                                    showEditSheet = true
                                 } label: {
                                     TxnRowView(row: row)
                                 }
@@ -283,11 +281,10 @@ struct HistoryView: View {
         .sheet(isPresented: $showReports) {
             ReportsView(allRows: vm.state.allRows, categories: vm.state.categories)
         }
-        .sheet(isPresented: $showEditSheet, onDismiss: {
-            editingRow = nil
+        .sheet(item: $editingRow, onDismiss: {
             Task { await vm.load() }
-        }) {
-            NavigationStack { TxnFormView(store: store, editing: editingRow) }
+        }) { row in
+            NavigationStack { TxnFormView(store: store, editing: row) }
         }
         .searchable(text: $searchText, prompt: "Search transactions")
         .onChange(of: searchText) { _, text in Task { await vm.setSearchFilter(text) } }
@@ -528,7 +525,6 @@ struct HistoryView: View {
                 },
                 onEdit: { row in
                     editingRow = row
-                    showEditSheet = true
                 }
             )
             .id("calendarDayDetail")

@@ -1,6 +1,6 @@
 import Foundation
 
-public struct TxnRow: Sendable, Equatable {
+public struct TxnRow: Sendable, Equatable, Identifiable {
     public let id: UUID
     public let date: Date
     public let kind: TxnKind
