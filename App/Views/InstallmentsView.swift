@@ -122,6 +122,8 @@ private struct InstallmentRow: View {
         VStack(alignment: .leading, spacing: 6) {
             HStack {
                 Text(item.name).font(.headline)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
                 if item.kind == .loan {
                     Text("Loan")
                         .font(.caption2).padding(.horizontal, 6).padding(.vertical, 2)
@@ -129,6 +131,7 @@ private struct InstallmentRow: View {
                 }
                 Spacer()
                 Text(AmountFormatter.money(item.remainingAmount)).font(.callout.monospacedDigit().weight(.semibold))
+                    .lineLimit(1)
             }
             if item.isActive {
                 ProgressView(value: item.progress).tint(.brandPrimary)

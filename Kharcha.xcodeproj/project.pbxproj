@@ -17,6 +17,7 @@
 		24DC0688303D7AC800D581FB /* PrivacyManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24DC0687303D7AC800D581FB /* PrivacyManager.swift */; };
 		24DC068A303D7C4100D581FB /* AppUpdateChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24DC0689303D7C4100D581FB /* AppUpdateChecker.swift */; };
 		24DC068C303DD18C00D581FB /* SplashView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24DC068B303DD18C00D581FB /* SplashView.swift */; };
+		24DC068E304004EC00D581FB /* ReportsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24DC068D304004EC00D581FB /* ReportsView.swift */; };
 		2F936B922B1C50E76C08C463 /* CurrencyPreference.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEE3A422870C98FB94EF78AB /* CurrencyPreference.swift */; };
 		32C5F60669B04F632ADD0B19 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = FE154007F5FAC9B9C1C521F8 /* FirebaseFirestore */; };
 		3BA4A022DF6B6F8726650E6B /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2AC177A02071D0D0843C2B /* HistoryView.swift */; };
@@ -132,6 +133,7 @@
 		24DC0687303D7AC800D581FB /* PrivacyManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyManager.swift; sourceTree = "<group>"; };
 		24DC0689303D7C4100D581FB /* AppUpdateChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppUpdateChecker.swift; sourceTree = "<group>"; };
 		24DC068B303DD18C00D581FB /* SplashView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashView.swift; sourceTree = "<group>"; };
+		24DC068D304004EC00D581FB /* ReportsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReportsView.swift; sourceTree = "<group>"; };
 		28183456CBEAB046E6AC7829 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		2A34CE6439C8216233EFABD4 /* FriendsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendsView.swift; sourceTree = "<group>"; };
 		2F2521668CBB9D4ABDCFC25D /* AppContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppContainer.swift; sourceTree = "<group>"; };
@@ -211,30 +213,62 @@
 		1B626B9B30EA2157E8EF115E /* App */ = {
 			isa = PBXGroup;
 			children = (
-				210E3A40B033E1C645DFEA8C /* AppBootstrap.swift */,
-				2F2521668CBB9D4ABDCFC25D /* AppContainer.swift */,
-				5FC6FFA3B42CC2731E0B3C8B /* AppleSignIn.swift */,
 				90A7B0277CF72370073A5B38 /* Assets.xcassets */,
-				5510B845D3AB3C6032FEE8FF /* CSVFileWriter.swift */,
-				EEE3A422870C98FB94EF78AB /* CurrencyPreference.swift */,
-				D11AEE16144C1E22DF3097B7 /* FirestoreSync.swift */,
-				B9736B38E543ACF8EDB42DAD /* FrankfurterRateService.swift */,
 				0544C067B863B0B91F044150 /* GoogleService-Info.plist */,
 				4CCB153C1D76AC0E4C404125 /* Info.plist */,
 				36168CACFAFADE230F7F9E20 /* InfoPlist.xcstrings */,
 				E642361E067E71B27DDEBCF9 /* Kharcha.entitlements */,
 				9FA8CCC79FEAF1C8A0A478AC /* KharchaApp.swift */,
-				437A08250B1C4583CA7A9752 /* KharchaShortcuts.swift */,
 				61EF15F1DD792AA7A1D99D80 /* Localizable.xcstrings */,
-				CB1E5C96417E43021CD9A6E1 /* NotificationScheduler.swift */,
-				0153C7891692D8C9E2843570 /* SyncEngine.swift */,
 				28183456CBEAB046E6AC7829 /* Theme.swift */,
 				4E4D0A8B2A15CFCCB8C96370 /* Resources */,
 				56A889442EFEAF7A510DB45D /* Views */,
-				24DC0687303D7AC800D581FB /* PrivacyManager.swift */,
-				24DC0689303D7C4100D581FB /* AppUpdateChecker.swift */,
+				24DC068F3040093E00D581FB /* Bootstrap */,
+				24DC06903040093F00D581FB /* Auth */,
+				24DC06913040093F00D581FB /* Sync */,
+				24DC06923040093F00D581FB /* Services */,
 			);
 			path = App;
+			sourceTree = "<group>";
+		};
+		24DC068F3040093E00D581FB /* Bootstrap */ = {
+			isa = PBXGroup;
+			children = (
+				210E3A40B033E1C645DFEA8C /* AppBootstrap.swift */,
+				2F2521668CBB9D4ABDCFC25D /* AppContainer.swift */,
+			);
+			path = Bootstrap;
+			sourceTree = "<group>";
+		};
+		24DC06903040093F00D581FB /* Auth */ = {
+			isa = PBXGroup;
+			children = (
+				5FC6FFA3B42CC2731E0B3C8B /* AppleSignIn.swift */,
+			);
+			path = Auth;
+			sourceTree = "<group>";
+		};
+		24DC06913040093F00D581FB /* Sync */ = {
+			isa = PBXGroup;
+			children = (
+				0153C7891692D8C9E2843570 /* SyncEngine.swift */,
+				D11AEE16144C1E22DF3097B7 /* FirestoreSync.swift */,
+				B9736B38E543ACF8EDB42DAD /* FrankfurterRateService.swift */,
+			);
+			path = Sync;
+			sourceTree = "<group>";
+		};
+		24DC06923040093F00D581FB /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				CB1E5C96417E43021CD9A6E1 /* NotificationScheduler.swift */,
+				24DC0689303D7C4100D581FB /* AppUpdateChecker.swift */,
+				5510B845D3AB3C6032FEE8FF /* CSVFileWriter.swift */,
+				24DC0687303D7AC800D581FB /* PrivacyManager.swift */,
+				EEE3A422870C98FB94EF78AB /* CurrencyPreference.swift */,
+				437A08250B1C4583CA7A9752 /* KharchaShortcuts.swift */,
+			);
+			path = Services;
 			sourceTree = "<group>";
 		};
 		4E4D0A8B2A15CFCCB8C96370 /* Resources */ = {
@@ -288,6 +322,7 @@
 				08E503EBB2AE805185B83A7E /* SettingsView.swift */,
 				CE89EF311C80735B99534F5A /* TxnFormView.swift */,
 				24DC068B303DD18C00D581FB /* SplashView.swift */,
+				24DC068D304004EC00D581FB /* ReportsView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -496,6 +531,7 @@
 				A6E5B3D9C3AA768690D1703C /* FriendDetailView.swift in Sources */,
 				E036C51F34E1B1F3EA61E5BC /* FriendsView.swift in Sources */,
 				3BA4A022DF6B6F8726650E6B /* HistoryView.swift in Sources */,
+				24DC068E304004EC00D581FB /* ReportsView.swift in Sources */,
 				F921785F0A5ADF09DAF22627 /* HomeView.swift in Sources */,
 				4829E6FA827CD9BAED036C52 /* ImportView.swift in Sources */,
 				8A5559A4802E65DEE4D5F93A /* InstallmentDetailView.swift in Sources */,

@@ -18,6 +18,8 @@ struct HistoryView: View {
     @State private var analyticsExpanded = false
     // Local calendar day selection — shown inline below heatmap, does NOT filter the main list
     @State private var selectedCalendarDay: Date? = nil
+    @State private var showReports = false
+    @State private var selectedYear: Int? = nil
 
     init(store: ExpenseStore) {
         self.store = store
@@ -41,12 +43,15 @@ struct HistoryView: View {
             || vm.state.dayFilter != nil
             || !vm.state.searchText.isEmpty
             || selectedMonth != nil
+            || selectedYear != nil
     }
 
     private var activeFilterSummary: String {
         var parts: [String] = []
         if let month = selectedMonth {
             parts.append(month.formatted(.dateTime.month(.wide).year()))
+        } else if let year = selectedYear {
+            parts.append("\(year)")
         }
         if let kind = vm.state.filterKind {
             parts.append(kind == .expense ? String(localized: "Expenses") : String(localized: "Income"))
@@ -59,10 +64,17 @@ struct HistoryView: View {
         return parts.joined(separator: " · ")
     }
 
-    // Unique months derived from all transactions, newest first.
+    // Unique years derived from all transactions, newest first.
+    private var availableYears: [Int] {
+        let years = Set(vm.state.allRows.map { Calendar.current.component(.year, from: $0.date) })
+        return years.sorted(by: >)
+    }
+
+    // Unique months derived from all transactions (filtered to selectedYear when set), newest first.
     private var availableMonths: [Date] {
         let cal = Calendar.current
         let months = Set(vm.state.allRows.compactMap { row -> Date? in
+            if let year = selectedYear, cal.component(.year, from: row.date) != year { return nil }
             var comps = cal.dateComponents([.year, .month], from: row.date)
             comps.day = 1
             return cal.date(from: comps)
@@ -70,13 +82,24 @@ struct HistoryView: View {
         return months.sorted(by: >)
     }
 
-    // Sections after applying the client-side month filter.
+    // Aggregate totals for the currently visible (filtered) sections.
+    private var filteredTxnCount: Int    { visibleSections.reduce(0) { $0 + $1.rows.count } }
+    private var filteredTotalExpense: Decimal { visibleSections.reduce(0) { $0 + $1.totalExpenses } }
+    private var filteredTotalIncome:  Decimal { visibleSections.reduce(0) { $0 + $1.totalIncome } }
+
+    // Sections after applying the client-side month/year filter.
     private var visibleSections: [HistoryViewModel.Section] {
-        guard let month = selectedMonth else { return vm.state.sections }
         let cal = Calendar.current
-        return vm.state.sections.filter { section in
-            section.rows.contains { cal.isDate($0.date, equalTo: month, toGranularity: .month) }
+        if let month = selectedMonth {
+            return vm.state.sections.filter { section in
+                section.rows.contains { cal.isDate($0.date, equalTo: month, toGranularity: .month) }
+            }
+        } else if let year = selectedYear {
+            return vm.state.sections.filter { section in
+                section.rows.contains { cal.component(.year, from: $0.date) == year }
+            }
         }
+        return vm.state.sections
     }
 
     // MARK: - Body
@@ -115,6 +138,7 @@ struct HistoryView: View {
                                 Task {
                                     searchText = ""
                                     selectedMonth = nil
+                                    selectedYear = nil
                                     await vm.clearAllFilters()
                                 }
                             } label: {
@@ -123,6 +147,18 @@ struct HistoryView: View {
                                     .foregroundStyle(Color.brandPrimary)
                             }
                         }
+                    }
+                }
+                // ── 3b. Aggregate totals for the filtered set ─────────────
+                if hasActiveFilter && !visibleSections.isEmpty {
+                    Section {
+                        FilterSummaryRow(
+                            count: filteredTxnCount,
+                            totalExpense: filteredTotalExpense,
+                            totalIncome: filteredTotalIncome,
+                            filterKind: vm.state.filterKind,
+                            isRevealed: privacy.isRevealed
+                        )
                     }
                 }
 
@@ -198,10 +234,16 @@ struct HistoryView: View {
                 .pickerStyle(.menu)
             }
             ToolbarItem(placement: .topBarTrailing) {
+                Button { showReports = true } label: {
+                    Image(systemName: "chart.pie.fill")
+                }
+                .accessibilityLabel("Reports")
+            }
+            ToolbarItem(placement: .topBarTrailing) {
                 Menu {
                     if hasActiveFilter {
                         Button("Reset All Filters", role: .destructive) {
-                            Task { searchText = ""; selectedMonth = nil; await vm.clearAllFilters() }
+                            Task { searchText = ""; selectedMonth = nil; selectedYear = nil; await vm.clearAllFilters() }
                         }
                     }
                     Section("Kind") {
@@ -237,6 +279,9 @@ struct HistoryView: View {
                 }
                 .accessibilityLabel(hasActiveFilter ? "Filters active" : "Filter transactions")
             }
+        }
+        .sheet(isPresented: $showReports) {
+            ReportsView(allRows: vm.state.allRows, categories: vm.state.categories)
         }
         .sheet(isPresented: $showEditSheet, onDismiss: {
             editingRow = nil
@@ -290,9 +335,10 @@ struct HistoryView: View {
                         && vm.state.searchText.isEmpty
                         && vm.state.dayFilter == nil
                         && selectedMonth == nil
+                        && selectedYear == nil
 
                     FilterChip(String(localized: "All"), icon: nil, isActive: allActive) {
-                        Task { searchText = ""; selectedMonth = nil; await vm.clearAllFilters() }
+                        Task { searchText = ""; selectedMonth = nil; selectedYear = nil; await vm.clearAllFilters() }
                     }
                     FilterChip(String(localized: "Expenses"), icon: "arrow.down.circle.fill",
                                isActive: vm.state.filterKind == .expense) {
@@ -325,42 +371,77 @@ struct HistoryView: View {
         }
     }
 
-    // MARK: - Month jump strip
+    // MARK: - Year + Month jump strip
 
     @ViewBuilder private var monthSelectorSection: some View {
-        if !availableMonths.isEmpty {
+        if !vm.state.allRows.isEmpty {
             Section {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 6) {
-                        MonthChip(label: String(localized: "All time"), isActive: selectedMonth == nil) {
-                            withAnimation(.easeInOut(duration: 0.18)) { selectedMonth = nil }
+                VStack(spacing: 4) {
+                    // Year row — only when data spans multiple years
+                    if availableYears.count > 1 {
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 6) {
+                                MonthChip(label: String(localized: "All"), isActive: selectedYear == nil) {
+                                    withAnimation(.easeInOut(duration: 0.18)) {
+                                        selectedYear = nil; selectedMonth = nil
+                                    }
+                                }
+                                Divider().frame(height: 18)
+                                ForEach(availableYears, id: \.self) { year in
+                                    let active = selectedYear == year
+                                    MonthChip(label: "\(year)", isActive: active) {
+                                        withAnimation(.easeInOut(duration: 0.18)) {
+                                            if active { selectedYear = nil; selectedMonth = nil }
+                                            else      { selectedYear = year; selectedMonth = nil }
+                                        }
+                                    }
+                                }
+                            }
+                            .padding(.horizontal, 4).padding(.vertical, 2)
                         }
-                        Divider().frame(height: 18)
-                        ForEach(availableMonths, id: \.self) { month in
-                            let isActive = selectedMonth.map {
-                                Calendar.current.isDate($0, equalTo: month, toGranularity: .month)
-                            } ?? false
-                            MonthChip(
-                                label: month.formatted(.dateTime.month(.abbreviated).year(.twoDigits)),
-                                isActive: isActive
-                            ) {
-                                withAnimation(.easeInOut(duration: 0.18)) {
-                                    selectedMonth = isActive ? nil : month
-                                    if !isActive {
-                                        Task { await vm.setCalendarMonth(month) }
+                    }
+
+                    // Month row (narrows to selected year when one is active)
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 6) {
+                            let allLabel = selectedYear != nil
+                                ? String(localized: "All months")
+                                : String(localized: "All time")
+                            MonthChip(label: allLabel, isActive: selectedMonth == nil) {
+                                withAnimation(.easeInOut(duration: 0.18)) { selectedMonth = nil }
+                            }
+                            if !availableMonths.isEmpty {
+                                Divider().frame(height: 18)
+                                ForEach(availableMonths, id: \.self) { month in
+                                    let isActive = selectedMonth.map {
+                                        Calendar.current.isDate($0, equalTo: month, toGranularity: .month)
+                                    } ?? false
+                                    // Drop year suffix from chip label when year row is already selected
+                                    let chipLabel = (selectedYear != nil || availableYears.count == 1)
+                                        ? month.formatted(.dateTime.month(.abbreviated))
+                                        : month.formatted(.dateTime.month(.abbreviated).year(.twoDigits))
+                                    MonthChip(label: chipLabel, isActive: isActive) {
+                                        withAnimation(.easeInOut(duration: 0.18)) {
+                                            if isActive {
+                                                selectedMonth = nil
+                                            } else {
+                                                selectedMonth = month
+                                                selectedYear = Calendar.current.component(.year, from: month)
+                                                Task { await vm.setCalendarMonth(month) }
+                                            }
+                                        }
                                     }
                                 }
                             }
                         }
+                        .padding(.horizontal, 4).padding(.vertical, 2)
                     }
-                    .padding(.horizontal, 4)
-                    .padding(.vertical, 2)
                 }
                 .listRowInsets(EdgeInsets(top: 0, leading: 12, bottom: 4, trailing: 12))
                 .listRowSeparator(.hidden)
                 .listRowBackground(Color.clear)
             } header: {
-                Text("Month")
+                Text("Browse by date")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -391,16 +472,13 @@ struct HistoryView: View {
                     .foregroundStyle(.primary)
             }
         }
-        .onChange(of: period) { _, _ in
-            selectedBarDate = nil
-            Task { await vm.setDayFilter(nil) }
-        }
     }
 
     @ViewBuilder private var calendarContent: some View {
         HStack {
             Button {
                 let prev = Calendar.current.date(byAdding: .month, value: -1, to: vm.state.calendarMonth)!
+                selectedCalendarDay = nil
                 Task { await vm.setCalendarMonth(prev) }
             } label: {
                 Image(systemName: "chevron.left").font(.caption.weight(.semibold))
@@ -415,6 +493,7 @@ struct HistoryView: View {
 
             Button {
                 let next = Calendar.current.date(byAdding: .month, value: 1, to: vm.state.calendarMonth)!
+                selectedCalendarDay = nil
                 Task { await vm.setCalendarMonth(next) }
             } label: {
                 Image(systemName: "chevron.right").font(.caption.weight(.semibold))
@@ -442,6 +521,7 @@ struct HistoryView: View {
             DayDetailExpansion(
                 day: day,
                 allRows: vm.state.allRows,
+                categories: vm.state.categories,
                 isRevealed: privacy.isRevealed,
                 onDismiss: {
                     withAnimation(.easeInOut(duration: 0.2)) { selectedCalendarDay = nil }
@@ -462,6 +542,7 @@ struct HistoryView: View {
 private struct DayDetailExpansion: View {
     let day: Date
     let allRows: [TxnRow]
+    let categories: [CategorySnapshot]
     let isRevealed: Bool
     let onDismiss: () -> Void
     let onEdit: (TxnRow) -> Void
@@ -472,7 +553,13 @@ private struct DayDetailExpansion: View {
     }
 
     private var totalExpense: Decimal { dayRows.filter { $0.kind == .expense }.reduce(0) { $0 + $1.amount } }
-    private var totalIncome: Decimal  { dayRows.filter { $0.kind == .income  }.reduce(0) { $0 + $1.amount } }
+    private var totalIncome:  Decimal { dayRows.filter { $0.kind == .income  }.reduce(0) { $0 + $1.amount } }
+
+    // Show category breakdown only when 2+ transactions span 2+ distinct categories.
+    private var distinctCategoryCount: Int {
+        Set(dayRows.map { $0.categoryName.isEmpty ? "Other" : $0.categoryName }).count
+    }
+    private var showBreakdown: Bool { dayRows.count >= 2 && distinctCategoryCount >= 2 }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -495,8 +582,7 @@ private struct DayDetailExpansion: View {
                         }
                         if dayRows.isEmpty {
                             Text("No transactions")
-                                .font(.caption2)
-                                .foregroundStyle(.secondary)
+                                .font(.caption2).foregroundStyle(.secondary)
                         }
                     }
                 }
@@ -513,20 +599,131 @@ private struct DayDetailExpansion: View {
 
             // Transaction rows
             ForEach(Array(dayRows.enumerated()), id: \.element.id) { index, row in
-                if index > 0 {
-                    Divider().padding(.vertical, 4)
-                }
-                Button { onEdit(row) } label: {
-                    TxnRowView(row: row)
-                }
-                .buttonStyle(.plain)
-                .accessibilityHint("Edits this transaction")
+                if index > 0 { Divider().padding(.vertical, 4) }
+                Button { onEdit(row) } label: { TxnRowView(row: row) }
+                    .buttonStyle(.plain)
+                    .accessibilityHint("Edits this transaction")
+            }
+
+            // Category breakdown bars — only when 2+ categories
+            if showBreakdown {
+                DayCategoryBars(rows: dayRows, categories: categories, isRevealed: isRevealed)
+                    .padding(.top, 10)
             }
         }
         .padding(12)
         .background(Color.secondary.opacity(0.07))
         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         .padding(.top, 6)
+    }
+}
+
+// MARK: - Day category breakdown bars
+
+private struct DayCategoryBars: View {
+    let rows: [TxnRow]
+    let categories: [CategorySnapshot]
+    let isRevealed: Bool
+
+    private struct Bar: Identifiable {
+        let id: String; let name: String; let amount: Decimal; let color: Color; let fraction: Double
+    }
+
+    private func bars(for kind: TxnKind) -> [Bar] {
+        let kindRows = rows.filter { $0.kind == kind }
+        guard !kindRows.isEmpty else { return [] }
+        let total = kindRows.reduce(0) { $0 + $1.amount }
+        guard total > 0 else { return [] }
+
+        let grouped = Dictionary(grouping: kindRows, by: { $0.categoryName.isEmpty ? "Other" : $0.categoryName })
+        let sorted = grouped
+            .map { name, txns in (name, txns.reduce(0) { $0 + $1.amount }) }
+            .sorted { $0.1 > $1.1 }
+
+        let top  = sorted.prefix(4)
+        let rest = sorted.dropFirst(4)
+
+        var result: [Bar] = top.map { name, amount in
+            let color = categories.first(where: { $0.name == name }).map { Color(hex: $0.colorHex) } ?? Color.brandPrimary
+            let frac  = min(max(NSDecimalNumber(decimal: amount / total).doubleValue, 0), 1)
+            return Bar(id: name, name: name, amount: amount, color: color, fraction: frac)
+        }
+        if !rest.isEmpty {
+            let amt  = rest.reduce(Decimal(0)) { $0 + $1.1 }
+            let frac = min(max(NSDecimalNumber(decimal: amt / total).doubleValue, 0), 1)
+            result.append(Bar(id: "Others", name: "Others", amount: amt, color: .secondary, fraction: frac))
+        }
+        return result
+    }
+
+    var body: some View {
+        let expBars = bars(for: .expense)
+        let incBars = bars(for: .income)
+
+        if !expBars.isEmpty || !incBars.isEmpty {
+            VStack(alignment: .leading, spacing: 6) {
+                Divider()
+                ForEach(expBars) { bar in barRow(bar, tint: bar.color) }
+                if !incBars.isEmpty && !expBars.isEmpty { Divider() }
+                ForEach(incBars) { bar in barRow(bar, tint: Color.moneyIn) }
+            }
+        }
+    }
+
+    private func barRow(_ bar: Bar, tint: Color) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            HStack {
+                Text(bar.name).font(.caption2).lineLimit(1)
+                Spacer()
+                Text(isRevealed ? AmountFormatter.money(bar.amount) : "••••")
+                    .font(.caption2.monospacedDigit())
+                Text("\(Int((bar.fraction * 100).rounded()))%")
+                    .font(.caption2).foregroundStyle(.secondary).frame(width: 30, alignment: .trailing)
+            }
+            GeometryReader { geo in
+                ZStack(alignment: .leading) {
+                    Capsule().fill(Color.secondary.opacity(0.1))
+                    Capsule().fill(tint).frame(width: geo.size.width * bar.fraction)
+                }
+            }.frame(height: 4)
+        }
+    }
+}
+
+// MARK: - Filter summary row (shows aggregate totals when filters are active)
+
+private struct FilterSummaryRow: View {
+    let count: Int
+    let totalExpense: Decimal
+    let totalIncome: Decimal
+    let filterKind: TxnKind?
+    let isRevealed: Bool
+
+    var body: some View {
+        HStack(spacing: 0) {
+            // Transaction count
+            VStack(alignment: .leading, spacing: 1) {
+                Text(count == 1 ? "1 transaction" : "\(count) transactions")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+            Spacer()
+            // Expense total — omit when income-only filter active
+            if filterKind != .income && totalExpense > 0 {
+                Text(isRevealed ? "−\(AmountFormatter.money(totalExpense))" : "−••••")
+                    .font(.subheadline.monospacedDigit().weight(.semibold))
+                    .foregroundStyle(Color.moneyOut)
+            }
+            // Income total — omit when expense-only filter active
+            if filterKind != .expense && totalIncome > 0 {
+                if filterKind != .income && totalExpense > 0 {
+                    Text("  ").font(.caption) // spacer between two amounts
+                }
+                Text(isRevealed ? "+\(AmountFormatter.money(totalIncome))" : "+••••")
+                    .font(.subheadline.monospacedDigit().weight(.semibold))
+                    .foregroundStyle(Color.moneyIn)
+            }
+        }
+        .padding(.vertical, 2)
     }
 }
 

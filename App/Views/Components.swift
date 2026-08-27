@@ -210,8 +210,11 @@ struct TxnRowView: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(row.categoryName.isEmpty ? "Uncategorized" : row.categoryName)
                     .font(.body)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.8)
                 if let note = row.note, !note.isEmpty {
                     Text(note).font(.caption).foregroundStyle(.secondary)
+                        .lineLimit(1)
                 }
             }
             Spacer()
@@ -221,9 +224,12 @@ struct TxnRowView: View {
                      : (row.kind == .expense ? "-" : "+") + "••••••")
                     .font(.callout.monospacedDigit())
                     .foregroundStyle(row.kind == .expense ? Color.primary : Color.moneyIn)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
                 Text(row.date, style: .date)
                     .font(.caption2)
                     .foregroundStyle(.secondary)
+                    .lineLimit(1)
             }
         }
         .contentShape(Rectangle())

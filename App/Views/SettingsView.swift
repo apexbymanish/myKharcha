@@ -121,8 +121,11 @@ struct SettingsView: View {
                     Link(destination: settingsURL) {
                         HStack {
                             Label("App Language", systemImage: "globe")
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.8)
                             Spacer()
                             Text(currentLanguageName).foregroundStyle(.secondary)
+                                .lineLimit(1)
                         }
                     }
                 }
@@ -153,8 +156,8 @@ struct SettingsView: View {
             Section {
                 ShareLink(
                     item: URL(string: "https://jebkharcha.dnmc.app/kharcha")!,
-                    subject: Text("Try Kharcha — free spending tracker"),
-                    message: Text("I track my spending with Kharcha. It's free!")
+                    subject: Text("Try Kharcha — free expense tracker"),
+                    message: Text("I track my expenses with Kharcha. It's free!")
                 ) {
                     Label("Share Kharcha", systemImage: "square.and.arrow.up")
                 }

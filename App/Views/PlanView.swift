@@ -106,6 +106,8 @@ struct PlanView: View {
         Section {
             HStack {
                 Label("Monthly income", systemImage: "banknote")
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
                 Spacer()
                 HStack(spacing: 4) {
                     Text(currencySymbol)
