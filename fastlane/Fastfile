@@ -10,10 +10,11 @@ platform :ios do
       key_filepath: "#{Dir.home}/.appstoreconnect/private_keys/AuthKey_D7P7N5J6FV.p8"
     )
     deliver(
-      skip_binary_upload:       true,
-      skip_screenshots:         true,
-      skip_app_version_update:  true,
-      force:                    true
+      skip_binary_upload:              true,
+      skip_screenshots:                true,
+      skip_app_version_update:         true,
+      precheck_include_in_app_purchases: false,
+      force:                           true
     )
   end
 
