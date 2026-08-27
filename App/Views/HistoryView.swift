@@ -258,10 +258,18 @@ struct HistoryView: View {
         .onReceive(NotificationCenter.default.publisher(for: .kharchaRemoteDidChange)) { _ in
             Task { await vm.load() }
         }
+        .onChange(of: selectedBarDate) { _, newDate in
+            guard newDate != nil else { return }
+            Task { @MainActor in
+                try? await Task.sleep(for: .milliseconds(120))
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    proxy.scrollTo("barSelectionBreakdown", anchor: .top)
+                }
+            }
+        }
         .onChange(of: selectedCalendarDay) { _, newDay in
             guard newDay != nil else { return }
             Task { @MainActor in
-                // Wait one frame so DayDetailExpansion is in the hierarchy before scrolling.
                 try? await Task.sleep(for: .milliseconds(120))
                 withAnimation(.easeInOut(duration: 0.3)) {
                     proxy.scrollTo("calendarDayDetail", anchor: .top)
@@ -374,6 +382,7 @@ struct HistoryView: View {
                     BarSelectionBreakdown(allRows: vm.state.allRows, date: date, period: period) {
                         selectedBarDate = nil
                     }
+                    .id("barSelectionBreakdown")
                 }
                 calendarContent
             } label: {
