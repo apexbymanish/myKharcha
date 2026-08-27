@@ -1,0 +1,3 @@
+app_identifier "com.manish.jebkharcha"
+apple_id ENV["APPLE_ID"]          # set in .env or export before running
+itc_team_id ENV["ITC_TEAM_ID"]    # App Store Connect team ID (optional if only one team)

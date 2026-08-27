@@ -1,0 +1,27 @@
+default_platform :ios
+
+platform :ios do
+
+  desc "Push App Store metadata (name, description, keywords) — no binary upload"
+  lane :metadata do
+    deliver(
+      skip_binary_upload:  true,
+      skip_screenshots:    true,
+      skip_app_version_update: true,
+      force: true           # don't prompt for confirmation
+    )
+  end
+
+  desc "Full release: build, upload binary + metadata"
+  lane :release do
+    build_app(
+      scheme: "Kharcha",
+      export_method: "app-store"
+    )
+    deliver(
+      skip_screenshots: true,
+      force: true
+    )
+  end
+
+end
