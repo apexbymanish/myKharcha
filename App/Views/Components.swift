@@ -312,8 +312,15 @@ struct PayCycleCard: View {
         return value
     }
 
+    private var spentFraction: Double {
+        guard plan.salary > 0 else { return 0 }
+        let fraction = NSDecimalNumber(decimal: plan.spentThisCycle / plan.salary).doubleValue
+        return min(max(fraction, 0), 1)
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
+            // Header: days + next payday date
             HStack {
                 Label("\(plan.daysUntilPayday) days to payday", systemImage: "calendar")
                     .font(.callout)
@@ -322,8 +329,37 @@ struct PayCycleCard: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
-            // At AX sizes the two stat blocks are too wide to sit side-by-side;
-            // stack them so the amounts stay readable.
+
+            // Cycle progress: spent vs salary
+            VStack(alignment: .leading, spacing: 5) {
+                HStack {
+                    Text("Spent")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                    if privacy.isRevealed {
+                        Text("\(AmountFormatter.money(plan.spentThisCycle))  of  \(AmountFormatter.money(plan.salary))")
+                            .font(.caption.monospacedDigit())
+                            .foregroundStyle(plan.isOverspent ? Color.moneyOut : .secondary)
+                    } else {
+                        Text("•••••  of  •••••")
+                            .font(.caption.monospacedDigit())
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                GeometryReader { geo in
+                    ZStack(alignment: .leading) {
+                        Capsule()
+                            .fill(Color.secondary.opacity(0.15))
+                        Capsule()
+                            .fill(plan.isOverspent ? Color.moneyOut : Color.brandPrimary)
+                            .frame(width: geo.size.width * spentFraction)
+                    }
+                }
+                .frame(height: 6)
+            }
+
+            // Stat blocks: remaining / daily allowance
             if typeSize.isAccessibilitySize {
                 VStack(alignment: .leading, spacing: 8) {
                     StatBlock(
@@ -360,6 +396,7 @@ struct PayCycleCard: View {
                     )
                 }
             }
+
             if plan.savingsReserved > 0 {
                 Label(
                     "\(AmountFormatter.money(plan.savingsReserved)) reserved for savings  (\(plan.savingsRatePercent)%)",
