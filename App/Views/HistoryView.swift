@@ -82,6 +82,7 @@ struct HistoryView: View {
     // MARK: - Body
 
     var body: some View {
+        ScrollViewReader { proxy in
         List {
             if vm.state.allRows.isEmpty && vm.state.errorMessage == nil {
                 EmptyStateView(
@@ -257,6 +258,17 @@ struct HistoryView: View {
         .onReceive(NotificationCenter.default.publisher(for: .kharchaRemoteDidChange)) { _ in
             Task { await vm.load() }
         }
+        .onChange(of: selectedCalendarDay) { _, newDay in
+            guard newDay != nil else { return }
+            Task { @MainActor in
+                // Wait one frame so DayDetailExpansion is in the hierarchy before scrolling.
+                try? await Task.sleep(for: .milliseconds(120))
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    proxy.scrollTo("calendarDayDetail", anchor: .top)
+                }
+            }
+        }
+        } // ScrollViewReader
     }
 
     // MARK: - Filter chips (kind + category)
@@ -430,6 +442,7 @@ struct HistoryView: View {
                     showEditSheet = true
                 }
             )
+            .id("calendarDayDetail")
             .transition(.opacity.combined(with: .move(edge: .top)))
         }
     }
