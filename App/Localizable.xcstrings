@@ -225,6 +225,16 @@
         }
       }
     },
+    "%@  of  %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@  of  %2$@"
+          }
+        }
+      }
+    },
     "%@ / %@" : {
       "localizations" : {
         "ar" : {
@@ -2518,6 +2528,9 @@
           }
         }
       }
+    },
+    "•••••  of  •••••" : {
+
     },
     "+%@" : {
       "localizations" : {
@@ -5322,6 +5335,12 @@
         }
       }
     },
+    "Add your salary and payday to see daily spend limits" : {
+
+    },
+    "All" : {
+
+    },
     "All amounts are shown and totalled in this currency. When you paste text with foreign amounts (e.g. $10), they’re converted to it automatically." : {
       "localizations" : {
         "ar" : {
@@ -5887,6 +5906,9 @@
           }
         }
       }
+    },
+    "Analytics" : {
+
     },
     "App Language" : {
       "localizations" : {
@@ -32506,6 +32528,9 @@
         }
       }
     },
+    "Set up your pay cycle" : {
+
+    },
     "Set your payday and monthly salary to see days until payday and a safe daily spend on Home. Leave salary at 0 to hide it." : {
       "localizations" : {
         "ar" : {
@@ -34299,6 +34324,7 @@
       }
     },
     "Spending & income" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
