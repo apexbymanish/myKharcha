@@ -215,14 +215,16 @@ struct HomeView: View {
                 }
             }
 
-            if let plan = vm.state.payPlan {
-                Section("Plan") {
-                    Button { showPlanNav = true } label: {
+            Section("Plan") {
+                Button { showPlanNav = true } label: {
+                    if let plan = vm.state.payPlan {
                         PayCycleCard(plan: plan)
+                    } else {
+                        PlanSetupNudge()
                     }
-                    .buttonStyle(.plain)
-                    .accessibilityHint("Opens Monthly Plan")
                 }
+                .buttonStyle(.plain)
+                .accessibilityHint("Opens Monthly Plan")
             }
 
             if vm.state.breakdown.total > 0 {
@@ -447,6 +449,32 @@ struct HomeView: View {
         .onReceive(NotificationCenter.default.publisher(for: .kharchaRemoteDidChange)) { _ in
             Task { await reload() }
         }
+    }
+}
+
+/// Shown in the Plan section when no salary/payday is configured yet.
+private struct PlanSetupNudge: View {
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: "calendar.badge.plus")
+                .font(.title3)
+                .foregroundStyle(Color.brandPrimary)
+                .frame(width: 40, height: 40)
+                .background(Color.brandPrimary.opacity(0.12))
+                .clipShape(Circle())
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Set up your pay cycle")
+                    .font(.subheadline.weight(.semibold))
+                Text("Add your salary and payday to see daily spend limits")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            Spacer()
+            Image(systemName: "chevron.right")
+                .font(.caption)
+                .foregroundStyle(.tertiary)
+        }
+        .padding(.vertical, 2)
     }
 }
 

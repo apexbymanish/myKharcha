@@ -10,7 +10,6 @@ struct HistoryView: View {
     @State private var showEditSheet = false
     @State private var period: ActivityPeriod = .month
     @State private var searchText = ""
-    /// Bar tapped in the chart — drives the BarSelectionBreakdown panel.
     @State private var selectedBarDate: Date?
 
     init(store: ExpenseStore) {
@@ -28,12 +27,10 @@ struct HistoryView: View {
         ActivitySeries.daysInMonth(vm.state.allRows, monthOf: vm.state.calendarMonth, calendar: .current)
     }
 
-    /// True when any filter (kind, category, day, search) is active.
     private var hasActiveFilter: Bool {
         vm.state.hasActiveFilters || vm.state.dayFilter != nil || !vm.state.searchText.isEmpty
     }
 
-    /// Human-readable summary of all active filters, e.g. "Expenses · Food · Oct 15".
     private var activeFilterSummary: String {
         var parts: [String] = []
         if let kind = vm.state.filterKind {
@@ -58,98 +55,107 @@ struct HistoryView: View {
                 .listRowBackground(Color.clear)
                 .listRowSeparator(.hidden)
             } else {
+                // ── Filter chips ─────────────────────────────────────────
+                filterChipsSection
+
+                // ── Active filter banner ──────────────────────────────────
+                if hasActiveFilter {
+                    Section {
+                        HStack(spacing: 8) {
+                            Image(systemName: "line.3.horizontal.decrease.circle.fill")
+                                .foregroundStyle(Color.brandPrimary)
+                                .font(.callout)
+                            Text(activeFilterSummary)
+                                .font(.subheadline)
+                                .foregroundStyle(Color.brandPrimary)
+                                .lineLimit(1)
+                            Spacer()
+                            Button {
+                                Task { searchText = ""; await vm.clearAllFilters() }
+                            } label: {
+                                Text("Clear")
+                                    .font(.caption.weight(.semibold))
+                                    .foregroundStyle(Color.brandPrimary)
+                            }
+                        }
+                    }
+                }
+
+                // ── Transaction list (primary — shown first) ──────────────
+                ForEach(vm.state.sections, id: \.title) { section in
+                    Section {
+                        ForEach(section.rows, id: \.id) { row in
+                            Button {
+                                editingRow = row
+                                showEditSheet = true
+                            } label: {
+                                TxnRowView(row: row)
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityHint("Edits this transaction")
+                            .swipeActions {
+                                Button("Delete", role: .destructive) {
+                                    Task { await vm.delete(row.id) }
+                                }
+                            }
+                        }
+                    } header: {
+                        HStack {
+                            Text(section.title)
+                            Spacer()
+                            if vm.state.filterKind == .income {
+                                Text(privacy.isRevealed
+                                     ? "+\(AmountFormatter.money(section.totalIncome))"
+                                     : "+••••")
+                                    .font(.caption.monospacedDigit())
+                                    .foregroundStyle(Color.moneyIn.opacity(0.8))
+                            } else {
+                                Text(privacy.isRevealed
+                                     ? "−\(AmountFormatter.money(section.totalExpenses))"
+                                     : "−••••")
+                                    .font(.caption.monospacedDigit())
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                    }
+                }
+
+                // No-results: history exists but filters matched nothing.
+                if vm.state.sections.isEmpty && !vm.state.allRows.isEmpty && vm.state.errorMessage == nil {
+                    EmptyStateView(
+                        icon: "magnifyingglass",
+                        title: "No matching transactions",
+                        message: "Try adjusting your search or filters."
+                    )
+                    .listRowBackground(Color.clear)
+                    .listRowSeparator(.hidden)
+                }
+
+                // ── Analytics (scroll down to see charts) ─────────────────
                 chartsSection
                 calendarSection
             }
-            // Active filter banner — tells the user exactly what is being filtered.
-            if hasActiveFilter {
-                Section {
-                    HStack(spacing: 8) {
-                        Image(systemName: "line.3.horizontal.decrease.circle.fill")
-                            .foregroundStyle(Color.brandPrimary)
-                            .font(.callout)
-                        Text(activeFilterSummary)
-                            .font(.subheadline)
-                            .foregroundStyle(Color.brandPrimary)
-                            .lineLimit(1)
-                        Spacer()
-                        Button {
-                            Task {
-                                searchText = ""
-                                await vm.clearAllFilters()
-                            }
-                        } label: {
-                            Text("Clear")
-                                .font(.caption.weight(.semibold))
-                                .foregroundStyle(Color.brandPrimary)
-                        }
-                    }
-                }
-            }
 
-            ForEach(vm.state.sections, id: \.title) { section in
-                Section {
-                    ForEach(section.rows, id: \.id) { row in
-                        Button {
-                            editingRow = row
-                            showEditSheet = true
-                        } label: {
-                            TxnRowView(row: row)
-                        }
-                        .buttonStyle(.plain)
-                        .accessibilityHint("Edits this transaction")
-                        .swipeActions {
-                            Button("Delete", role: .destructive) {
-                                Task { await vm.delete(row.id) }
-                            }
-                        }
-                    }
-                } header: {
-                    HStack {
-                        Text(section.title)
-                        Spacer()
-                        // Adapt the section summary to the active kind filter.
-                        if vm.state.filterKind == .income {
-                            Text(privacy.isRevealed
-                                 ? "+\(AmountFormatter.money(section.totalIncome))"
-                                 : "+••••")
-                                .font(.caption.monospacedDigit())
-                                .foregroundStyle(Color.moneyIn.opacity(0.8))
-                        } else {
-                            Text(privacy.isRevealed
-                                 ? "−\(AmountFormatter.money(section.totalExpenses))"
-                                 : "−••••")
-                                .font(.caption.monospacedDigit())
-                                .foregroundStyle(.secondary)
-                        }
-                    }
-                }
-            }
-            // No-results state: history exists but filters matched nothing.
-            if vm.state.sections.isEmpty && !vm.state.allRows.isEmpty && vm.state.errorMessage == nil {
-                EmptyStateView(
-                    icon: "magnifyingglass",
-                    title: "No matching transactions",
-                    message: "Try adjusting your search or filters."
-                )
-                .listRowBackground(Color.clear)
-                .listRowSeparator(.hidden)
-            }
             if let error = vm.state.errorMessage {
                 InlineError(message: error)
             }
         }
         .navigationTitle("History")
         .toolbar {
+            // Period picker in toolbar — always accessible without scrolling.
+            ToolbarItem(placement: .topBarLeading) {
+                Picker("Period", selection: $period) {
+                    Text("Week").tag(ActivityPeriod.week)
+                    Text("Month").tag(ActivityPeriod.month)
+                    Text("Year").tag(ActivityPeriod.year)
+                }
+                .pickerStyle(.menu)
+            }
             ToolbarItem(placement: .topBarTrailing) {
                 Menu {
-                    // Reset all is shown first whenever any filter is active.
                     if hasActiveFilter {
                         Button("Reset All Filters", role: .destructive) {
-                            Task {
-                                searchText = ""
-                                await vm.clearAllFilters()
-                            }
+                            Task { searchText = ""; await vm.clearAllFilters() }
                         }
                     }
                     Section("Kind") {
@@ -204,7 +210,6 @@ struct HistoryView: View {
                         }
                     }
                 } label: {
-                    // Filled icon signals that at least one filter is active.
                     Image(systemName: hasActiveFilter
                           ? "line.3.horizontal.decrease.circle.fill"
                           : "line.3.horizontal.decrease.circle")
@@ -224,7 +229,6 @@ struct HistoryView: View {
         .onChange(of: searchText) { _, text in Task { await vm.setSearchFilter(text) } }
         .task { await vm.load() }
         .refreshable { await vm.load() }
-        // Reset chart selection AND day filter when the user switches chart periods.
         .onChange(of: period) { _, _ in
             selectedBarDate = nil
             Task { await vm.setDayFilter(nil) }
@@ -237,14 +241,71 @@ struct HistoryView: View {
         }
     }
 
+    // MARK: - Filter chips
+
+    @ViewBuilder private var filterChipsSection: some View {
+        Section {
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    let allActive = vm.state.filterKind == nil
+                        && vm.state.filterCategoryName == nil
+                        && vm.state.searchText.isEmpty
+                        && vm.state.dayFilter == nil
+
+                    FilterChip(
+                        String(localized: "All"),
+                        icon: nil,
+                        isActive: allActive
+                    ) {
+                        Task { searchText = ""; await vm.clearAllFilters() }
+                    }
+
+                    FilterChip(
+                        String(localized: "Expenses"),
+                        icon: "arrow.down.circle.fill",
+                        isActive: vm.state.filterKind == .expense
+                    ) {
+                        Task { await vm.setKindFilter(vm.state.filterKind == .expense ? nil : .expense) }
+                    }
+
+                    FilterChip(
+                        String(localized: "Income"),
+                        icon: "arrow.up.circle.fill",
+                        isActive: vm.state.filterKind == .income
+                    ) {
+                        Task { await vm.setKindFilter(vm.state.filterKind == .income ? nil : .income) }
+                    }
+
+                    if !vm.state.categories.isEmpty {
+                        Divider().frame(height: 20)
+                        ForEach(vm.state.categories, id: \.id) { cat in
+                            FilterChip(
+                                cat.name,
+                                icon: cat.symbol,
+                                isActive: vm.state.filterCategoryName == cat.name
+                            ) {
+                                Task {
+                                    await vm.setCategoryFilter(
+                                        vm.state.filterCategoryName == cat.name ? nil : cat.name
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+                .padding(.horizontal, 4)
+                .padding(.vertical, 2)
+            }
+            .listRowInsets(EdgeInsets(top: 4, leading: 12, bottom: 4, trailing: 12))
+            .listRowSeparator(.hidden)
+            .listRowBackground(Color.clear)
+        }
+    }
+
+    // MARK: - Analytics
+
     @ViewBuilder private var chartsSection: some View {
         Section {
-            Picker("Period", selection: $period) {
-                Text("Week").tag(ActivityPeriod.week)
-                Text("Month").tag(ActivityPeriod.month)
-                Text("Year").tag(ActivityPeriod.year)
-            }
-            .pickerStyle(.segmented)
             // Summary header with "vs prior period" deltas.
             ActivitySummaryHeader(bars: bars, prevBars: prevBars, isRevealed: privacy.isRevealed)
             // Bar chart — tap a bar to open its category breakdown.
@@ -253,7 +314,6 @@ struct HistoryView: View {
                 unit: period == .year ? .month : .day,
                 selectedDate: $selectedBarDate
             )
-            // Category breakdown panel — appears when a bar is selected.
             if let date = selectedBarDate {
                 BarSelectionBreakdown(
                     allRows: vm.state.allRows,
@@ -264,13 +324,12 @@ struct HistoryView: View {
                 }
             }
         } header: {
-            Text("Spending & income")
+            Text("Analytics")
         }
     }
 
     @ViewBuilder private var calendarSection: some View {
         Section {
-            // Month navigation — allows browsing any month's heat grid.
             HStack {
                 Button {
                     let prev = Calendar.current.date(byAdding: .month, value: -1, to: vm.state.calendarMonth)!
@@ -302,7 +361,9 @@ struct HistoryView: View {
                 selectedDay: vm.state.dayFilter,
                 isRevealed: privacy.isRevealed
             ) { day in
-                let alreadySelected = vm.state.dayFilter.map { Calendar.current.isDate($0, inSameDayAs: day) } ?? false
+                let alreadySelected = vm.state.dayFilter.map {
+                    Calendar.current.isDate($0, inSameDayAs: day)
+                } ?? false
                 Task { await vm.setDayFilter(alreadySelected ? nil : day) }
             }
             if let day = vm.state.dayFilter {
@@ -317,5 +378,42 @@ struct HistoryView: View {
         } header: {
             Text("Calendar")
         }
+    }
+}
+
+// MARK: - Filter chip
+
+private struct FilterChip: View {
+    let label: String
+    let icon: String?
+    let isActive: Bool
+    let action: () -> Void
+
+    init(_ label: String, icon: String?, isActive: Bool, action: @escaping () -> Void) {
+        self.label = label
+        self.icon = icon
+        self.isActive = isActive
+        self.action = action
+    }
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 4) {
+                if let icon {
+                    Image(systemName: icon).font(.caption2)
+                }
+                Text(label)
+                    .font(.subheadline)
+                    .lineLimit(1)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+            .background(isActive ? Color.brandPrimary : Color.secondary.opacity(0.12))
+            .foregroundStyle(isActive ? .white : .primary)
+            .clipShape(Capsule())
+            .animation(.easeInOut(duration: 0.15), value: isActive)
+        }
+        .buttonStyle(.plain)
+        .accessibilityAddTraits(isActive ? [.isSelected] : [])
     }
 }
