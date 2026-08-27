@@ -1,0 +1,1 @@
+dépense,budget,argent,épargne,finance,dette,revenu,portefeuille,quotidien,planificateur
