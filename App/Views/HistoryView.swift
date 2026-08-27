@@ -16,6 +16,8 @@ struct HistoryView: View {
     // Sections the user has explicitly collapsed; empty = all expanded
     @State private var collapsedSections: Set<String> = []
     @State private var analyticsExpanded = false
+    // Local calendar day selection — shown inline below heatmap, does NOT filter the main list
+    @State private var selectedCalendarDay: Date? = nil
 
     init(store: ExpenseStore) {
         self.store = store
@@ -403,24 +405,106 @@ struct HistoryView: View {
         MonthHeatGrid(
             bars: monthBars,
             calendar: .current,
-            selectedDay: vm.state.dayFilter,
+            selectedDay: selectedCalendarDay,
             isRevealed: privacy.isRevealed
         ) { day in
-            let alreadySelected = vm.state.dayFilter.map {
-                Calendar.current.isDate($0, inSameDayAs: day)
-            } ?? false
-            Task { await vm.setDayFilter(alreadySelected ? nil : day) }
-        }
-
-        if let day = vm.state.dayFilter {
-            Button { Task { await vm.setDayFilter(nil) } } label: {
-                Label(
-                    "Showing \(day.formatted(.dateTime.month().day())) — tap to show all",
-                    systemImage: "xmark.circle.fill"
-                )
-                .font(.caption)
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.75)) {
+                let alreadySelected = selectedCalendarDay.map {
+                    Calendar.current.isDate($0, inSameDayAs: day)
+                } ?? false
+                selectedCalendarDay = alreadySelected ? nil : day
             }
         }
+
+        // Inline day detail — appears immediately below the heatmap on tap.
+        if let day = selectedCalendarDay {
+            DayDetailExpansion(
+                day: day,
+                allRows: vm.state.allRows,
+                isRevealed: privacy.isRevealed,
+                onDismiss: {
+                    withAnimation(.easeInOut(duration: 0.2)) { selectedCalendarDay = nil }
+                },
+                onEdit: { row in
+                    editingRow = row
+                    showEditSheet = true
+                }
+            )
+            .transition(.opacity.combined(with: .move(edge: .top)))
+        }
+    }
+}
+
+// MARK: - Inline day detail (shown below heatmap on tap)
+
+private struct DayDetailExpansion: View {
+    let day: Date
+    let allRows: [TxnRow]
+    let isRevealed: Bool
+    let onDismiss: () -> Void
+    let onEdit: (TxnRow) -> Void
+
+    private var dayRows: [TxnRow] {
+        allRows.filter { Calendar.current.isDate($0.date, inSameDayAs: day) }
+            .sorted { $0.date > $1.date }
+    }
+
+    private var totalExpense: Decimal { dayRows.filter { $0.kind == .expense }.reduce(0) { $0 + $1.amount } }
+    private var totalIncome: Decimal  { dayRows.filter { $0.kind == .income  }.reduce(0) { $0 + $1.amount } }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            // Header
+            HStack(spacing: 6) {
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(day.formatted(.dateTime.weekday(.wide).month(.abbreviated).day()))
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.primary)
+                    HStack(spacing: 8) {
+                        if totalExpense > 0 {
+                            Text(isRevealed ? "−\(AmountFormatter.money(totalExpense))" : "−••••")
+                                .font(.caption2.monospacedDigit())
+                                .foregroundStyle(Color.moneyOut)
+                        }
+                        if totalIncome > 0 {
+                            Text(isRevealed ? "+\(AmountFormatter.money(totalIncome))" : "+••••")
+                                .font(.caption2.monospacedDigit())
+                                .foregroundStyle(Color.moneyIn)
+                        }
+                        if dayRows.isEmpty {
+                            Text("No transactions")
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                }
+                Spacer()
+                Button(action: onDismiss) {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.callout)
+                        .foregroundStyle(Color.secondary.opacity(0.6))
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Close day detail")
+            }
+            .padding(.bottom, dayRows.isEmpty ? 0 : 10)
+
+            // Transaction rows
+            ForEach(Array(dayRows.enumerated()), id: \.element.id) { index, row in
+                if index > 0 {
+                    Divider().padding(.vertical, 4)
+                }
+                Button { onEdit(row) } label: {
+                    TxnRowView(row: row)
+                }
+                .buttonStyle(.plain)
+                .accessibilityHint("Edits this transaction")
+            }
+        }
+        .padding(12)
+        .background(Color.secondary.opacity(0.07))
+        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .padding(.top, 6)
     }
 }
 
