@@ -68,7 +68,7 @@ struct OnboardingView: View {
                     .font(.title.weight(.semibold))
                     .foregroundStyle(.white)
             }
-            Text("Welcome to Jeb Kharcha")
+            Text("Welcome to Paisa Khoi?")
                 .font(.largeTitle.bold())
             Text("Your calm, private money tracker.")
                 .font(.title3)

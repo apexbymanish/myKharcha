@@ -146,7 +146,7 @@ struct SettingsView: View {
                     Label("Export as CSV", systemImage: "square.and.arrow.up")
                 }
                 if let exportURL {
-                    ShareLink(item: exportURL, preview: SharePreview("Jeb Kharcha Export.csv"))
+                    ShareLink(item: exportURL, preview: SharePreview("Paisa Khoi Export.csv"))
                 }
             }
 

@@ -3,120 +3,125 @@
   "strings" : {
     "CFBundleDisplayName" : {
       "comment" : "Bundle display name",
-      "extractionState" : "extracted_with_value",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "jebkharcha"
+            "value" : "أين مالي؟"
           }
         },
         "bn" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "jebkharcha"
+            "value" : "টাকা কই?"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "jebkharcha"
+            "value" : "Wo ist mein Geld?"
           }
         },
         "en" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "jebkharcha"
+            "state" : "translated",
+            "value" : "Paisa Khoi?"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "jebkharcha"
+            "value" : "¿Mi Dinero?"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "jebkharcha"
+            "value" : "Où est l'argent ?"
           }
         },
         "hi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "jebkharcha"
+            "value" : "पैसा कहाँ?"
           }
         },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "jebkharcha"
+            "value" : "Duit Ke Mana?"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "jebkharcha"
+            "value" : "お金どこ？"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "jebkharcha"
+            "value" : "내 돈 어디?"
           }
         },
         "mr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "jebkharcha"
+            "value" : "पैसे कुठे?"
           }
         },
         "ne" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "jebkharcha"
+            "value" : "पैसा खोई?"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "jebkharcha"
+            "value" : "Cadê Meu Dinheiro?"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "jebkharcha"
+            "value" : "Где деньги?"
           }
         },
         "ta" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "jebkharcha"
+            "value" : "பணம் எங்கே?"
           }
         },
         "te" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "jebkharcha"
+            "value" : "పైసా ఏడి?"
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "jebkharcha"
+            "value" : "Param Nerede?"
           }
         },
         "ur" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "jebkharcha"
+            "value" : "پیسہ کہاں؟"
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "jebkharcha"
+            "value" : "Tiền Đâu Rồi?"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "钱去哪了？"
           }
         }
       }
@@ -358,109 +363,109 @@
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Jeb Kharcha"
+            "value" : "Paisa Khoi?"
           }
         },
         "bn" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Jeb Kharcha"
+            "value" : "Paisa Khoi?"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Jeb Kharcha"
+            "value" : "Paisa Khoi?"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Jeb Kharcha"
+            "value" : "Paisa Khoi?"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Jeb Kharcha"
+            "value" : "Paisa Khoi?"
           }
         },
         "hi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Jeb Kharcha"
+            "value" : "Paisa Khoi?"
           }
         },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Jeb Kharcha"
+            "value" : "Paisa Khoi?"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Jeb Kharcha"
+            "value" : "Paisa Khoi?"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Jeb Kharcha"
+            "value" : "Paisa Khoi?"
           }
         },
         "mr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Jeb Kharcha"
+            "value" : "Paisa Khoi?"
           }
         },
         "ne" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Jeb Kharcha"
+            "value" : "Paisa Khoi?"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Jeb Kharcha"
+            "value" : "Paisa Khoi?"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Jeb Kharcha"
+            "value" : "Paisa Khoi?"
           }
         },
         "ta" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Jeb Kharcha"
+            "value" : "Paisa Khoi?"
           }
         },
         "te" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Jeb Kharcha"
+            "value" : "Paisa Khoi?"
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Jeb Kharcha"
+            "value" : "Paisa Khoi?"
           }
         },
         "ur" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Jeb Kharcha"
+            "value" : "Paisa Khoi?"
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Jeb Kharcha"
+            "value" : "Paisa Khoi?"
           }
         }
       }

@@ -3191,6 +3191,12 @@
         }
       }
     },
+    "❓" : {
+
+    },
+    "👀" : {
+
+    },
     "0" : {
       "localizations" : {
         "ar" : {
@@ -13456,6 +13462,124 @@
         }
       }
     },
+    "Expense Tracker" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "متتبع المصروفات"
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "খরচের হিসাব"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ausgaben-Tracker"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rastreador de Gastos"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Suivi des Dépenses"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "खर्च ट्रैकर"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pencatat Pengeluaran"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "支出管理"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "지출 관리"
+          }
+        },
+        "mr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "खर्च ट्रॅकर"
+          }
+        },
+        "ne" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "खर्च ट्र्याकर"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rastreador de Gastos"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Учёт расходов"
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "செலவு கணக்கு"
+          }
+        },
+        "te" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ఖర్చుల నిర్వహణ"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Harcama Takibi"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "خرچ ٹریکر"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quản Lý Chi Tiêu"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "记账助手"
+          }
+        }
+      }
+    },
     "Expenses" : {
 
     },
@@ -14026,6 +14150,7 @@
       }
     },
     "Fires a test notification in 5 seconds. Background the app after tapping to see it." : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -18381,236 +18506,6 @@
           }
         }
       }
-    },
-    "jeb kharcha" : {
-
-    },
-    "Jeb Kharcha" : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Jeb Kharcha"
-          }
-        },
-        "bn" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Jeb Kharcha"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Jeb Kharcha"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Jeb Kharcha"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Jeb Kharcha"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Jeb Kharcha"
-          }
-        },
-        "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Jeb Kharcha"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Jeb Kharcha"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Jeb Kharcha"
-          }
-        },
-        "mr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Jeb Kharcha"
-          }
-        },
-        "ne" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Jeb Kharcha"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Jeb Kharcha"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Jeb Kharcha"
-          }
-        },
-        "ta" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Jeb Kharcha"
-          }
-        },
-        "te" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Jeb Kharcha"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Jeb Kharcha"
-          }
-        },
-        "ur" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Jeb Kharcha"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Jeb Kharcha"
-          }
-        }
-      }
-    },
-    "Jeb Kharcha Export.csv" : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "تصدير Jeb Kharcha.csv"
-          }
-        },
-        "bn" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Jeb Kharcha Export.csv"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Jeb Kharcha Export.csv"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Jeb Kharcha Export.csv"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Jeb Kharcha Export.csv"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Jeb Kharcha Export.csv"
-          }
-        },
-        "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Jeb Kharcha Export.csv"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Jeb Kharcha Export.csv"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Jeb Kharcha Export.csv"
-          }
-        },
-        "mr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Jeb Kharcha Export.csv"
-          }
-        },
-        "ne" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Jeb Kharcha Export.csv"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Jeb Kharcha Exportação.csv"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Jeb Kharcha Export.csv"
-          }
-        },
-        "ta" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Jeb Kharcha Export.csv"
-          }
-        },
-        "te" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Jeb Kharcha Export.csv"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Jeb Kharcha Export.csv"
-          }
-        },
-        "ur" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Jeb Kharcha Export.csv"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Jeb Kharcha Export.csv"
-          }
-        }
-      }
-    },
-    "K" : {
-
     },
     "Kind" : {
       "localizations" : {
@@ -24143,6 +24038,7 @@
       }
     },
     "Notifications" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -24704,118 +24600,6 @@
         }
       }
     },
-    "Opens Jeb Kharcha to add an expense." : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "يفتح Jeb Kharcha لإضافة مصروف."
-          }
-        },
-        "bn" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "খরচ যোগ করতে Jeb Kharcha খোলে।"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Öffnet Jeb Kharcha, um eine Ausgabe hinzuzufügen."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Abre Jeb Kharcha para añadir un gasto."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ouvre Jeb Kharcha pour ajouter une dépense."
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "खर्च जोड़ने के लिए Jeb Kharcha खोलता है।"
-          }
-        },
-        "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Membuka Jeb Kharcha untuk menambahkan pengeluaran."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Jeb Kharchaを開いて支出を追加します。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Jeb Kharcha를 열어 지출을 추가해요."
-          }
-        },
-        "mr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "खर्च जोडण्यासाठी Jeb Kharcha उघडते."
-          }
-        },
-        "ne" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "खर्च थप्न Jeb Kharcha खोल्छ।"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Abre o Jeb Kharcha para adicionar uma despesa."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Открывает Jeb Kharcha для добавления расхода."
-          }
-        },
-        "ta" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "செலவு சேர்க்க Jeb Kharcha-வைத் திறக்கும்."
-          }
-        },
-        "te" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ఖర్చు జోడించడానికి Jeb Kharchaను తెరుస్తుంది."
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Gider eklemek için Jeb Kharcha'yı açar."
-          }
-        },
-        "ur" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "خرچ شامل کرنے کے لیے Jeb Kharcha کھولتا ہے۔"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mở Jeb Kharcha để thêm khoản chi."
-          }
-        }
-      }
-    },
     "Opens Monthly Plan" : {
       "localizations" : {
         "ar" : {
@@ -24924,6 +24708,118 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Mở Kế hoạch hàng tháng"
+          }
+        }
+      }
+    },
+    "Opens Paisa Khoi? to add an expense." : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "يفتح Paisa Khoi? لإضافة مصروف."
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "খরচ যোগ করতে Paisa Khoi? খোলে।"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Öffnet Paisa Khoi?, um eine Ausgabe hinzuzufügen."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abre Paisa Khoi? para añadir un gasto."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ouvre Paisa Khoi? pour ajouter une dépense."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "खर्च जोड़ने के लिए Paisa Khoi? खोलता है।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Membuka Paisa Khoi? untuk menambahkan pengeluaran."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paisa Khoi?を開いて支出を追加します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paisa Khoi?를 열어 지출을 추가해요."
+          }
+        },
+        "mr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "खर्च जोडण्यासाठी Paisa Khoi? उघडते."
+          }
+        },
+        "ne" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "खर्च थप्न Paisa Khoi? खोल्छ।"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abre o Paisa Khoi? para adicionar uma despesa."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Открывает Paisa Khoi? для добавления расхода."
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "செலவு சேர்க்க Paisa Khoi?-வைத் திறக்கும்."
+          }
+        },
+        "te" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ఖర్చు జోడించడానికి Paisa Khoi?ను తెరుస్తుంది."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gider eklemek için Paisa Khoi?'yı açar."
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "خرچ شامل کرنے کے لیے Paisa Khoi? کھولتا ہے۔"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mở Paisa Khoi? để thêm khoản chi."
           }
         }
       }
@@ -25270,6 +25166,230 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Đã trả hết"
+          }
+        }
+      }
+    },
+    "Paisa Khoi Export.csv" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تصدير Paisa Khoi.csv"
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paisa Khoi Export.csv"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paisa Khoi Export.csv"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paisa Khoi Export.csv"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paisa Khoi Export.csv"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paisa Khoi Export.csv"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paisa Khoi Export.csv"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paisa Khoi Export.csv"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paisa Khoi Export.csv"
+          }
+        },
+        "mr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paisa Khoi Export.csv"
+          }
+        },
+        "ne" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paisa Khoi Export.csv"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paisa Khoi Exportação.csv"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paisa Khoi Export.csv"
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paisa Khoi Export.csv"
+          }
+        },
+        "te" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paisa Khoi Export.csv"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paisa Khoi Export.csv"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paisa Khoi Export.csv"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paisa Khoi Export.csv"
+          }
+        }
+      }
+    },
+    "Paisa Khoi?" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "أين مالي؟"
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "টাকা কই?"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wo ist mein Geld?"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¿Mi Dinero?"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Où est l'argent ?"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "पैसा कहाँ?"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Duit Ke Mana?"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "お金どこ？"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "내 돈 어디?"
+          }
+        },
+        "mr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "पैसे कुठे?"
+          }
+        },
+        "ne" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "पैसा खोई?"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cadê Meu Dinheiro?"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Где деньги?"
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "பணம் எங்கே?"
+          }
+        },
+        "te" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "పైసా ఏడి?"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Param Nerede?"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "پیسہ کہاں؟"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tiền Đâu Rồi?"
           }
         }
       }
@@ -31495,6 +31615,7 @@
       }
     },
     "Scheduled — background the app!" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -31943,6 +32064,7 @@
       }
     },
     "Send Test Notification" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -38240,114 +38362,114 @@
         }
       }
     },
-    "Welcome to Jeb Kharcha" : {
+    "Welcome to Paisa Khoi?" : {
       "localizations" : {
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "مرحبًا بك في Jeb Kharcha"
+            "value" : "مرحبًا في «أين مالي؟»"
           }
         },
         "bn" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Jeb Kharcha-তে স্বাগতম"
+            "value" : "«টাকা কই?»-তে স্বাগতম"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Willkommen bei Jeb Kharcha"
+            "value" : "Willkommen bei «Wo ist mein Geld?»"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bienvenido a Jeb Kharcha"
+            "value" : "Bienvenido a «¿Mi Dinero?»"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bienvenue sur Jeb Kharcha"
+            "value" : "Bienvenue dans «Où est l'argent ?»"
           }
         },
         "hi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Jeb Kharcha में आपका स्वागत है"
+            "value" : "«पैसा कहाँ?» में आपका स्वागत है"
           }
         },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Selamat datang di Jeb Kharcha"
+            "value" : "Selamat datang di «Duit Ke Mana?»"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Jeb Kharchaへようこそ"
+            "value" : "「お金どこ？」へようこそ"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Jeb Kharcha에 오신 것을 환영해요"
+            "value" : "«내 돈 어디?»에 오신 것을 환영해요"
           }
         },
         "mr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Jeb Kharcha मध्ये आपले स्वागत आहे"
+            "value" : "«पैसे कुठे?» मध्ये आपले स्वागत आहे"
           }
         },
         "ne" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Jeb Kharcha मा स्वागत छ"
+            "value" : "«पैसा खोई?» मा स्वागत छ"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bem-vindo ao Jeb Kharcha"
+            "value" : "Bem-vindo ao «Cadê Meu Dinheiro?»"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Добро пожаловать в Jeb Kharcha"
+            "value" : "Добро пожаловать в «Где деньги?»"
           }
         },
         "ta" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Jeb Kharcha-வுக்கு வரவேற்கிறோம்"
+            "value" : "«பணம் எங்கே?»-வுக்கு வரவேற்கிறோம்"
           }
         },
         "te" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Jeb Kharchaకు స్వాగతం"
+            "value" : "«పైసా ఏడి?»కు స్వాగతం"
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Jeb Kharcha'ya Hoş Geldiniz"
+            "value" : "«Param Nerede?»'ye Hoş Geldiniz"
           }
         },
         "ur" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Jeb Kharcha میں خوش آمدید"
+            "value" : "«پیسہ کہاں؟» میں خوش آمدید"
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Chào mừng đến với Jeb Kharcha"
+            "value" : "Chào mừng đến với «Tiền Đâu Rồi?»"
           }
         }
       }
@@ -40258,114 +40380,114 @@
         }
       }
     },
-    "Your money is in. Open Jeb Kharcha to plan your month." : {
+    "Your money is in. Open Paisa Khoi? to plan your month." : {
       "localizations" : {
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "وصل مالك. افتح Jeb Kharcha لتخطيط شهرك."
+            "value" : "وصل مالك. افتح Paisa Khoi? لتخطيط شهرك."
           }
         },
         "bn" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "আপনার টাকা এসে গেছে। আপনার মাস পরিকল্পনা করতে Jeb Kharcha খুলুন।"
+            "value" : "আপনার টাকা এসে গেছে। আপনার মাস পরিকল্পনা করতে Paisa Khoi? খুলুন।"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Dein Geld ist da. Öffne Jeb Kharcha, um deinen Monat zu planen."
+            "value" : "Dein Geld ist da. Öffne Paisa Khoi?, um deinen Monat zu planen."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tu dinero ya está. Abre Jeb Kharcha para planear tu mes."
+            "value" : "Tu dinero ya está. Abre Paisa Khoi? para planear tu mes."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ton argent est arrivé. Ouvre Jeb Kharcha pour planifier ton mois."
+            "value" : "Ton argent est arrivé. Ouvre Paisa Khoi? pour planifier ton mois."
           }
         },
         "hi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "आपका पैसा आ गया है। अपने महीने की योजना बनाने के लिए Jeb Kharcha खोलें।"
+            "value" : "आपका पैसा आ गया है। अपने महीने की योजना बनाने के लिए Paisa Khoi? खोलें।"
           }
         },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Uangmu sudah masuk. Buka Jeb Kharcha untuk merencanakan bulanmu."
+            "value" : "Uangmu sudah masuk. Buka Paisa Khoi? untuk merencanakan bulanmu."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "給料が入りました。Jeb Kharchaを開いて今月のプランを立てましょう。"
+            "value" : "給料が入りました。Paisa Khoi?を開いて今月のプランを立てましょう。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "돈이 들어왔어요. Jeb Kharcha를 열어 이번 달 계획을 세워보세요."
+            "value" : "돈이 들어왔어요. Paisa Khoi?를 열어 이번 달 계획을 세워보세요."
           }
         },
         "mr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "तुमचे पैसे जमा झाले आहेत. तुमच्या महिन्याचे नियोजन करण्यासाठी Jeb Kharcha उघडा."
+            "value" : "तुमचे पैसे जमा झाले आहेत. तुमच्या महिन्याचे नियोजन करण्यासाठी Paisa Khoi? उघडा."
           }
         },
         "ne" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "तपाईंको पैसा आयो। आफ्नो महिनाको योजना बनाउन Jeb Kharcha खोल्नुहोस्।"
+            "value" : "तपाईंको पैसा आयो। आफ्नो महिनाको योजना बनाउन Paisa Khoi? खोल्नुहोस्।"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Seu dinheiro caiu. Abra o Jeb Kharcha para planejar o mês."
+            "value" : "Seu dinheiro caiu. Abra o Paisa Khoi? para planejar o mês."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Деньги поступили. Откройте Jeb Kharcha, чтобы спланировать месяц."
+            "value" : "Деньги поступили. Откройте Paisa Khoi?, чтобы спланировать месяц."
           }
         },
         "ta" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "உங்கள் பணம் வந்துவிட்டது. உங்கள் மாதத்தைத் திட்டமிட Jeb Kharcha-வைத் திறக்கவும்."
+            "value" : "உங்கள் பணம் வந்துவிட்டது. உங்கள் மாதத்தைத் திட்டமிட Paisa Khoi?-வைத் திறக்கவும்."
           }
         },
         "te" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "మీ డబ్బు వచ్చింది. మీ నెలను ప్లాన్ చేయడానికి Jeb Kharcha తెరవండి."
+            "value" : "మీ డబ్బు వచ్చింది. మీ నెలను ప్లాన్ చేయడానికి Paisa Khoi? తెరవండి."
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Paranız hesaba geçti. Ayınızı planlamak için Jeb Kharcha'yı açın."
+            "value" : "Paranız hesaba geçti. Ayınızı planlamak için Paisa Khoi?'yı açın."
           }
         },
         "ur" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "آپ کی رقم آ گئی ہے۔ اپنے مہینے کی منصوبہ بندی کے لیے Jeb Kharcha کھولیں۔"
+            "value" : "آپ کی رقم آ گئی ہے۔ اپنے مہینے کی منصوبہ بندی کے لیے Paisa Khoi? کھولیں۔"
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tiền của bạn đã về. Mở Jeb Kharcha để lên kế hoạch cho tháng này."
+            "value" : "Tiền của bạn đã về. Mở Paisa Khoi? để lên kế hoạch cho tháng này."
           }
         }
       }
@@ -40483,6 +40605,7 @@
       }
     },
     "your spending, simplified" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {

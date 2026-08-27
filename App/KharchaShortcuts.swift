@@ -38,7 +38,7 @@ final class AppNavigator: ObservableObject {
 /// visible even when Siri can't render a value prompt.
 struct OpenAddExpenseIntent: AppIntent {
     static let title: LocalizedStringResource = "Add Expense"
-    static let description = IntentDescription("Opens Jeb Kharcha to add an expense.")
+    static let description = IntentDescription("Opens Paisa Khoi? to add an expense.")
     static var openAppWhenRun: Bool { true }
 
     init() {}

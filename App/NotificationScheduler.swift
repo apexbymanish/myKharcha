@@ -76,7 +76,7 @@ final class NotificationScheduler {
 
         let content = UNMutableNotificationContent()
         content.title = String(localized: "Salary day!")
-        content.body = String(localized: "Your money is in. Open Jeb Kharcha to plan your month.")
+        content.body = String(localized: "Your money is in. Open Paisa Khoi? to plan your month.")
         content.sound = .default
 
         let comps = calendar.dateComponents([.year, .month, .day, .hour, .minute], from: fire)

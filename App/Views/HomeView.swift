@@ -365,7 +365,7 @@ struct HomeView: View {
                 .background(.regularMaterial)
             }
         }
-        .navigationTitle("Jeb Kharcha")
+        .navigationTitle("Paisa Khoi?")
         .navigationDestination(isPresented: $showHistoryNav) { HistoryView(store: store) }
         .navigationDestination(isPresented: $showPlanNav) { PlanView(store: store) }
         .navigationDestination(isPresented: $showProfileNav) { ProfileView(store: store) }
