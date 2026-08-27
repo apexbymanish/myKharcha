@@ -28,7 +28,7 @@
 "How is my budget in ${applicationName}" = "${applicationName} मा मेरो बजेट कस्तो छ";
 "How are my budgets in ${applicationName}" = "${applicationName} मा मेरा बजेटहरू कस्ता छन्";
 "Check my budget in ${applicationName}" = "${applicationName} मा मेरो बजेट हेर्नुहोस्";
-"Am I over budget in ${applicationName}" = "${applicationName} मा म बजेट नाघेको छु कि";
+"Over budget in ${applicationName}" = "${applicationName} मा म बजेट नाघेको छु कि";
 "${applicationName} budget" = "${applicationName} बजेट";
 
 /* AddReminderIntent */

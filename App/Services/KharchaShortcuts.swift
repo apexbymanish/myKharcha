@@ -91,7 +91,7 @@ struct KharchaShortcuts: AppShortcutsProvider {
             "How is my budget in \(.applicationName)",
             "How are my budgets in \(.applicationName)",
             "Check my budget in \(.applicationName)",
-            "Am I over budget in \(.applicationName)",
+            "Over budget in \(.applicationName)",
             "\(.applicationName) budget"
         ], shortTitle: "Budget", systemImageName: "gauge")
 

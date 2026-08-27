@@ -38,7 +38,7 @@
 "Add income in ${applicationName}" = "Add income in ${applicationName}";
 
 /* (No Comment) */
-"Am I over budget in ${applicationName}" = "Am I over budget in ${applicationName}";
+"Over budget in ${applicationName}" = "Over budget in ${applicationName}";
 
 /* (No Comment) */
 "Check my budget in ${applicationName}" = "Check my budget in ${applicationName}";

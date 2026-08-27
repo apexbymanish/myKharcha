@@ -28,7 +28,7 @@
 "How is my budget in ${applicationName}" = "${applicationName}에서 예산 어때요";
 "How are my budgets in ${applicationName}" = "${applicationName}에서 예산 상태 어때요";
 "Check my budget in ${applicationName}" = "${applicationName}에서 예산 확인";
-"Am I over budget in ${applicationName}" = "${applicationName}에서 예산 초과했어요";
+"Over budget in ${applicationName}" = "${applicationName}에서 예산 초과했어요";
 "${applicationName} budget" = "${applicationName} 예산";
 
 /* AddReminderIntent */
