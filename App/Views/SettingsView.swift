@@ -12,6 +12,8 @@ struct SettingsView: View {
     @State private var exportURL: URL?
     @State private var backupURL: URL?
     @State private var showImportFilePicker = false
+    @State private var pendingImportData: Data?
+    @State private var showImportModeDialog = false
     @State private var showDeleteConfirm = false
     @State private var showDeleteFinalConfirm = false
     @State private var showImportResult = false
@@ -241,7 +243,27 @@ struct SettingsView: View {
             guard url.startAccessingSecurityScopedResource() else { return }
             defer { url.stopAccessingSecurityScopedResource() }
             guard let data = try? Data(contentsOf: url) else { return }
-            Task { await vm.importBackup(data: data) }
+            pendingImportData = data
+            showImportModeDialog = true
+        }
+        .confirmationDialog("How should we restore?", isPresented: $showImportModeDialog, titleVisibility: .visible) {
+            Button("Replace all data") {
+                guard let data = pendingImportData else { return }
+                Task {
+                    await vm.deleteAllData()
+                    services.sync.pushNow()
+                    await vm.importBackup(data: data)
+                }
+                pendingImportData = nil
+            }
+            Button("Merge with existing data") {
+                guard let data = pendingImportData else { return }
+                Task { await vm.importBackup(data: data) }
+                pendingImportData = nil
+            }
+            Button("Cancel", role: .cancel) { pendingImportData = nil }
+        } message: {
+            Text("Replace deletes all current data first, then imports the backup. Merge adds only records not already present.")
         }
         .alert("Restore Complete", isPresented: $showImportResult) {
             Button("OK") { vm.clearImportResult() }
