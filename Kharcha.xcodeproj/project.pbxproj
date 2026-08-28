@@ -18,6 +18,7 @@
 		24DC068A303D7C4100D581FB /* AppUpdateChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24DC0689303D7C4100D581FB /* AppUpdateChecker.swift */; };
 		24DC068C303DD18C00D581FB /* SplashView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24DC068B303DD18C00D581FB /* SplashView.swift */; };
 		24DC068E304004EC00D581FB /* ReportsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24DC068D304004EC00D581FB /* ReportsView.swift */; };
+		24DC069430410C8200D581FB /* BackupFileWriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24DC069330410C8200D581FB /* BackupFileWriter.swift */; };
 		2F936B922B1C50E76C08C463 /* CurrencyPreference.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEE3A422870C98FB94EF78AB /* CurrencyPreference.swift */; };
 		32C5F60669B04F632ADD0B19 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = FE154007F5FAC9B9C1C521F8 /* FirebaseFirestore */; };
 		3BA4A022DF6B6F8726650E6B /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2AC177A02071D0D0843C2B /* HistoryView.swift */; };
@@ -134,6 +135,7 @@
 		24DC0689303D7C4100D581FB /* AppUpdateChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppUpdateChecker.swift; sourceTree = "<group>"; };
 		24DC068B303DD18C00D581FB /* SplashView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashView.swift; sourceTree = "<group>"; };
 		24DC068D304004EC00D581FB /* ReportsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReportsView.swift; sourceTree = "<group>"; };
+		24DC069330410C8200D581FB /* BackupFileWriter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupFileWriter.swift; sourceTree = "<group>"; };
 		28183456CBEAB046E6AC7829 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		2A34CE6439C8216233EFABD4 /* FriendsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendsView.swift; sourceTree = "<group>"; };
 		2F2521668CBB9D4ABDCFC25D /* AppContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppContainer.swift; sourceTree = "<group>"; };
@@ -267,6 +269,7 @@
 				24DC0687303D7AC800D581FB /* PrivacyManager.swift */,
 				EEE3A422870C98FB94EF78AB /* CurrencyPreference.swift */,
 				437A08250B1C4583CA7A9752 /* KharchaShortcuts.swift */,
+				24DC069330410C8200D581FB /* BackupFileWriter.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -532,6 +535,7 @@
 				E036C51F34E1B1F3EA61E5BC /* FriendsView.swift in Sources */,
 				3BA4A022DF6B6F8726650E6B /* HistoryView.swift in Sources */,
 				24DC068E304004EC00D581FB /* ReportsView.swift in Sources */,
+				24DC069430410C8200D581FB /* BackupFileWriter.swift in Sources */,
 				F921785F0A5ADF09DAF22627 /* HomeView.swift in Sources */,
 				4829E6FA827CD9BAED036C52 /* ImportView.swift in Sources */,
 				8A5559A4802E65DEE4D5F93A /* InstallmentDetailView.swift in Sources */,
@@ -717,7 +721,7 @@
 				CODE_SIGN_ENTITLEMENTS = App/Kharcha.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_TEAM = 2LZ2H9STBD;
 				INFOPLIST_FILE = App/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Paisa Khoi?";
@@ -743,7 +747,7 @@
 				CODE_SIGN_ENTITLEMENTS = App/Kharcha.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_TEAM = 2LZ2H9STBD;
 				INFOPLIST_FILE = App/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Paisa Khoi?";
