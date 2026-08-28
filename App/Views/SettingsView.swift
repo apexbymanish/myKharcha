@@ -6,6 +6,7 @@ import KharchaKit
 struct SettingsView: View {
     let store: ExpenseStore
     @StateObject private var vm: SettingsViewModel
+    @EnvironmentObject private var services: AppServices
     @EnvironmentObject private var signIn: SignInManager
     @State private var showAddCategoryAlert = false
     @State private var exportURL: URL?
@@ -259,7 +260,12 @@ struct SettingsView: View {
             }
             .confirmationDialog("Are you absolutely sure?", isPresented: $showDeleteFinalConfirm, titleVisibility: .visible) {
                 Button("Yes, Delete Everything", role: .destructive) {
-                    Task { await vm.deleteAllData() }
+                    Task {
+                        await vm.deleteAllData()
+                        // Push tombstones immediately so deleted data doesn't
+                        // resurrect from Firestore on the next pull.
+                        services.sync.pushNow()
+                    }
                 }
                 Button("Cancel", role: .cancel) {}
             } message: {

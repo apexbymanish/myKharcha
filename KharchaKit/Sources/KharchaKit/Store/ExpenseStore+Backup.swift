@@ -204,7 +204,25 @@ extension ExpenseStore {
 
     // MARK: - Delete All Data
 
+    /// Wipes all user data locally and records tombstones for every deleted
+    /// record so the next sync push removes them from Firestore too.
+    /// Without tombstones a signed-in user would see their data resurrect
+    /// from the server on the next foreground pull.
     public func deleteAllData() throws {
+        // Collect IDs before deletion so we can tombstone them.
+        let txnIDs        = try modelContext.fetch(FetchDescriptor<Txn>()).map(\.id)
+        let debtIDs       = try modelContext.fetch(FetchDescriptor<Debt>()).map(\.id)
+        let friendIDs     = try modelContext.fetch(FetchDescriptor<Friend>()).map(\.id)
+        let potIDs        = try modelContext.fetch(FetchDescriptor<SavingsPot>()).map(\.id)
+        let entryIDs      = try modelContext.fetch(FetchDescriptor<SavingsEntry>()).map(\.id)
+        let goalIDs       = try modelContext.fetch(FetchDescriptor<SavingsGoal>()).map(\.id)
+        let instIDs       = try modelContext.fetch(FetchDescriptor<Installment>()).map(\.id)
+        let payIDs        = try modelContext.fetch(FetchDescriptor<InstallmentPayment>()).map(\.id)
+        let ruleIDs       = try modelContext.fetch(FetchDescriptor<RecurringRule>()).map(\.id)
+        let nonFallbackCatIDs = try modelContext.fetch(FetchDescriptor<Category>())
+            .filter { !$0.isFallback }.map(\.id)
+
+        // Batch delete all data.
         try modelContext.delete(model: InstallmentPayment.self)
         try modelContext.delete(model: Installment.self)
         try modelContext.delete(model: Txn.self)
@@ -215,6 +233,20 @@ extension ExpenseStore {
         try modelContext.delete(model: RecurringRule.self)
         try modelContext.delete(model: Friend.self)
         try modelContext.delete(model: Category.self)
+
+        // Tombstone every deleted record so the sync engine can remove
+        // them from Firestore on the next pushNow() call.
+        for id in txnIDs            { recordTombstone(id: id, collection: "txns") }
+        for id in debtIDs           { recordTombstone(id: id, collection: "debts") }
+        for id in friendIDs         { recordTombstone(id: id, collection: "friends") }
+        for id in potIDs            { recordTombstone(id: id, collection: "savingsPots") }
+        for id in entryIDs          { recordTombstone(id: id, collection: "savingsEntries") }
+        for id in goalIDs           { recordTombstone(id: id, collection: "savingsGoals") }
+        for id in instIDs           { recordTombstone(id: id, collection: "installments") }
+        for id in payIDs            { recordTombstone(id: id, collection: "installmentPayments") }
+        for id in ruleIDs           { recordTombstone(id: id, collection: "rules") }
+        for id in nonFallbackCatIDs { recordTombstone(id: id, collection: "categories") }
+
         try modelContext.save()
         try seedDefaultCategoriesIfNeeded()
     }
