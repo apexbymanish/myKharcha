@@ -19,6 +19,7 @@ struct HistoryView: View {
     @State private var selectedCalendarDay: Date? = nil
     @State private var showReports = false
     @State private var selectedYear: Int? = nil
+    @State private var showFiltersSheet = false
 
     init(store: ExpenseStore) {
         self.store = store
@@ -45,24 +46,6 @@ struct HistoryView: View {
             || selectedYear != nil
     }
 
-    private var activeFilterSummary: String {
-        var parts: [String] = []
-        if let month = selectedMonth {
-            parts.append(month.formatted(.dateTime.month(.wide).year()))
-        } else if let year = selectedYear {
-            parts.append("\(year)")
-        }
-        if let kind = vm.state.filterKind {
-            parts.append(kind == .expense ? String(localized: "Expenses") : String(localized: "Income"))
-        }
-        if let cat = vm.state.filterCategoryName { parts.append(cat) }
-        if let day = vm.state.dayFilter {
-            parts.append(day.formatted(.dateTime.month(.abbreviated).day()))
-        }
-        if !vm.state.searchText.isEmpty { parts.append("\"\(vm.state.searchText)\"") }
-        return parts.joined(separator: " · ")
-    }
-
     // Unique years derived from all transactions, newest first.
     private var availableYears: [Int] {
         let years = Set(vm.state.allRows.map { Calendar.current.component(.year, from: $0.date) })
@@ -81,10 +64,9 @@ struct HistoryView: View {
         return months.sorted(by: >)
     }
 
-    // Aggregate totals for the currently visible (filtered) sections.
-    private var filteredTxnCount: Int    { visibleSections.reduce(0) { $0 + $1.rows.count } }
-    private var filteredTotalExpense: Decimal { visibleSections.reduce(0) { $0 + $1.totalExpenses } }
-    private var filteredTotalIncome:  Decimal { visibleSections.reduce(0) { $0 + $1.totalIncome } }
+    // Transaction count for the currently visible (filtered) sections — shown
+    // as the Filters sheet's live "Show N results" button.
+    private var filteredTxnCount: Int { visibleSections.reduce(0) { $0 + $1.rows.count } }
 
     // Sections after applying the client-side month/year filter.
     private var visibleSections: [HistoryViewModel.Section] {
@@ -115,53 +97,10 @@ struct HistoryView: View {
                 .listRowBackground(Color.clear)
                 .listRowSeparator(.hidden)
             } else {
-                // ── 1. Kind + category filter chips ──────────────────────
-                filterChipsSection
+                // ── 1. Type segment (All / Expenses / Income) ─────────────
+                controlsRowSection
 
-                // ── 2. Month jump strip ───────────────────────────────────
-                monthSelectorSection
-
-                // ── 3. Active filter banner ───────────────────────────────
-                if hasActiveFilter {
-                    Section {
-                        HStack(spacing: 8) {
-                            Image(systemName: "line.3.horizontal.decrease.circle.fill")
-                                .foregroundStyle(Color.brandPrimary)
-                                .font(.callout)
-                            Text(activeFilterSummary)
-                                .font(.subheadline)
-                                .foregroundStyle(Color.brandPrimary)
-                                .lineLimit(1)
-                            Spacer()
-                            Button {
-                                Task {
-                                    searchText = ""
-                                    selectedMonth = nil
-                                    selectedYear = nil
-                                    await vm.clearAllFilters()
-                                }
-                            } label: {
-                                Text("Clear all")
-                                    .font(.caption.weight(.semibold))
-                                    .foregroundStyle(Color.brandPrimary)
-                            }
-                        }
-                    }
-                }
-                // ── 3b. Aggregate totals for the filtered set ─────────────
-                if hasActiveFilter && !visibleSections.isEmpty {
-                    Section {
-                        FilterSummaryRow(
-                            count: filteredTxnCount,
-                            totalExpense: filteredTotalExpense,
-                            totalIncome: filteredTotalIncome,
-                            filterKind: vm.state.filterKind,
-                            isRevealed: privacy.isRevealed
-                        )
-                    }
-                }
-
-                // ── 4. Expandable transaction sections ────────────────────
+                // ── 2. Expandable transaction sections ────────────────────
                 ForEach(visibleSections, id: \.title) { section in
                     let isExpanded = !collapsedSections.contains(section.title)
                     Section {
@@ -170,7 +109,7 @@ struct HistoryView: View {
                                 Button {
                                     editingRow = row
                                 } label: {
-                                    TxnRowView(row: row)
+                                    TxnRowView(row: row, categories: vm.state.categories)
                                 }
                                 .buttonStyle(.plain)
                                 .accessibilityHint("Edits this transaction")
@@ -201,7 +140,7 @@ struct HistoryView: View {
                     }
                 }
 
-                // ── 5. No-results when filters match nothing ──────────────
+                // ── 3. No-results when filters match nothing ──────────────
                 if visibleSections.isEmpty && !vm.state.allRows.isEmpty && vm.state.errorMessage == nil {
                     EmptyStateView(
                         icon: "magnifyingglass",
@@ -212,7 +151,7 @@ struct HistoryView: View {
                     .listRowSeparator(.hidden)
                 }
 
-                // ── 6. Analytics — collapsed by default ───────────────────
+                // ── 4. Analytics — collapsed by default ───────────────────
                 analyticsSection
             }
 
@@ -222,15 +161,6 @@ struct HistoryView: View {
         }
         .navigationTitle("History")
         .toolbar {
-            // Period picker — controls the analytics chart period.
-            ToolbarItem(placement: .topBarLeading) {
-                Picker("Period", selection: $period) {
-                    Text("Week").tag(ActivityPeriod.week)
-                    Text("Month").tag(ActivityPeriod.month)
-                    Text("Year").tag(ActivityPeriod.year)
-                }
-                .pickerStyle(.menu)
-            }
             ToolbarItem(placement: .topBarTrailing) {
                 Button { showReports = true } label: {
                     Image(systemName: "chart.pie.fill")
@@ -238,42 +168,24 @@ struct HistoryView: View {
                 .accessibilityLabel("Reports")
             }
             ToolbarItem(placement: .topBarTrailing) {
-                Menu {
-                    if hasActiveFilter {
-                        Button("Reset All Filters", role: .destructive) {
-                            Task { searchText = ""; selectedMonth = nil; selectedYear = nil; await vm.clearAllFilters() }
+                Button { showFiltersSheet = true } label: {
+                    HStack(spacing: 5) {
+                        Image(systemName: "line.3.horizontal.decrease.circle")
+                        Text("Filters")
+                    }
+                    .font(.subheadline.weight(.semibold))
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(Color.brandPrimary, in: Capsule())
+                    .foregroundStyle(.white)
+                    .overlay(alignment: .topTrailing) {
+                        if hasActiveFilter {
+                            Circle()
+                                .fill(Color.moneyIn)
+                                .frame(width: 8, height: 8)
+                                .offset(x: 2, y: -2)
                         }
                     }
-                    Section("Kind") {
-                        Button { Task { await vm.setKindFilter(nil) } } label: {
-                            if vm.state.filterKind == nil { Label("All Kinds", systemImage: "checkmark") }
-                            else { Text("All Kinds") }
-                        }
-                        Button { Task { await vm.setKindFilter(.expense) } } label: {
-                            if vm.state.filterKind == .expense { Label("Expenses", systemImage: "checkmark") }
-                            else { Text("Expenses") }
-                        }
-                        Button { Task { await vm.setKindFilter(.income) } } label: {
-                            if vm.state.filterKind == .income { Label("Income", systemImage: "checkmark") }
-                            else { Text("Income") }
-                        }
-                    }
-                    Section("Category") {
-                        Button { Task { await vm.setCategoryFilter(nil) } } label: {
-                            if vm.state.filterCategoryName == nil { Label("All Categories", systemImage: "checkmark") }
-                            else { Text("All Categories") }
-                        }
-                        ForEach(vm.state.categories, id: \.id) { cat in
-                            Button { Task { await vm.setCategoryFilter(cat.name) } } label: {
-                                if vm.state.filterCategoryName == cat.name { Label(cat.name, systemImage: "checkmark") }
-                                else { Text(cat.name) }
-                            }
-                        }
-                    }
-                } label: {
-                    Image(systemName: hasActiveFilter
-                          ? "line.3.horizontal.decrease.circle.fill"
-                          : "line.3.horizontal.decrease.circle")
                 }
                 .accessibilityLabel(hasActiveFilter ? "Filters active" : "Filter transactions")
             }
@@ -286,7 +198,23 @@ struct HistoryView: View {
         }) { row in
             NavigationStack { TxnFormView(store: store, editing: row) }
         }
-        .searchable(text: $searchText, prompt: "Search transactions")
+        .sheet(isPresented: $showFiltersSheet) {
+            FiltersSheetView(
+                vm: vm,
+                selectedYear: $selectedYear,
+                selectedMonth: $selectedMonth,
+                availableYears: availableYears,
+                availableMonths: availableMonths,
+                resultsCount: filteredTxnCount,
+                onReset: {
+                    searchText = ""
+                    selectedMonth = nil
+                    selectedYear = nil
+                    Task { await vm.clearAllFilters() }
+                }
+            )
+        }
+        .searchable(text: $searchText, placement: .toolbar, prompt: "Search transactions")
         .onChange(of: searchText) { _, text in Task { await vm.setSearchFilter(text) } }
         .task { await vm.load() }
         .refreshable { await vm.load() }
@@ -321,128 +249,43 @@ struct HistoryView: View {
         } // ScrollViewReader
     }
 
-    // MARK: - Filter chips (kind + category)
+    // MARK: - Controls row (Type segment)
 
-    @ViewBuilder private var filterChipsSection: some View {
+    @ViewBuilder private var controlsRowSection: some View {
         Section {
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 8) {
-                    let allActive = vm.state.filterKind == nil
-                        && vm.state.filterCategoryName == nil
-                        && vm.state.searchText.isEmpty
-                        && vm.state.dayFilter == nil
-                        && selectedMonth == nil
-                        && selectedYear == nil
-
-                    FilterChip(String(localized: "All"), icon: nil, isActive: allActive) {
-                        Task { searchText = ""; selectedMonth = nil; selectedYear = nil; await vm.clearAllFilters() }
-                    }
-                    FilterChip(String(localized: "Expenses"), icon: "arrow.down.circle.fill",
-                               isActive: vm.state.filterKind == .expense) {
-                        Task { await vm.setKindFilter(vm.state.filterKind == .expense ? nil : .expense) }
-                    }
-                    FilterChip(String(localized: "Income"), icon: "arrow.up.circle.fill",
-                               isActive: vm.state.filterKind == .income) {
-                        Task { await vm.setKindFilter(vm.state.filterKind == .income ? nil : .income) }
-                    }
-                    if !vm.state.categories.isEmpty {
-                        Divider().frame(height: 20)
-                        ForEach(vm.state.categories, id: \.id) { cat in
-                            FilterChip(cat.name, icon: cat.symbol,
-                                       isActive: vm.state.filterCategoryName == cat.name) {
-                                Task {
-                                    await vm.setCategoryFilter(
-                                        vm.state.filterCategoryName == cat.name ? nil : cat.name
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-                .padding(.horizontal, 4)
-                .padding(.vertical, 2)
+            Picker("Type", selection: kindFilterBinding) {
+                Text("All").tag(TxnKindFilter.all)
+                Text("Expenses").tag(TxnKindFilter.expense)
+                Text("Income").tag(TxnKindFilter.income)
             }
+            .pickerStyle(.segmented)
             .listRowInsets(EdgeInsets(top: 4, leading: 12, bottom: 4, trailing: 12))
             .listRowSeparator(.hidden)
             .listRowBackground(Color.clear)
         }
     }
 
-    // MARK: - Year + Month jump strip
-
-    @ViewBuilder private var monthSelectorSection: some View {
-        if !vm.state.allRows.isEmpty {
-            Section {
-                VStack(spacing: 4) {
-                    // Year row — only when data spans multiple years
-                    if availableYears.count > 1 {
-                        ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(spacing: 6) {
-                                MonthChip(label: String(localized: "All"), isActive: selectedYear == nil) {
-                                    withAnimation(.easeInOut(duration: 0.18)) {
-                                        selectedYear = nil; selectedMonth = nil
-                                    }
-                                }
-                                Divider().frame(height: 18)
-                                ForEach(availableYears, id: \.self) { year in
-                                    let active = selectedYear == year
-                                    MonthChip(label: "\(year)", isActive: active) {
-                                        withAnimation(.easeInOut(duration: 0.18)) {
-                                            if active { selectedYear = nil; selectedMonth = nil }
-                                            else      { selectedYear = year; selectedMonth = nil }
-                                        }
-                                    }
-                                }
-                            }
-                            .padding(.horizontal, 4).padding(.vertical, 2)
-                        }
-                    }
-
-                    // Month row (narrows to selected year when one is active)
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 6) {
-                            let allLabel = selectedYear != nil
-                                ? String(localized: "All months")
-                                : String(localized: "All time")
-                            MonthChip(label: allLabel, isActive: selectedMonth == nil) {
-                                withAnimation(.easeInOut(duration: 0.18)) { selectedMonth = nil }
-                            }
-                            if !availableMonths.isEmpty {
-                                Divider().frame(height: 18)
-                                ForEach(availableMonths, id: \.self) { month in
-                                    let isActive = selectedMonth.map {
-                                        Calendar.current.isDate($0, equalTo: month, toGranularity: .month)
-                                    } ?? false
-                                    // Drop year suffix from chip label when year row is already selected
-                                    let chipLabel = (selectedYear != nil || availableYears.count == 1)
-                                        ? month.formatted(.dateTime.month(.abbreviated))
-                                        : month.formatted(.dateTime.month(.abbreviated).year(.twoDigits))
-                                    MonthChip(label: chipLabel, isActive: isActive) {
-                                        withAnimation(.easeInOut(duration: 0.18)) {
-                                            if isActive {
-                                                selectedMonth = nil
-                                            } else {
-                                                selectedMonth = month
-                                                selectedYear = Calendar.current.component(.year, from: month)
-                                                Task { await vm.setCalendarMonth(month) }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        .padding(.horizontal, 4).padding(.vertical, 2)
+    /// Maps the VM's optional `filterKind` to/from the 3-way segment, used by
+    /// both the controls row above and the Filters sheet's Type section.
+    private var kindFilterBinding: Binding<TxnKindFilter> {
+        Binding(
+            get: {
+                switch vm.state.filterKind {
+                case .expense: return .expense
+                case .income: return .income
+                case nil: return .all
+                }
+            },
+            set: { newValue in
+                Task {
+                    switch newValue {
+                    case .all: await vm.setKindFilter(nil)
+                    case .expense: await vm.setKindFilter(.expense)
+                    case .income: await vm.setKindFilter(.income)
                     }
                 }
-                .listRowInsets(EdgeInsets(top: 0, leading: 12, bottom: 4, trailing: 12))
-                .listRowSeparator(.hidden)
-                .listRowBackground(Color.clear)
-            } header: {
-                Text("Browse by date")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
             }
-        }
+        )
     }
 
     // MARK: - Analytics (collapsed by default)
@@ -464,9 +307,20 @@ struct HistoryView: View {
                 }
                 calendarContent
             } label: {
-                Label("Analytics & Calendar", systemImage: "chart.bar.xaxis")
-                    .font(.subheadline.weight(.medium))
-                    .foregroundStyle(.primary)
+                HStack {
+                    Label("Analytics & Calendar", systemImage: "chart.bar.xaxis")
+                        .font(.subheadline.weight(.medium))
+                        .foregroundStyle(.primary)
+                    Spacer()
+                    Picker("Period", selection: $period) {
+                        Text("Week").tag(ActivityPeriod.week)
+                        Text("Month").tag(ActivityPeriod.month)
+                        Text("Year").tag(ActivityPeriod.year)
+                    }
+                    .pickerStyle(.segmented)
+                    .fixedSize()
+                    .labelsHidden()
+                }
             }
         }
     }
@@ -596,7 +450,7 @@ private struct DayDetailExpansion: View {
             // Transaction rows
             ForEach(Array(dayRows.enumerated()), id: \.element.id) { index, row in
                 if index > 0 { Divider().padding(.vertical, 4) }
-                Button { onEdit(row) } label: { TxnRowView(row: row) }
+                Button { onEdit(row) } label: { TxnRowView(row: row, categories: categories) }
                     .buttonStyle(.plain)
                     .accessibilityHint("Edits this transaction")
             }
@@ -686,43 +540,6 @@ private struct DayCategoryBars: View {
     }
 }
 
-// MARK: - Filter summary row (shows aggregate totals when filters are active)
-
-private struct FilterSummaryRow: View {
-    let count: Int
-    let totalExpense: Decimal
-    let totalIncome: Decimal
-    let filterKind: TxnKind?
-    let isRevealed: Bool
-
-    var body: some View {
-        HStack(spacing: 0) {
-            // Transaction count
-            VStack(alignment: .leading, spacing: 1) {
-                Text(count == 1 ? "1 transaction" : "\(count) transactions")
-                    .font(.caption).foregroundStyle(.secondary)
-            }
-            Spacer()
-            // Expense total — omit when income-only filter active
-            if filterKind != .income && totalExpense > 0 {
-                Text(isRevealed ? "−\(AmountFormatter.money(totalExpense))" : "−••••")
-                    .font(.subheadline.monospacedDigit().weight(.semibold))
-                    .foregroundStyle(Color.moneyOut)
-            }
-            // Income total — omit when expense-only filter active
-            if filterKind != .expense && totalIncome > 0 {
-                if filterKind != .income && totalExpense > 0 {
-                    Text("  ").font(.caption) // spacer between two amounts
-                }
-                Text(isRevealed ? "+\(AmountFormatter.money(totalIncome))" : "+••••")
-                    .font(.subheadline.monospacedDigit().weight(.semibold))
-                    .foregroundStyle(Color.moneyIn)
-            }
-        }
-        .padding(.vertical, 2)
-    }
-}
-
 // MARK: - Expandable section header
 
 private struct ExpandableSectionHeader: View {
@@ -765,55 +582,3 @@ private struct ExpandableSectionHeader: View {
     }
 }
 
-// MARK: - Filter chip (kind / category)
-
-private struct FilterChip: View {
-    let label: String
-    let icon: String?
-    let isActive: Bool
-    let action: () -> Void
-
-    init(_ label: String, icon: String?, isActive: Bool, action: @escaping () -> Void) {
-        self.label = label; self.icon = icon; self.isActive = isActive; self.action = action
-    }
-
-    var body: some View {
-        Button(action: action) {
-            HStack(spacing: 4) {
-                if let icon { Image(systemName: icon).font(.caption2) }
-                Text(label).font(.subheadline).lineLimit(1)
-            }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 6)
-            .background(isActive ? Color.brandPrimary : Color.secondary.opacity(0.12))
-            .foregroundStyle(isActive ? .white : .primary)
-            .clipShape(Capsule())
-            .animation(.easeInOut(duration: 0.15), value: isActive)
-        }
-        .buttonStyle(.plain)
-        .accessibilityAddTraits(isActive ? [.isSelected] : [])
-    }
-}
-
-// MARK: - Month chip (time navigation, distinct style from filter chips)
-
-private struct MonthChip: View {
-    let label: String
-    let isActive: Bool
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            Text(label)
-                .font(.caption.weight(isActive ? .semibold : .regular))
-                .padding(.horizontal, 10)
-                .padding(.vertical, 5)
-                .background(isActive ? Color.brandPrimary : Color.secondary.opacity(0.1))
-                .foregroundStyle(isActive ? .white : .secondary)
-                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-                .animation(.easeInOut(duration: 0.15), value: isActive)
-        }
-        .buttonStyle(.plain)
-        .accessibilityAddTraits(isActive ? [.isSelected] : [])
-    }
-}

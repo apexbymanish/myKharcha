@@ -113,9 +113,6 @@
         }
       }
     },
-    "  " : {
-
-    },
     "—" : {
 
     },
@@ -2423,9 +2420,6 @@
         }
       }
     },
-    "%lld transactions" : {
-
-    },
     "%lld%%" : {
       "localizations" : {
         "ar" : {
@@ -3324,9 +3318,6 @@
           }
         }
       }
-    },
-    "1 transaction" : {
-
     },
     "Account" : {
       "localizations" : {
@@ -5356,7 +5347,11 @@
     "All" : {
 
     },
+    "All amounts are shown and totalled in this currency. When you paste text with foreign amounts (e.g. $10), they're converted to it automatically." : {
+
+    },
     "All amounts are shown and totalled in this currency. When you paste text with foreign amounts (e.g. $10), they’re converted to it automatically." : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -5469,6 +5464,7 @@
       }
     },
     "All Categories" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -5581,6 +5577,7 @@
       }
     },
     "All Kinds" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -5696,6 +5693,9 @@
 
     },
     "All time" : {
+
+    },
+    "All years" : {
 
     },
     "Amount" : {
@@ -7184,6 +7184,9 @@
         }
       }
     },
+    "Backup Restored" : {
+
+    },
     "Balance" : {
       "localizations" : {
         "ar" : {
@@ -7519,9 +7522,6 @@
           }
         }
       }
-    },
-    "Browse by date" : {
-
     },
     "Budget" : {
       "localizations" : {
@@ -8420,9 +8420,6 @@
         }
       }
     },
-    "Clear all" : {
-
-    },
     "Clear All" : {
       "localizations" : {
         "ar" : {
@@ -8534,6 +8531,9 @@
           }
         }
       }
+    },
+    "Clear all filters" : {
+
     },
     "Clear balance with %@?" : {
       "localizations" : {
@@ -9435,6 +9435,9 @@
         }
       }
     },
+    "Create Full Backup" : {
+
+    },
     "Currency" : {
       "localizations" : {
         "ar" : {
@@ -9771,6 +9774,9 @@
         }
       }
     },
+    "Danger Zone" : {
+
+    },
     "Date" : {
       "localizations" : {
         "ar" : {
@@ -9882,6 +9888,9 @@
           }
         }
       }
+    },
+    "Date range" : {
+
     },
     "Day %@ (next: %@)" : {
       "extractionState" : "stale",
@@ -13285,6 +13294,21 @@
         }
       }
     },
+    "Erase & Replace" : {
+
+    },
+    "Erase & Replace deletes all your current data, then restores from this backup. Keep & Merge only adds records not already on this device. Erase & Replace cannot be undone." : {
+
+    },
+    "Erase All Data" : {
+
+    },
+    "Erase All Data?" : {
+
+    },
+    "Erase Permanently" : {
+
+    },
     "Everything lives on your device. Sign in later only if you want backup and sync." : {
       "localizations" : {
         "ar" : {
@@ -13965,6 +13989,9 @@
           }
         }
       }
+    },
+    "Filters" : {
+
     },
     "Filters active" : {
       "localizations" : {
@@ -17292,6 +17319,9 @@
         }
       }
     },
+    "Import Backup" : {
+
+    },
     "Import from text" : {
       "localizations" : {
         "ar" : {
@@ -18570,6 +18600,9 @@
         }
       }
     },
+    "Invalid Backup File" : {
+
+    },
     "Invite friends and family to try Kharcha." : {
       "localizations" : {
         "ar" : {
@@ -18687,6 +18720,15 @@
           }
         }
       }
+    },
+    "Keep & Merge" : {
+
+    },
+    "Kharcha-Backup.json" : {
+
+    },
+    "Kharcha-Export.csv" : {
+
     },
     "Kind" : {
       "localizations" : {
@@ -24562,6 +24604,9 @@
         }
       }
     },
+    "OK" : {
+
+    },
     "One-time" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -25364,6 +25409,7 @@
       }
     },
     "Paisa Khoi Export.csv" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -27160,6 +27206,9 @@
           }
         }
       }
+    },
+    "Permanently deletes all transactions, friends, debts, savings, and installments. Categories are reset to defaults. This cannot be undone." : {
+
     },
     "Plan" : {
       "localizations" : {
@@ -30337,7 +30386,11 @@
     "Reports" : {
 
     },
+    "Reset" : {
+
+    },
     "Reset All Filters" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -33737,6 +33790,12 @@
         }
       }
     },
+    "Show %lld results" : {
+
+    },
+    "Show 1 result" : {
+
+    },
     "Show amounts" : {
       "localizations" : {
         "ar" : {
@@ -36215,6 +36274,9 @@
         }
       }
     },
+    "This file isn't a valid Kharcha backup. Make sure you're selecting a file exported from Kharcha." : {
+
+    },
     "This month" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -36439,6 +36501,9 @@
           }
         }
       }
+    },
+    "This permanently deletes all your transactions, friends, debts, savings, and installments. Categories are reset to defaults." : {
+
     },
     "This Week" : {
       "localizations" : {
@@ -40745,6 +40810,9 @@
           }
         }
       }
+    },
+    "Your financial history cannot be recovered once erased. Consider creating a backup first." : {
+
     },
     "Your money is in. Open Paisa Khoi? to plan your month." : {
       "localizations" : {

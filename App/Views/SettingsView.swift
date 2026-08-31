@@ -76,14 +76,17 @@ struct SettingsView: View {
     private var categoriesSection: some View {
         Section("Categories") {
             ForEach(vm.state.categories, id: \.id) { category in
-                Label(category.name, systemImage: category.symbol)
-                    .swipeActions {
-                        if !category.isFallback {
-                            Button("Delete", role: .destructive) {
-                                Task { await vm.deleteCategory(category.id) }
-                            }
+                HStack(spacing: 10) {
+                    CategoryIconBadge(symbol: category.symbol, colorHex: category.colorHex, size: 28)
+                    Text(category.name)
+                }
+                .swipeActions {
+                    if !category.isFallback {
+                        Button("Delete", role: .destructive) {
+                            Task { await vm.deleteCategory(category.id) }
                         }
                     }
+                }
             }
             Button {
                 showAddCategoryAlert = true

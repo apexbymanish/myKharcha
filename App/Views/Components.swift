@@ -203,10 +203,23 @@ struct FriendDebtChip: View {
 
 struct TxnRowView: View {
     let row: TxnRow
+    /// Current categories, used to resolve `row.categoryName` to an icon/color
+    /// swatch. Empty (the default) keeps the icon-less layout — callers that
+    /// don't have a categories list on hand (e.g. Home's recent-activity row)
+    /// are unaffected.
+    var categories: [CategorySnapshot] = []
     @EnvironmentObject private var privacy: PrivacyManager
 
+    private var resolvedCategory: CategorySnapshot? {
+        guard !categories.isEmpty else { return nil }
+        return CategorySnapshot.resolve(named: row.categoryName, in: categories)
+    }
+
     var body: some View {
-        HStack {
+        HStack(spacing: 12) {
+            if let cat = resolvedCategory {
+                CategoryIconBadge(symbol: cat.symbol, colorHex: cat.colorHex)
+            }
             VStack(alignment: .leading, spacing: 2) {
                 Text(row.categoryName.isEmpty ? "Uncategorized" : row.categoryName)
                     .font(.body)
@@ -235,6 +248,25 @@ struct TxnRowView: View {
         .contentShape(Rectangle())
         // Merge the four fragments into a single spoken row.
         .accessibilityElement(children: .combine)
+    }
+}
+
+/// A category's icon rendered on its stored color — the small swatch shown
+/// beside each transaction row and, at a smaller size, each category chip.
+struct CategoryIconBadge: View {
+    let symbol: String
+    let colorHex: String
+    var size: CGFloat = 36
+
+    var body: some View {
+        RoundedRectangle(cornerRadius: size * 0.28, style: .continuous)
+            .fill(Color(hex: colorHex))
+            .frame(width: size, height: size)
+            .overlay {
+                Image(systemName: symbol)
+                    .font(.system(size: size * 0.44, weight: .medium))
+                    .foregroundStyle(.white)
+            }
     }
 }
 
