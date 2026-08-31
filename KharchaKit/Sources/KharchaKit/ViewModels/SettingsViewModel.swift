@@ -6,7 +6,9 @@ public final class SettingsViewModel: ObservableObject {
         public var categories: [CategorySnapshot] = []
         public var exportDocument: String?
         public var backupData: Data?
-        public var importResultMessage: String?
+        public var importedCount: Int?
+        public var importWasReplace: Bool = false
+        public var isWorking: Bool = false
         public var errorMessage: String?
     }
 
@@ -71,6 +73,8 @@ public final class SettingsViewModel: ObservableObject {
 
     public func makeBackup() async {
         state.errorMessage = nil
+        state.isWorking = true
+        defer { state.isWorking = false }
         do {
             let backup = try await store.exportBackup()
             let encoder = JSONEncoder()
@@ -82,27 +86,56 @@ public final class SettingsViewModel: ObservableObject {
         }
     }
 
-    public func importBackup(data: Data) async {
+    /// Additive import — adds only records whose UUID isn't already on this device.
+    public func mergeBackup(data: Data) async {
         state.errorMessage = nil
-        state.importResultMessage = nil
+        state.importedCount = nil
+        state.isWorking = true
+        defer { state.isWorking = false }
         do {
             let decoder = JSONDecoder()
             decoder.dateDecodingStrategy = .iso8601
             let backup = try decoder.decode(KharchaBackup.self, from: data)
             let count = try await store.importBackup(backup)
             await load()
-            state.importResultMessage = "\(count) records restored successfully."
+            state.importWasReplace = false
+            state.importedCount = count
         } catch {
             state.errorMessage = "Could not read backup file. Make sure it's a valid Kharcha backup."
         }
     }
 
+    /// Erases all local data first, then imports the backup. Decodes the backup before
+    /// deleting anything — if the file is invalid, existing data is left untouched.
+    public func replaceAndImportBackup(data: Data) async {
+        state.errorMessage = nil
+        state.importedCount = nil
+        state.isWorking = true
+        defer { state.isWorking = false }
+        do {
+            let decoder = JSONDecoder()
+            decoder.dateDecodingStrategy = .iso8601
+            // Validate before erasing — bail here if the file is corrupt.
+            let backup = try decoder.decode(KharchaBackup.self, from: data)
+            try await store.deleteAllData()
+            let count = try await store.importBackup(backup)
+            await load()
+            state.importWasReplace = true
+            state.importedCount = count
+        } catch {
+            await load()
+            state.errorMessage = "Restore failed. Your data may be in an inconsistent state. Please try again."
+        }
+    }
+
     public func clearImportResult() {
-        state.importResultMessage = nil
+        state.importedCount = nil
     }
 
     public func deleteAllData() async {
         state.errorMessage = nil
+        state.isWorking = true
+        defer { state.isWorking = false }
         do {
             try await store.deleteAllData()
             await load()
