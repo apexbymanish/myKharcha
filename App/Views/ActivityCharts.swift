@@ -11,10 +11,23 @@ import KharchaKit
 /// the answer lives.
 private struct TooltipCard: View {
     let bar: ActivityBar
+    /// That day's transactions, in the order they should be read. Passed in
+    /// rather than derived from `bar`, because an `ActivityBar` carries category
+    /// totals and a category total has no note attached to it — and the note is
+    /// what tells you which ₩900,000 this was.
+    let entries: [TxnRow]
     let unit: Calendar.Component
-    /// Resolved by the chart, so the dot beside a category matches its band.
+    /// Resolved by the chart, so the dot beside an entry matches its band.
     let colorFor: (String) -> Color
     var isRevealed: Bool = true
+
+    /// Four fits without the card growing taller than the chart it sits on. The
+    /// rest are counted rather than listed; the ledger in Reports is where you
+    /// go to read them all.
+    private static let maxRows = 4
+
+    private var shown: ArraySlice<TxnRow> { entries.prefix(Self.maxRows) }
+    private var overflow: Int { max(0, entries.count - Self.maxRows) }
 
     private var label: String {
         let f = DateFormatter()
@@ -24,6 +37,16 @@ private struct TooltipCard: View {
 
     private func money(_ amount: Decimal) -> String {
         isRevealed ? AmountFormatter.money(amount) : "••••"
+    }
+
+    private func category(_ row: TxnRow) -> String {
+        row.categoryName.isEmpty ? String(localized: "Uncategorized") : row.categoryName
+    }
+
+    private func note(_ row: TxnRow) -> String? {
+        guard let n = row.note?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !n.isEmpty else { return nil }
+        return n
     }
 
     var body: some View {
@@ -54,29 +77,45 @@ private struct TooltipCard: View {
                     .foregroundStyle(Color.moneyIn)
             }
 
-            // Only worth a divider and a list when there is more than one band —
-            // for a single-category day the total above already said it.
-            if bar.segments.count > 1 {
+            if !shown.isEmpty {
                 Divider().padding(.vertical, 1)
-                ForEach(bar.segments) { slice in
-                    HStack(spacing: 5) {
+                ForEach(shown, id: \.id) { row in
+                    HStack(alignment: .top, spacing: 5) {
                         RoundedRectangle(cornerRadius: 2, style: .continuous)
-                            .fill(colorFor(slice.categoryName))
+                            .fill(colorFor(category(row)))
                             .frame(width: 7, height: 7)
-                        Text(slice.categoryName)
-                            .font(.caption2)
-                            .lineLimit(1)
+                            .padding(.top, 3)
+                        VStack(alignment: .leading, spacing: 0) {
+                            // The note leads when there is one — "Loan payed"
+                            // identifies the entry, "Other" only bins it. The
+                            // category drops to the line beneath so both are
+                            // there without either crowding the other.
+                            Text(note(row) ?? category(row))
+                                .font(.caption2)
+                                .lineLimit(1)
+                            if note(row) != nil {
+                                Text(category(row))
+                                    .font(.system(size: 9))
+                                    .foregroundStyle(.tertiary)
+                                    .lineLimit(1)
+                            }
+                        }
                         Spacer(minLength: 8)
-                        Text(money(slice.amount))
+                        Text((row.kind == .expense ? "−" : "+") + money(row.amount))
                             .font(.caption2.monospacedDigit())
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(row.kind == .expense ? .secondary : Color.moneyIn)
                     }
+                }
+                if overflow > 0 {
+                    Text("+\(overflow) more")
+                        .font(.system(size: 9))
+                        .foregroundStyle(.tertiary)
                 }
             }
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 7)
-        .frame(minWidth: 96, maxWidth: 190, alignment: .leading)
+        .frame(minWidth: 110, maxWidth: 210, alignment: .leading)
         .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 10))
         .shadow(color: .black.opacity(0.18), radius: 8, y: 2)
         .accessibilityElement(children: .combine)
@@ -139,6 +178,9 @@ struct ActivityBarChart: View {
     /// hero above them masked to bullets, so the privacy toggle hid the one
     /// number on screen and left nine.
     var isRevealed: Bool = true
+    /// The selected day's transactions, supplied by the owner — the chart is
+    /// given buckets, and a bucket does not carry notes.
+    var selectedEntries: [TxnRow] = []
     /// Leading edge of the visible window, bound to the view model's chart anchor.
     /// Writing to it is how scrolling moves the period the header describes.
     @Binding var scrollPosition: Date
@@ -519,13 +561,15 @@ struct ActivityBarChart: View {
                    let plot = proxy.plotFrame,
                    let x = proxy.position(forX: bar.date) {
                     let originX = geo[plot].origin.x
-                    TooltipCard(bar: bar, unit: unit,
+                    TooltipCard(bar: bar,
+                                entries: selectedEntries,
+                                unit: unit,
                                 colorFor: { barColor(forCategory: $0) },
                                 isRevealed: isRevealed)
                         // Half the card's widest width, so a tap on the first or
                         // last bar slides the card inside the frame rather than
                         // hanging it off the edge.
-                        .position(x: min(max(originX + x, 100), geo.size.width - 100), y: 42)
+                        .position(x: min(max(originX + x, 110), geo.size.width - 110), y: 62)
                         // Scales up from the bar rather than appearing, and slides
                         // between bars instead of jumping when the selection moves.
                         .transition(.scale(scale: 0.85).combined(with: .opacity))

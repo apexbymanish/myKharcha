@@ -66,6 +66,20 @@ struct HistoryView: View {
         )
     }
 
+    /// The tapped day's transactions, newest-largest first.
+    ///
+    /// Resolved here rather than in the chart: the chart is handed buckets, and
+    /// a bucket carries category totals with no note on them. History already
+    /// holds every row, so the lookup belongs on this side.
+    private var selectedEntries: [TxnRow] {
+        guard let date = selectedBarDate else { return [] }
+        let cal = Calendar.current
+        let granularity: Calendar.Component = period == .year ? .month : .day
+        return vm.state.allRows
+            .filter { cal.isDate($0.date, equalTo: date, toGranularity: granularity) }
+            .sorted { $0.amount > $1.amount }
+    }
+
     /// Names the span the figure covers — "Sep 23 – 29". Without it the hero is
     /// an unattributed number, which is what made it unreadable.
     private var visibleRangeLabel: String {
@@ -176,6 +190,7 @@ struct HistoryView: View {
                         uniquingKeysWith: { first, _ in first }
                     ),
                     isRevealed: privacy.isRevealed,
+                    selectedEntries: selectedEntries,
                     scrollPosition: Binding(
                         get: { vm.state.chartAnchor },
                         set: { newAnchor in
