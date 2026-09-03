@@ -129,8 +129,9 @@ struct ActivityBarChart: View {
     /// Scope of the chart — sets how much timeline is visible at once and what
     /// the horizontal scroll snaps to (a week, a month, or a year per page).
     var period: ActivityPeriod = .month
-    /// Budget one bar is measured against, for colouring. Zero disables colouring.
-    var allowance: Decimal = 0
+    /// Category name → colour hex, so bands wear the same colours their categories
+    /// do elsewhere. Colour is presentation, so the model does not carry it.
+    var categoryColors: [String: String] = [:]
     /// Leading edge of the visible window, bound to the view model's chart anchor.
     /// Writing to it is how scrolling moves the period the header describes.
     @Binding var scrollPosition: Date
@@ -146,21 +147,76 @@ struct ActivityBarChart: View {
         }
     }
 
-    /// Bars are only labelled while the labels can be read. A month is 31 bars and
-    /// a label on each collides into noise, so past this count the amounts drop out
-    /// and the bars carry the shape on their own.
-    private var labelsFit: Bool { bars.count <= 14 }
+    /// The buckets actually on screen — from the scroll position forward by one
+    /// visible domain. Everything that scales with "what you can see" derives from
+    /// this rather than from the whole series.
+    private var visibleBars: [ActivityBar] {
+        let end = scrollPosition.addingTimeInterval(visibleDomain)
+        return bars.filter { $0.date >= scrollPosition && $0.date < end }
+    }
 
-    /// Bar colour by how the day sat against its budget, the way Pedometer++
-    /// colours a day by whether the step goal was met. Income keeps its own tint.
-    private func barColor(for p: Point) -> Color {
-        guard p.series == spentLabel else { return .moneyIn }
-        switch ActivitySeries.spendLevel(expense: Decimal(p.amount), allowance: allowance) {
-        case .under:   return Color(hex: "#0B7167")
-        case .near:    return Color(hex: "#E8A33D")
-        case .over:    return Color(hex: "#ba1a1a")
-        case .unknown: return .moneyOut
+    /// Non-empty buckets on screen. Drives how fat the bars are drawn.
+    private var populatedCount: Int { visibleBars.filter { $0.expense > 0 }.count }
+
+    /// Bar width as a share of its column.
+    ///
+    /// Two bars in a nine-column grid look lost at a fixed ratio, so the fewer
+    /// bars a window holds the fatter they are drawn. Varying the ratio rather
+    /// than the visible domain is deliberate: pushing `chartXVisibleDomain` low
+    /// enough to fatten bars makes Swift Charts stop honouring bar width at all.
+    private var barRatio: Double {
+        switch populatedCount {
+        case 0, 1, 2: return 0.98
+        case 3, 4:    return 0.9
+        case 5, 6:    return 0.82
+        default:      return 0.72
         }
+    }
+
+    /// Ceiling for the income half of the chart, from the visible window only.
+    private var incomePeak: Double {
+        let totals = visibleBars.map(\.income).filter { $0 > 0 }
+        let ceiling = ActivitySeries.chartCeiling(totals)
+        return (ceiling as NSDecimalNumber).doubleValue
+    }
+
+    /// Share of the chart's height given to income, below the zero line.
+    ///
+    /// Income and spending cannot share a scale: one salary is twenty times a day's
+    /// spending, and on a shared axis it flattens every expense bar to nothing —
+    /// which is why income was pulled from the chart in the first place. So the two
+    /// halves are scaled independently, income into the lower quarter.
+    ///
+    /// The cost is that heights are not comparable across the zero line: a green bar
+    /// twice a red one does not mean twice the money. The zero rule and the colour
+    /// split are what tell the reader these are two different measures.
+    private static let incomeShare = 0.25
+
+    /// Bottom of the y-domain. Zero when nothing was received in view, so an
+    /// income-free window keeps the whole frame for spending.
+    private var floorValue: Double {
+        guard incomePeak > 0 else { return 0 }
+        return -incomePeak / Self.incomeShare * (1 - Self.incomeShare)
+    }
+
+    /// Labels always fit, because the visible window is fixed at roughly nine bars
+    /// by `visibleDomain` however long the series is.
+    ///
+    /// This used to test `bars.count`, which is the whole scrollable series — up to
+    /// 800 buckets — rather than the handful on screen. It was therefore always
+    /// false, and every amount and category name was silently suppressed.
+    private var labelsFit: Bool { true }
+
+    /// Colour of a band, taken from the category's own swatch so a bar matches the
+    /// chips and icons that category wears everywhere else in the app.
+    ///
+    /// This replaces the budget-status colouring. A fill can encode category or
+    /// budget, not both, and knowing what the money went on beats knowing whether
+    /// the day beat its allowance — which the hero and Reports already say.
+    private func barColor(for p: Point) -> Color {
+        if let hex = categoryColors[p.series] { return Color(hex: hex) }
+        if p.series == ActivityBar.otherSegmentName { return Color(hex: "#8E8E93") }
+        return .moneyOut
     }
 
     /// Top of the y-scale. Not the maximum: one rent-sized day would take the whole
@@ -168,8 +224,19 @@ struct ActivityBarChart: View {
     /// 90th percentile so the outlier clips and the rest of the period stays
     /// readable. See its tests for the two cases.
     private var peak: Double {
-        let ceiling = ActivitySeries.chartCeiling(points.map { Decimal($0.amount) })
+        // Only what is on screen. This used to scale against the entire series, so
+        // a window holding one ₩11,180 day was measured against a ceiling drawn
+        // from months of history — the bar rendered correctly, at 1.6% of a height
+        // it had no business being compared to.
+        let totals = visibleBars.map(\.expense).filter { $0 > 0 }
+        let ceiling = ActivitySeries.chartCeiling(totals)
         return (ceiling as NSDecimalNumber).doubleValue
+    }
+
+    /// Whether a band is deep enough to hold its category name. Below this it is a
+    /// colour stripe and the legend has to carry the meaning instead.
+    private func bandHoldsItsName(_ p: Point) -> Bool {
+        peak > 0 && p.amount / peak > 0.22
     }
 
     /// The bucket the user tapped, if it has spending.
@@ -179,11 +246,18 @@ struct ActivityBarChart: View {
         return points.first { cal.isDate($0.date, equalTo: sel, toGranularity: unit) }
     }
 
+    /// One category's band within one day's bar.
     private struct Point: Identifiable {
         let id = UUID()
         let date: Date
+        /// Category name — the stacking key, and the label on the largest band.
         let series: String
         let amount: Double
+        /// This day's whole spend, so the amount above the bar can be drawn once
+        /// on the topmost band rather than once per band.
+        let dayTotal: Double
+        /// True for the biggest band of the day: the one that carries the name.
+        let isLead: Bool
     }
 
     private var spentLabel: String { String(localized: "Spent") }
@@ -198,45 +272,172 @@ struct ActivityBarChart: View {
     ///
     /// Zero days are dropped rather than drawn: a spend tracker has many of them,
     /// and each one was eating a column's width to say nothing.
+    /// One point per category band, so the bars stack by what the money went on.
     private var points: [Point] {
-        bars.compactMap { bar in
-            let spent = (bar.expense as NSDecimalNumber).doubleValue
-            guard spent > 0 else { return nil }
-            return Point(date: bar.date, series: spentLabel, amount: spent)
+        bars.flatMap { bar -> [Point] in
+            let total = (bar.expense as NSDecimalNumber).doubleValue
+            guard total > 0 else { return [] }
+            return bar.segments.enumerated().map { index, seg in
+                Point(date: bar.date,
+                      series: seg.categoryName,
+                      amount: (seg.amount as NSDecimalNumber).doubleValue,
+                      dayTotal: total,
+                      isLead: index == 0)
+            }
+        }
+    }
+
+    /// Days with nothing spent. They keep their column and show a flat grey stub,
+    /// so a no-spend day reads as a day you spent nothing rather than a hole.
+    private var emptyBars: [ActivityBar] { bars.filter { $0.expense == 0 } }
+
+    /// Income bars, pre-scaled to their own half of the axis.
+    ///
+    /// Computed here rather than inline: `let` bindings inside a
+    /// `ChartContentBuilder` closure defeat its type inference, and the failure
+    /// surfaces as a misleading "cannot convert [ActivityBar] to Binding<C>".
+    private struct IncomePoint: Identifiable {
+        let id = UUID()
+        let date: Date
+        let amount: Decimal
+        let plotted: Double
+    }
+
+    private var incomePoints: [IncomePoint] {
+        guard incomePeak > 0 else { return [] }
+        let depth = abs(floorValue)
+        return bars.compactMap { bar in
+            guard bar.income > 0 else { return nil }
+            let value = (bar.income as NSDecimalNumber).doubleValue
+            return IncomePoint(date: bar.date,
+                               amount: bar.income,
+                               plotted: -(value / incomePeak) * depth)
+        }
+    }
+
+    // MARK: - Chart content
+    //
+    // Split out of `body`: with all of it inline the type-checker gave up on
+    // the whole Chart expression, the same way it did on HistoryView's List.
+
+    @ChartContentBuilder private var incomeMarks: some ChartContent {
+        // Income hangs below the zero line, scaled to its own side. Days you
+        // were paid read instantly without a salary crushing the spending above.
+        ForEach(incomePoints) { p in
+            BarMark(
+                x: .value("Date", p.date, unit: unit),
+                yStart: .value("Amount", 0),
+                yEnd: .value("Amount", p.plotted),
+                width: .ratio(barRatio)
+            )
+            .foregroundStyle(Color.moneyIn)
+            .cornerRadius(4)
+            .annotation(position: .bottom,
+                        spacing: 3,
+                        overflowResolution: AnnotationOverflowResolution(x: .fit(to: .chart), y: .fit(to: .chart))) {
+                Text(AmountFormatter.money(p.amount))
+                    .font(.caption2.weight(.semibold))
+                    .monospacedDigit()
+                    .minimumScaleFactor(0.75)
+                    .lineLimit(1)
+                    .foregroundStyle(Color.moneyIn)
+            }
+        }
+    }
+
+    @ChartContentBuilder private var zeroRuleMark: some ChartContent {
+        // The line the two measures meet at. Without it the split reads as one
+        // scale and the income bars look like negative spending.
+        if incomePeak > 0 {
+            RuleMark(y: .value("Zero", 0))
+                .foregroundStyle(Color.secondary.opacity(0.35))
+                .lineStyle(StrokeStyle(lineWidth: 0.5))
+        }
+    }
+
+    @ChartContentBuilder private var emptyDayMarks: some ChartContent {
+        // Empty days keep their column: a flat grey stub on the baseline, so a
+        // no-spend day is visibly a day rather than a gap in the data.
+        ForEach(emptyBars) { bar in
+            BarMark(
+                x: .value("Date", bar.date, unit: unit),
+                yStart: .value("Amount", 0),
+                yEnd: .value("Amount", peak * 0.012),
+                width: .ratio(barRatio)
+            )
+            .foregroundStyle(Color.secondary.opacity(0.28))
+            .cornerRadius(2)
+        }
+    }
+
+    @ChartContentBuilder private var spendMarks: some ChartContent {
+        ForEach(points) { p in
+            BarMark(
+                x: .value("Date", p.date, unit: unit),
+                y: .value("Amount", p.amount),
+                // A share of the column, and that share grows when few bars
+                // are on screen — see `barRatio`.
+                width: .ratio(barRatio)
+            )
+            .foregroundStyle(barColor(for: p))
+            .cornerRadius(4)
+            // Every spend bar carries its own amount, so a value never needs
+            // to be uncovered by tapping or scrubbing.
+            // Amount always above the bar, tinted to match it. Fixed placement
+            // beats adaptive — your eye learns one place to look.
+            // The biggest band carries its category name, written into the
+            // band itself. Dynamic Type sized, so it grows with the user's
+            // text setting instead of staying 9pt forever.
+            .annotation(position: .overlay, alignment: .center, spacing: 0) {
+                if labelsFit, p.isLead, bandHoldsItsName(p) {
+                    Text(p.series)
+                        .font(.caption2.weight(.bold))
+                        .minimumScaleFactor(0.7)
+                        .lineLimit(1)
+                        .foregroundStyle(.black.opacity(0.72))
+                        .padding(.horizontal, 2)
+                }
+            }
+            // The day's total sits above the stack, once, tinted to the
+            // category it mostly went on.
+            //
+            // `overflowResolution` keeps it on screen for a bar that clips at
+            // the percentile ceiling. Without it the label is positioned above
+            // the bar's true top, which is outside the plot area — so the
+            // biggest days, the ones you most want labelled, showed nothing.
+            .annotation(position: .top,
+                        spacing: 3,
+                        overflowResolution: AnnotationOverflowResolution(x: .fit(to: .chart), y: .fit(to: .chart))) {
+                if labelsFit, p.isLead {
+                    Text(AmountFormatter.money(Decimal(p.dayTotal)))
+                        .font(.caption2.weight(.semibold))
+                        .monospacedDigit()
+                        .minimumScaleFactor(0.75)
+                        .lineLimit(1)
+                        .foregroundStyle(barColor(for: p))
+                }
+            }
+        }
+    }
+
+    @ChartContentBuilder private var selectionMark: some ChartContent {
+        // Selection highlights the whole column behind the bar rather than
+        // drawing a line through it — the bar stays readable and the tap
+        // clearly belongs to that day.
+        if let sel = selectedDate.wrappedValue {
+            RectangleMark(x: .value("Selected", sel, unit: unit))
+                .foregroundStyle(Color.primary.opacity(0.06))
+                .zIndex(-1)
         }
     }
 
     var body: some View {
         Chart {
-            ForEach(points) { p in
-                BarMark(
-                    x: .value("Date", p.date, unit: unit),
-                    y: .value("Amount", p.amount),
-                    // Fat bars. Every column used to reserve a second slot for an
-                    // income bar that was usually zero, so even the spend bar only
-                    // got half a column.
-                    width: .fixed(34)
-                )
-                .foregroundStyle(barColor(for: p))
-                .cornerRadius(4)
-                // Every spend bar carries its own amount, so a value never needs
-                // to be uncovered by tapping or scrubbing.
-                .annotation(position: .top, spacing: 2) {
-                    if labelsFit, p.series == spentLabel, p.amount > 0 {
-                        Text(AmountFormatter.money(Decimal(p.amount)))
-                            .font(.system(size: 9).monospacedDigit())
-                            .foregroundStyle(.secondary)
-                    }
-                }
-            }
-            // Selection highlights the whole column behind the bar rather than
-            // drawing a line through it — the bar stays readable and the tap
-            // clearly belongs to that day.
-            if let sel = selectedDate.wrappedValue {
-                RectangleMark(x: .value("Selected", sel, unit: unit))
-                    .foregroundStyle(Color.primary.opacity(0.06))
-                    .zIndex(-1)
-            }
+            incomeMarks
+            zeroRuleMark
+            emptyDayMarks
+            spendMarks
+            selectionMark
         }
         .chartLegend(.hidden)   // colour now encodes budget, not series
         // No Y axis and no gridlines. Every bar already carries its own amount, so
@@ -246,11 +447,15 @@ struct ActivityBarChart: View {
         // X axis keeps the dates but drops the gridlines and the axis rule.
         .chartXAxis {
             AxisMarks(values: .automatic(desiredCount: 5)) { _ in
-                AxisValueLabel().font(.system(size: 9))
+                // Horizontal inset lives here rather than on the whole chart, so
+                // the bars can run to the screen edges while the dates stay clear
+                // of them.
+                AxisValueLabel(horizontalSpacing: 8).font(.system(size: 9))
             }
         }
         // `chartCeiling` already includes its headroom, so no second helping here.
-        .chartYScale(domain: 0...(peak > 0 ? peak : 1))
+        // The floor drops below zero only when the window actually holds income.
+        .chartYScale(domain: floorValue...(peak > 0 ? peak : 1))
         .chartXSelection(value: selectedDate)
         // The detail rides on the bar you tapped. It used to appear at the foot of
         // the screen, far from the thing it described.
@@ -273,9 +478,13 @@ struct ActivityBarChart: View {
         // The selection highlight and tooltip arrive together, on one spring.
         .animation(.spring(response: 0.32, dampingFraction: 0.72),
                    value: selectedDate.wrappedValue)
-        // Scrolling into a period with a different peak rescales the bars. Without
-        // this they jump to their new heights; with it they grow into them.
-        .animation(.smooth(duration: 0.35), value: peak)
+        // Height and width both change as the window moves — the ceiling rescales
+        // and sparse windows fatten. One spring drives both, so they move together
+        // rather than as two easings finishing at different moments, which reads as
+        // jitter. Slightly under-damped so it settles rather than stopping dead.
+        .animation(.spring(response: 0.42, dampingFraction: 0.86), value: peak)
+        .animation(.spring(response: 0.42, dampingFraction: 0.86), value: incomePeak)
+        .animation(.spring(response: 0.42, dampingFraction: 0.86), value: barRatio)
         // A tap on a bar should feel like it landed.
         .sensoryFeedback(.selection, trigger: selectedDate.wrappedValue)
         .chartScrollableAxes(.horizontal)

@@ -130,33 +130,25 @@ struct HistoryView: View {
                 .padding(.horizontal)
                 .padding(.top, 8)
 
-            if let summary = vm.state.chartSummary, summary.isEmpty {
-                // An empty stretch says so, rather than leaving a bare plot for
-                // the user to interpret as breakage.
-                Spacer()
-                VStack(spacing: 6) {
-                    Image(systemName: "checkmark.circle")
-                        .font(.system(size: 34))
-                        .foregroundStyle(Color.moneyIn)
-                        // Draws itself in rather than appearing fully formed.
-                        .symbolEffect(.bounce, options: .nonRepeating)
-                    Text("No spend")
-                        .font(.title3.weight(.semibold))
-                    Text("Nothing logged in this period.")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
-                .transition(.opacity.combined(with: .scale(scale: 0.96)))
-                Spacer()
-            } else {
-                // The chart is the screen, not a card inside it. It takes the
-                // room the ledger used to, which is what makes the bars big.
+            // The chart sits on the bottom of the screen, above the tab bar, with
+            // the breathing room between it and the hero rather than beneath it.
+            Spacer(minLength: 12)
+
+            // The chart is always present, even with nothing in view. It used to be
+            // *replaced* by the empty state, which removed the only way to scroll
+            // back to a period that has data — the user was stranded.
+            ZStack {
                 ActivityBarChart(
                     bars: vm.state.chartBars,
                     unit: period == .year ? .month : .day,
                     selectedDate: $selectedBarDate,
                     period: period,
-                    allowance: vm.state.chartAllowance,
+                    // Bands wear their category's own colour, resolved here —
+                    // KharchaKit stays free of presentation.
+                    categoryColors: Dictionary(
+                        vm.state.categories.map { ($0.name, $0.colorHex) },
+                        uniquingKeysWith: { first, _ in first }
+                    ),
                     scrollPosition: Binding(
                         get: { vm.state.chartAnchor },
                         set: { newAnchor in
@@ -170,10 +162,29 @@ struct HistoryView: View {
                 // Roughly two fifths of the screen. Full-bleed only works when the
                 // chart is reliably full; spending has empty days and outliers, so
                 // a screen of pure chart is mostly a screen of nothing.
-                .frame(maxHeight: 260)
-                .padding(.horizontal, 8)
+                .frame(height: 300)
+                // Edge to edge. The 8pt inset made it read as a component sitting
+                // on the screen; running to the edges makes the graph the surface
+                // the screen is built on, which is what Pedometer++ does.
+                .padding(.bottom, 8)
 
-                Spacer(minLength: 0)
+                if let summary = vm.state.chartSummary, summary.isEmpty {
+                    // Sits over the chart rather than in place of it, and lets
+                    // touches through so the scroll underneath still works.
+                    VStack(spacing: 6) {
+                        Image(systemName: "checkmark.circle")
+                            .font(.title)
+                            .foregroundStyle(Color.moneyIn)
+                            .symbolEffect(.bounce, options: .nonRepeating)
+                        Text("No spend")
+                            .font(.title3.weight(.semibold))
+                        Text("Swipe to another period")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                    .allowsHitTesting(false)
+                    .transition(.opacity.combined(with: .scale(scale: 0.96)))
+                }
             }
 
         }
@@ -234,7 +245,10 @@ struct HistoryView: View {
             NavigationStack { TxnFormView(store: store, editing: row) }
         }
         .task { await vm.load() }
-        .refreshable { await vm.load() }
+        // No `.refreshable`: the screen is a fixed layout with no scroll container,
+        // so pull-to-refresh had nothing to attach to and never fired. Reloads come
+        // from `.task` on appear, foregrounding, and remote changes below — the
+        // ledger moved to Reports, so there is nothing here to pull down on.
         .onChange(of: vm.state.chartPeriod) { _, _ in
             selectedBarDate = nil
             Task { await vm.setDayFilter(nil) }

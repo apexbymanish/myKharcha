@@ -30,3 +30,9 @@ func makeStore() throws -> ExpenseStore {
 func pinTestCurrency() {
     AmountFormatter.currencyCode = "KRW"
 }
+
+/// An expense row in a named category, for the stacked-bar tests.
+func rowIn(_ category: String, _ amount: Decimal, _ date: Date) -> TxnRow {
+    TxnRow(id: UUID(), date: date, kind: .expense, amount: amount,
+           categoryName: category, note: nil, source: .manual)
+}

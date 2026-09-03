@@ -303,3 +303,87 @@ private func row(_ amount: Decimal, _ kind: TxnKind, _ date: Date) -> TxnRow {
 @Test func chartCeilingIsZeroForNoSpending() {
     #expect(ActivitySeries.chartCeiling([]) == 0)
 }
+
+// MARK: - Transaction count per bucket
+
+@Test func barsCarryHowManyTransactionsMadeUpTheirTotal() {
+    // A big bar raises one question: was that one purchase or fifteen? The count
+    // rides on the bar so the answer is there without tapping.
+    let txns = [
+        row(50_000, .expense, d(2026, 8, 3)),
+        row(30_000, .expense, d(2026, 8, 3)),
+        row(20_000, .expense, d(2026, 8, 3)),
+        row(90_000, .expense, d(2026, 8, 10))
+    ]
+    let bars = ActivitySeries.bars(txns, period: .month, now: d(2026, 8, 15), calendar: testCal)
+    #expect(bars[2].count == 3)    // Aug 3 — three purchases
+    #expect(bars[9].count == 1)    // Aug 10 — one
+    #expect(bars[0].count == 0)    // Aug 1 — nothing
+}
+
+@Test func barCountsIncludeIncomeNotJustSpending() {
+    // The count describes the bucket's activity, not only its spending.
+    let txns = [
+        row(50_000, .expense, d(2026, 8, 3)),
+        row(3_000_000, .income, d(2026, 8, 3))
+    ]
+    let bars = ActivitySeries.bars(txns, period: .month, now: d(2026, 8, 15), calendar: testCal)
+    #expect(bars[2].count == 2)
+}
+
+// MARK: - Category segments per bucket
+
+@Test func barsSplitIntoCategorySegmentsLargestFirst() {
+    // Stacked bars need to know what a day was spent on, biggest slice first so
+    // the one that carries the label is the one at the bottom of the stack.
+    let txns = [
+        rowIn("Dining", 20_000, d(2026, 8, 3)),
+        rowIn("Groceries", 60_000, d(2026, 8, 3)),
+        rowIn("Groceries", 10_000, d(2026, 8, 3)),
+        rowIn("Transport", 30_000, d(2026, 8, 3))
+    ]
+    let bars = ActivitySeries.bars(txns, period: .month, now: d(2026, 8, 15), calendar: testCal)
+    let segs = bars[2].segments
+    #expect(segs.map(\.categoryName) == ["Groceries", "Transport", "Dining"])
+    #expect(segs.first?.amount == 70_000)   // the two Groceries rows combined
+}
+
+@Test func tinySegmentsMergeIntoOtherSoTheBarIsNotConfetti() {
+    // A ₩2,000 coffee inside a ₩200,000 day is a four-pixel band nobody can
+    // identify. Anything under a twelfth of the day is folded into one slice.
+    let txns = [
+        rowIn("Rent", 200_000, d(2026, 8, 3)),
+        rowIn("Coffee", 2_000, d(2026, 8, 3)),
+        rowIn("Snacks", 3_000, d(2026, 8, 3))
+    ]
+    let bars = ActivitySeries.bars(txns, period: .month, now: d(2026, 8, 15), calendar: testCal)
+    let segs = bars[2].segments
+    #expect(segs.count == 2)
+    #expect(segs[0].categoryName == "Rent")
+    #expect(segs[1].categoryName == ActivityBar.otherSegmentName)
+    #expect(segs[1].amount == 5_000)
+}
+
+@Test func segmentsCoverTheWholeBarWithNothingLost() {
+    // Whatever the merging does, the slices must still add up to the bar — a
+    // stacked bar that does not reach its own total is a lie.
+    let txns = [
+        rowIn("Rent", 200_000, d(2026, 8, 3)),
+        rowIn("Coffee", 2_000, d(2026, 8, 3)),
+        rowIn("Dining", 40_000, d(2026, 8, 3))
+    ]
+    let bars = ActivitySeries.bars(txns, period: .month, now: d(2026, 8, 15), calendar: testCal)
+    let total = bars[2].segments.reduce(Decimal(0)) { $0 + $1.amount }
+    #expect(total == bars[2].expense)
+}
+
+@Test func incomeDoesNotAppearAsASpendingSegment() {
+    // Segments describe where money went, so a salary is not one of them.
+    let txns = [
+        rowIn("Groceries", 40_000, d(2026, 8, 3)),
+        TxnRow(id: UUID(), date: d(2026, 8, 3), kind: .income, amount: 3_000_000,
+               categoryName: "Salary", note: nil, source: .manual)
+    ]
+    let bars = ActivitySeries.bars(txns, period: .month, now: d(2026, 8, 15), calendar: testCal)
+    #expect(bars[2].segments.map(\.categoryName) == ["Groceries"])
+}

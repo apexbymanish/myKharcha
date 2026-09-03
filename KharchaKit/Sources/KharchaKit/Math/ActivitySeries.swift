@@ -5,6 +5,19 @@ public enum ActivityPeriod: String, Sendable, CaseIterable {
     case week, month, year
 }
 
+/// One category's share of a bucket's spending. Bars stack these so a day shows
+/// what it went on, not just how much.
+public struct CategorySlice: Sendable, Equatable, Identifiable {
+    public let categoryName: String
+    public let amount: Decimal
+    public var id: String { categoryName }
+
+    public init(categoryName: String, amount: Decimal) {
+        self.categoryName = categoryName
+        self.amount = amount
+    }
+}
+
 /// One bucket of activity — a day (week/month periods) or a month (year period) —
 /// with its expense and income totals. Pure value type; all bucketing is exact.
 public struct ActivityBar: Sendable, Equatable, Identifiable {
@@ -12,16 +25,33 @@ public struct ActivityBar: Sendable, Equatable, Identifiable {
     public let date: Date
     public let expense: Decimal
     public let income: Decimal
+    /// How many transactions made up this bucket, income and expense together.
+    /// A large bar raises one question — one purchase or fifteen? — and this is
+    /// the answer, carried on the bar rather than hidden behind a tap.
+    public let count: Int
+    /// The bucket's spending split by category, largest first, with slivers folded
+    /// into one `otherSegmentName` slice. Always sums to `expense`.
+    public let segments: [CategorySlice]
+
+    /// Name of the slice that small categories are merged into.
+    public static let otherSegmentName = "Other"
+
+    /// A category smaller than this share of the bucket is not worth its own band —
+    /// at a twelfth of a bar it is a few pixels nobody can identify or tap.
+    static let segmentFloor = Decimal(string: "0.083")!
 
     public var id: Date { date }
     /// Income minus expense — positive means you netted money that bucket.
     public var net: Decimal { income - expense }
     public var isEmpty: Bool { expense == 0 && income == 0 }
 
-    public init(date: Date, expense: Decimal, income: Decimal) {
+    public init(date: Date, expense: Decimal, income: Decimal, count: Int = 0,
+                segments: [CategorySlice] = []) {
         self.date = date
         self.expense = expense
         self.income = income
+        self.count = count
+        self.segments = segments
     }
 }
 
@@ -247,33 +277,71 @@ public enum ActivitySeries {
         return c
     }
 
+    /// Splits one bucket's expense rows into stacked segments, largest first.
+    ///
+    /// Categories under `segmentFloor` of the bucket are folded into a single
+    /// "Other" slice: below roughly a twelfth of the bar they render as a few
+    /// pixels, which nobody can identify and which turns the bar into confetti.
+    /// The merged slice keeps their money, so the segments always sum to the
+    /// bucket's expense — a stacked bar that falls short of its own total lies.
+    static func segments(for rows: [TxnRow]) -> [CategorySlice] {
+        let expenses = rows.filter { $0.kind == .expense }
+        let total = expenses.reduce(Decimal(0)) { $0 + $1.amount }
+        guard total > 0 else { return [] }
+
+        let grouped = Dictionary(grouping: expenses) { row in
+            row.categoryName.isEmpty ? ActivityBar.otherSegmentName : row.categoryName
+        }
+        var kept: [CategorySlice] = []
+        var merged: Decimal = 0
+        for (name, rows) in grouped {
+            let amount = rows.reduce(Decimal(0)) { $0 + $1.amount }
+            if amount / total < ActivityBar.segmentFloor || name == ActivityBar.otherSegmentName {
+                merged += amount
+            } else {
+                kept.append(CategorySlice(categoryName: name, amount: amount))
+            }
+        }
+        kept.sort { $0.amount > $1.amount }
+        if merged > 0 {
+            kept.append(CategorySlice(categoryName: ActivityBar.otherSegmentName, amount: merged))
+        }
+        return kept
+    }
+
     private static func dailyBars(_ txns: [TxnRow], from start: Date, days: Int, calendar: Calendar) -> [ActivityBar] {
-        var byDay: [Date: (expense: Decimal, income: Decimal)] = [:]
+        var byDay: [Date: [TxnRow]] = [:]
         for t in txns {
-            let key = calendar.startOfDay(for: t.date)
-            var v = byDay[key] ?? (0, 0)
-            if t.kind == .expense { v.expense += t.amount } else { v.income += t.amount }
-            byDay[key] = v
+            byDay[calendar.startOfDay(for: t.date), default: []].append(t)
         }
         return (0..<days).map { offset in
             let key = calendar.startOfDay(for: calendar.date(byAdding: .day, value: offset, to: start)!)
-            let v = byDay[key] ?? (0, 0)
-            return ActivityBar(date: key, expense: v.expense, income: v.income)
+            let rows = byDay[key] ?? []
+            return ActivityBar(
+                date: key,
+                expense: rows.filter { $0.kind == .expense }.reduce(Decimal(0)) { $0 + $1.amount },
+                income: rows.filter { $0.kind == .income }.reduce(Decimal(0)) { $0 + $1.amount },
+                count: rows.count,
+                segments: segments(for: rows)
+            )
         }
     }
 
     private static func monthlyBars(_ txns: [TxnRow], from start: Date, months: Int, calendar: Calendar) -> [ActivityBar] {
-        var byMonth: [Date: (expense: Decimal, income: Decimal)] = [:]
+        var byMonth: [Date: [TxnRow]] = [:]
         for t in txns {
-            let key = calendar.dateInterval(of: .month, for: t.date)!.start
-            var v = byMonth[key] ?? (0, 0)
-            if t.kind == .expense { v.expense += t.amount } else { v.income += t.amount }
-            byMonth[key] = v
+            byMonth[calendar.dateInterval(of: .month, for: t.date)!.start, default: []].append(t)
         }
         return (0..<months).map { offset in
             let key = calendar.dateInterval(of: .month, for: calendar.date(byAdding: .month, value: offset, to: start)!)!.start
-            let v = byMonth[key] ?? (0, 0)
-            return ActivityBar(date: key, expense: v.expense, income: v.income)
+            let rows = byMonth[key] ?? []
+            return ActivityBar(
+                date: key,
+                expense: rows.filter { $0.kind == .expense }.reduce(Decimal(0)) { $0 + $1.amount },
+                income: rows.filter { $0.kind == .income }.reduce(Decimal(0)) { $0 + $1.amount },
+                count: rows.count,
+                segments: segments(for: rows)
+            )
         }
     }
 }

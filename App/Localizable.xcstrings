@@ -356,6 +356,16 @@
         }
       }
     },
+    "%@ %@ net" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ %2$@ net"
+          }
+        }
+      }
+    },
     "%@ → %@" : {
       "localizations" : {
         "ar" : {
@@ -592,6 +602,9 @@
         }
       }
     },
+    "%@ received" : {
+
+    },
     "%@ reserved for savings  (%lld%%)" : {
       "localizations" : {
         "ar" : {
@@ -731,6 +744,7 @@
       }
     },
     "%@%@ vs prior" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -2531,6 +2545,12 @@
           }
         }
       }
+    },
+    "•••• net" : {
+
+    },
+    "•••• received" : {
+
     },
     "•••••  of  •••••" : {
 
@@ -5928,9 +5948,6 @@
         }
       }
     },
-    "Analytics & Calendar" : {
-
-    },
     "App Language" : {
       "localizations" : {
         "ar" : {
@@ -7185,7 +7202,116 @@
       }
     },
     "Backup Restored" : {
-
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "تمت استعادة النسخة الاحتياطية"
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "ব্যাকআপ পুনরুদ্ধার হয়েছে"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Sicherung wiederhergestellt"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Copia de seguridad restaurada"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Sauvegarde restaurée"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "बैकअप रीस्टोर हो गया"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Cadangan Dipulihkan"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "バックアップを復元しました"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "백업이 복원됐어요"
+          }
+        },
+        "mr" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "बॅकअप रिस्टोअर झाला"
+          }
+        },
+        "ne" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "ब्याकअप पुनर्स्थापना भयो"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Backup Restaurado"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Резервная копия восстановлена"
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "காப்புப் பிரதி மீட்டமைக்கப்பட்டது"
+          }
+        },
+        "te" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "బ్యాకప్ పునరుద్ధరించబడింది"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Yedek Geri Yüklendi"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "بیک اپ بحال ہو گیا"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Đã khôi phục bản sao lưu"
+          }
+        }
+      }
     },
     "Balance" : {
       "localizations" : {
@@ -8982,9 +9108,6 @@
           }
         }
       }
-    },
-    "Close day detail" : {
-
     },
     "Close this plan without recording any more payments?" : {
       "localizations" : {
@@ -13295,19 +13418,564 @@
       }
     },
     "Erase & Replace" : {
-
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "حذف واستبدال"
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "মুছে প্রতিস্থাপন করুন"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Löschen & Ersetzen"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Borrar y reemplazar"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Effacer et remplacer"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "मिटाएं और बदलें"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Hapus & Ganti"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "消去して置き換え"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "지우고 교체하기"
+          }
+        },
+        "mr" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "मिटवा & बदला"
+          }
+        },
+        "ne" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "मेटाउनुस् र बदल्नुस्"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Apagar e Substituir"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Стереть и заменить"
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "அழித்து மாற்றவும்"
+          }
+        },
+        "te" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "తొలగించి భర్తీ చేయి"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Sil ve Değiştir"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "مٹائیں اور بدلیں"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Xóa & Thay thế"
+          }
+        }
+      }
     },
     "Erase & Replace deletes all your current data, then restores from this backup. Keep & Merge only adds records not already on this device. Erase & Replace cannot be undone." : {
-
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "حذف واستبدال يمسح جميع بياناتك الحالية ثم يستعيد من هذه النسخة الاحتياطية. الاحتفاظ والدمج يُضيف فقط السجلات غير الموجودة على هذا الجهاز. لا يمكن التراجع عن حذف واستبدال."
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "মুছে প্রতিস্থাপন করুন আপনার সব বর্তমান ডেটা মুছে দেয়, তারপর এই ব্যাকআপ থেকে পুনরুদ্ধার করে। রাখুন ও মার্জ করুন শুধুমাত্র সেই রেকর্ডগুলো যোগ করে যা এই ডিভাইসে নেই। মুছে প্রতিস্থাপন করুন পূর্বাবস্থায় ফেরানো যাবে না।"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Löschen & Ersetzen löscht alle deine aktuellen Daten und stellt dann diese Sicherung wieder her. Beibehalten & Zusammenführen fügt nur Einträge hinzu, die noch nicht auf diesem Gerät vorhanden sind. Löschen & Ersetzen kann nicht rückgängig gemacht werden."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Borrar y reemplazar elimina todos tus datos actuales y luego los restaura desde esta copia de seguridad. Conservar y combinar solo añade los registros que no están en este dispositivo. Borrar y reemplazar no se puede deshacer."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Effacer et remplacer supprime toutes tes données actuelles, puis restaure depuis cette sauvegarde. Conserver et fusionner ajoute uniquement les opérations qui ne sont pas déjà sur cet appareil. Effacer et remplacer est irréversible."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "मिटाएं और बदलें आपका सारा मौजूदा डेटा हटा देता है, फिर इस बैकअप से रीस्टोर करता है। रखें और मर्ज करें सिर्फ़ वही रिकॉर्ड जोड़ता है जो इस डिवाइस पर नहीं हैं। मिटाएं और बदलें को वापस नहीं किया जा सकता।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Hapus & Ganti menghapus semua data kamu saat ini, lalu memulihkan dari cadangan ini. Pertahankan & Gabung hanya menambahkan catatan yang belum ada di perangkat ini. Hapus & Ganti tidak dapat dibatalkan."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "“消去して置き換え”を選ぶと、現在のデータがすべて削除され、このバックアップから復元されます。“保持してマージ”はこのデバイスにないデータだけを追加します。“消去して置き換え”は取り消せません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "지우고 교체하기는 현재 데이터를 모두 지우고 이 백업으로 복원해요. 유지하고 합치기는 이 기기에 없는 기록만 추가해요. 지우고 교체하기는 되돌릴 수 없어요."
+          }
+        },
+        "mr" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "मिटवा & बदला तुमचा सध्याचा सर्व डेटा कायमचा मिटवतो आणि नंतर या बॅकअपमधून रिस्टोअर करतो. ठेवा & एकत्र करा फक्त त्याच नोंदी जोडतो ज्या या डिव्हाइसवर आधीपासून नाहीत. मिटवा & बदला पूर्ववत करता येत नाही."
+          }
+        },
+        "ne" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "“मेटाउनुस् र बदल्नुस्”ले तपाईंको सबै हालको डेटा मेटाई यो ब्याकअपबाट पुनर्स्थापना गर्छ। “राख्नुस् र मर्ज गर्नुस्”ले यो डिभाइसमा नभएका रेकर्डहरू मात्र थप्छ। “मेटाउनुस् र बदल्नुस्” पछि फिर्ता गर्न सकिँदैन।"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Apagar e Substituir exclui todos os seus dados atuais e restaura a partir deste backup. Manter e Mesclar adiciona apenas os registros que ainda não estão neste dispositivo. Apagar e Substituir não pode ser desfeito."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "«Стереть и заменить» удаляет все текущие данные, а затем восстанавливает их из этой резервной копии. «Сохранить и объединить» добавляет только те записи, которых ещё нет на этом устройстве. «Стереть и заменить» нельзя отменить."
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "அழித்து மாற்றவும் உங்கள் தற்போதைய தரவு அனைத்தையும் நீக்கி, இந்தக் காப்புப் பிரதியிலிருந்து மீட்டமைக்கும். வைத்து இணைக்கவும் இந்தச் சாதனத்தில் இல்லாத பதிவுகளை மட்டும் சேர்க்கும். அழித்து மாற்றவும் செயலை திரும்பப் பெற முடியாது."
+          }
+        },
+        "te" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "తొలగించి భర్తీ చేయి మీ ప్రస్తుత డేటా అంతా తొలగించి, ఈ బ్యాకప్ నుండి పునరుద్ధరిస్తుంది. ఉంచి విలీనం చేయి ఈ పరికరంలో లేని రికార్డులను మాత్రమే జోడిస్తుంది. తొలగించి భర్తీ చేయి రద్దు చేయడం సాధ్యం కాదు."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Sil ve Değiştir, mevcut tüm verilerinizi siler ve ardından bu yedekten geri yükler. Tut ve Birleştir yalnızca bu cihazda olmayan kayıtları ekler. Sil ve Değiştir geri alınamaz."
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "مٹائیں اور بدلیں آپ کا موجودہ سارا ڈیٹا حذف کر دیتا ہے، پھر اس بیک اپ سے بحال کرتا ہے۔ رکھیں اور ضم کریں صرف وہ ریکارڈز شامل کرتا ہے جو اس آلے پر پہلے سے موجود نہیں ہیں۔ مٹائیں اور بدلیں واپس نہیں ہو سکتا۔"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Xóa & Thay thế sẽ xóa toàn bộ dữ liệu hiện tại của bạn, rồi khôi phục từ bản sao lưu này. Giữ & Gộp chỉ thêm các bản ghi chưa có trên thiết bị này. Xóa & Thay thế không thể hoàn tác."
+          }
+        }
+      }
     },
     "Erase All Data" : {
-
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "حذف جميع البيانات"
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "সব ডেটা মুছে ফেলুন"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Alle Daten löschen"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Borrar todos los datos"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Effacer toutes les données"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "सारा डेटा मिटाएं"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Hapus Semua Data"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "すべてのデータを消去"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "모든 데이터 지우기"
+          }
+        },
+        "mr" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "सर्व डेटा मिटवा"
+          }
+        },
+        "ne" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "सबै डेटा मेटाउनुस्"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Apagar Todos os Dados"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Стереть все данные"
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "அனைத்து தரவையும் அழி"
+          }
+        },
+        "te" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "అన్ని డేటా తొలగించు"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Tüm Verileri Sil"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "سارا ڈیٹا مٹائیں"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Xóa tất cả dữ liệu"
+          }
+        }
+      }
     },
     "Erase All Data?" : {
-
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "حذف جميع البيانات؟"
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "সব ডেটা মুছে ফেলবেন?"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Alle Daten löschen?"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "¿Borrar todos los datos?"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Effacer toutes les données ?"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "सारा डेटा मिटाएं?"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Hapus Semua Data?"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "すべてのデータを消去しますか?"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "모든 데이터를 지울까요?"
+          }
+        },
+        "mr" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "सर्व डेटा मिटवायचा का?"
+          }
+        },
+        "ne" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "सबै डेटा मेटाउने?"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Apagar Todos os Dados?"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Стереть все данные?"
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "அனைத்து தரவையும் அழிக்கவா?"
+          }
+        },
+        "te" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "అన్ని డేటా తొలగించాలా?"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Tüm Veriler Silinsin mi?"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "سارا ڈیٹا مٹائیں؟"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Xóa tất cả dữ liệu?"
+          }
+        }
+      }
     },
     "Erase Permanently" : {
-
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "حذف نهائي"
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "চিরতরে মুছে ফেলুন"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Endgültig löschen"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Borrar definitivamente"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Effacer définitivement"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "हमेशा के लिए मिटाएं"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Hapus Selamanya"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "完全に消去"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "영구 삭제하기"
+          }
+        },
+        "mr" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "कायमचे मिटवा"
+          }
+        },
+        "ne" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "स्थायी रूपमा मेटाउनुस्"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Apagar Definitivamente"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Стереть навсегда"
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "நிரந்தரமாக அழி"
+          }
+        },
+        "te" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "శాశ్వతంగా తొలగించు"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Kalıcı Olarak Sil"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "ہمیشہ کے لیے مٹائیں"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Xóa vĩnh viễn"
+          }
+        }
+      }
     },
     "Everything lives on your device. Sign in later only if you want backup and sync." : {
       "localizations" : {
@@ -13994,6 +14662,7 @@
 
     },
     "Filters active" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -17320,7 +17989,116 @@
       }
     },
     "Import Backup" : {
-
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "استيراد نسخة احتياطية"
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "ব্যাকআপ ইমপোর্ট করুন"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Sicherung importieren"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Importar copia de seguridad"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Importer une sauvegarde"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "बैकअप इंपोर्ट करें"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Impor Cadangan"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "バックアップをインポート"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "백업 가져오기"
+          }
+        },
+        "mr" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "बॅकअप इंपोर्ट करा"
+          }
+        },
+        "ne" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "ब्याकअप इम्पोर्ट गर्नुहोस्"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Importar Backup"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Импорт резервной копии"
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "காப்புப் பிரதி இறக்குமதி"
+          }
+        },
+        "te" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "బ్యాకప్ ఇంపోర్ట్ చేయి"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Yedek İçe Aktar"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "بیک اپ امپورٹ کریں"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Nhập bản sao lưu"
+          }
+        }
+      }
     },
     "Import from text" : {
       "localizations" : {
@@ -18601,7 +19379,116 @@
       }
     },
     "Invalid Backup File" : {
-
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "ملف نسخة احتياطية غير صالح"
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "অবৈধ ব্যাকআপ ফাইল"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Ungültige Sicherungsdatei"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Archivo de copia de seguridad no válido"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Fichier de sauvegarde invalide"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "गलत बैकअप फ़ाइल"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "File Cadangan Tidak Valid"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "バックアップファイルが無効です"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "잘못된 백업 파일"
+          }
+        },
+        "mr" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "चुकीची बॅकअप फाइल"
+          }
+        },
+        "ne" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "अमान्य ब्याकअप फाइल"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Arquivo de Backup Inválido"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Недействительный файл резервной копии"
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "தவறான காப்புப் பிரதி கோப்பு"
+          }
+        },
+        "te" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "తప్పు బ్యాకప్ ఫైల్"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Geçersiz Yedek Dosyası"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "غلط بیک اپ فائل"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "File bản sao lưu không hợp lệ"
+          }
+        }
+      }
     },
     "Invite friends and family to try Kharcha." : {
       "localizations" : {
@@ -18722,7 +19609,116 @@
       }
     },
     "Keep & Merge" : {
-
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "الاحتفاظ والدمج"
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "রাখুন ও মার্জ করুন"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Beibehalten & Zusammenführen"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Conservar y combinar"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Conserver et fusionner"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "रखें और मर्ज करें"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Pertahankan & Gabung"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "保持してマージ"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "유지하고 합치기"
+          }
+        },
+        "mr" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "ठेवा & एकत्र करा"
+          }
+        },
+        "ne" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "राख्नुस् र मर्ज गर्नुस्"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Manter e Mesclar"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Сохранить и объединить"
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "வைத்து இணைக்கவும்"
+          }
+        },
+        "te" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "ఉంచి విలీనం చేయి"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Tut ve Birleştir"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "رکھیں اور ضم کریں"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Giữ & Gộp"
+          }
+        }
+      }
     },
     "Kharcha-Backup.json" : {
 
@@ -20637,6 +21633,7 @@
       }
     },
     "Month" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -21897,6 +22894,7 @@
       }
     },
     "Net" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -22009,6 +23007,7 @@
       }
     },
     "Net %@" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -22233,6 +23232,7 @@
       }
     },
     "Next month" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -22463,6 +23463,7 @@
       }
     },
     "No activity" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -23026,6 +24027,7 @@
       }
     },
     "No history yet" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -23250,6 +24252,7 @@
       }
     },
     "No matching transactions" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -23590,6 +24593,9 @@
           }
         }
       }
+    },
+    "No spend" : {
+
     },
     "No transactions" : {
       "localizations" : {
@@ -27096,6 +28102,7 @@
       }
     },
     "Period" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -27884,6 +28891,7 @@
       }
     },
     "Previous month" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -31983,6 +32991,7 @@
       }
     },
     "Search transactions" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -32432,6 +33441,7 @@
       }
     },
     "Series" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -34694,6 +35704,56 @@
         }
       }
     },
+    "Spending in %@ is down %lld%%, totalling %@." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Spending in %1$@ is down %2$lld%%, totalling %3$@."
+          }
+        }
+      }
+    },
+    "Spending in %@ is unchanged, totalling %@." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Spending in %1$@ is unchanged, totalling %2$@."
+          }
+        }
+      }
+    },
+    "Spending in %@ is up %lld%%, totalling %@." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Spending in %1$@ is up %2$lld%%, totalling %3$@."
+          }
+        }
+      }
+    },
+    "Spending in %@ totalled %@." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Spending in %1$@ totalled %2$@."
+          }
+        }
+      }
+    },
+    "Spending in %@, %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Spending in %1$@, %2$@"
+          }
+        }
+      }
+    },
     "Spent" : {
       "localizations" : {
         "ar" : {
@@ -35483,6 +36543,9 @@
           }
         }
       }
+    },
+    "Swipe to another period" : {
+
     },
     "Sync failed. Check your connection or tap Back Up Now to retry." : {
       "localizations" : {
@@ -36275,7 +37338,116 @@
       }
     },
     "This file isn't a valid Kharcha backup. Make sure you're selecting a file exported from Kharcha." : {
-
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "هذا الملف ليس نسخة احتياطية صالحة من Kharcha. تأكد من أنك تختار ملفًا تم تصديره من Kharcha."
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "এই ফাইলটি একটি বৈধ Kharcha ব্যাকআপ নয়। নিশ্চিত করুন যে আপনি Kharcha থেকে এক্সপোর্ট করা একটি ফাইল বেছে নিচ্ছেন।"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Diese Datei ist keine gültige Kharcha-Sicherung. Stelle sicher, dass du eine Datei auswählst, die aus Kharcha exportiert wurde."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Este archivo no es una copia de seguridad válida de Kharcha. Asegúrate de seleccionar un archivo exportado desde Kharcha."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Ce fichier n’est pas une sauvegarde Kharcha valide. Assure-toi de sélectionner un fichier exporté depuis Kharcha."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "यह फ़ाइल Kharcha का बैकअप नहीं है। सिर्फ़ Kharcha से एक्सपोर्ट की गई फ़ाइल चुनें।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "File ini bukan cadangan Kharcha yang valid. Pastikan kamu memilih file yang diekspor dari Kharcha."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "このファイルはKharchaの有効なバックアップではありません。Kharchaからエクスポートしたファイルを選択してください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "이 파일은 유효한 Kharcha 백업이 아니에요. Kharcha에서 내보낸 파일을 선택했는지 확인해 주세요."
+          }
+        },
+        "mr" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "ही फाइल Kharcha बॅकअप नाही. फक्त Kharcha मधून एक्सपोर्ट केलेली फाइलच निवडा."
+          }
+        },
+        "ne" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "यो फाइल मान्य Kharcha ब्याकअप होइन। Kharcha बाट एक्सपोर्ट गरिएको फाइल मात्र छान्नुस्।"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Este arquivo não é um backup válido do Kharcha. Certifique-se de selecionar um arquivo exportado pelo Kharcha."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Этот файл не является резервной копией Kharcha. Убедитесь, что вы выбираете файл, экспортированный из Kharcha."
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "இந்தக் கோப்பு சரியான Kharcha காப்புப் பிரதியல்ல. Kharcha-ல் இருந்து ஏற்றுமதி செய்த கோப்பை மட்டும் தேர்ந்தெடுக்கவும்."
+          }
+        },
+        "te" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "ఈ ఫైల్ సరైన Kharcha బ్యాకప్ కాదు. Kharcha నుండి ఎక్స్‌పోర్ట్ చేసిన ఫైల్‌ను మాత్రమే సెలక్ట్ చేస్తున్నారని నిర్ధారించుకోండి."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Bu dosya geçerli bir Kharcha yedeği değil. Kharcha’dan dışa aktarılmış bir dosya seçtiğinizden emin olun."
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "یہ فائل کوئی درست Kharcha بیک اپ نہیں ہے۔ یقینی بنائیں کہ آپ Kharcha سے ایکسپورٹ کی گئی فائل منتخب کر رہے ہیں۔"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "File này không phải là bản sao lưu Kharcha hợp lệ. Hãy chắc chắn bạn đang chọn file được xuất từ Kharcha."
+          }
+        }
+      }
     },
     "This month" : {
       "extractionState" : "stale",
@@ -36503,7 +37675,116 @@
       }
     },
     "This permanently deletes all your transactions, friends, debts, savings, and installments. Categories are reset to defaults." : {
-
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "يحذف هذا نهائيًا جميع معاملاتك وأصدقاءك وديونك ومدخراتك وأقساطك. وتعود الفئات إلى الإعدادات الافتراضية."
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "এটি আপনার সব লেনদেন, বন্ধু, ধার, সঞ্চয় ও কিস্তি চিরতরে মুছে দেয়। ক্যাটাগরিগুলো ডিফল্টে ফিরে যাবে।"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Dabei werden alle deine Buchungen, Freunde, Schulden, Ersparnisse und Ratenzahlungen endgültig gelöscht. Kategorien werden auf die Standardwerte zurückgesetzt."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Esto elimina de forma permanente todas tus transacciones, amigos, deudas, ahorros y cuotas. Las categorías se restablecen a los valores predeterminados."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Cela supprime définitivement toutes tes transactions, tes amis, tes dettes, ton épargne et tes mensualités. Les catégories sont réinitialisées aux valeurs par défaut."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "इससे आपके सारे लेन-देन, दोस्त, उधार, बचत और इंस्टॉलमेंट्स हमेशा के लिए मिट जाएंगे। श्रेणियां डिफ़ॉल्ट पर वापस आ जाएंगी।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Ini akan menghapus semua transaksi, teman, utang, tabungan, dan cicilan kamu secara permanen. Kategori akan direset ke pengaturan bawaan."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "取引、友達、貸し借り、貯金、および分割払いをすべて完全に削除します。カテゴリはデフォルトにリセットされます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "이 작업은 모든 거래, 친구, 빚, 저축, 할부를 영구적으로 삭제해요. 카테고리는 기본값으로 초기화돼요."
+          }
+        },
+        "mr" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "यामुळे तुमचे सर्व व्यवहार, मित्र, उधारी, बचत आणि हप्ते कायमचे मिटतात. श्रेण्या डीफॉल्टवर रीसेट होतात."
+          }
+        },
+        "ne" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "यसले तपाईंका सबै कारोबार, साथीहरू, सापटी, बचत, र किस्ताहरू स्थायी रूपमा मेटाउँछ। श्रेणीहरू पूर्वनिर्धारित अवस्थामा फर्किन्छन्।"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Isso exclui permanentemente todas as suas transações, amigos, dívidas, poupanças e parcelamentos. As categorias são redefinidas para os padrões."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Это безвозвратно удалит все ваши операции, друзей, долги, накопления и рассрочки. Категории будут сброшены до стандартных."
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "இது உங்கள் பரிவர்த்தனைகள், நண்பர்கள், கடன்கள், சேமிப்பு மற்றும் தவணைகள் அனைத்தையும் நிரந்தரமாக நீக்கும். வகைகள் இயல்புநிலைக்கு மீட்டமைக்கப்படும்."
+          }
+        },
+        "te" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "ఇది మీ అన్ని లావాదేవీలు, స్నేహితులు, బాకీలు, పొదుపు, మరియు వాయిదాలను శాశ్వతంగా తొలగిస్తుంది. వర్గాలు డిఫాల్ట్‌కు రీసెట్ అవుతాయి."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Bu işlem tüm işlemlerinizi, arkadaşlarınızı, borçlarınızı, birikimlerinizi ve taksitlerinizi kalıcı olarak siler. Kategoriler varsayılanlara sıfırlanır."
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "یہ آپ کے تمام لین دین، دوست، قرضے، بچت اور اقساط ہمیشہ کے لیے مٹا دیتا ہے۔ زمرے ڈیفالٹ پر واپس آ جاتے ہیں۔"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Thao tác này sẽ xóa vĩnh viễn tất cả giao dịch, bạn bè, khoản nợ, tiết kiệm và trả góp của bạn. Danh mục sẽ được đặt lại về mặc định."
+          }
+        }
+      }
     },
     "This Week" : {
       "localizations" : {
@@ -37415,6 +38696,7 @@
 
     },
     "Transactions you log will appear here, grouped by month." : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -37644,9 +38926,6 @@
           }
         }
       }
-    },
-    "Try adjusting your search, month, or filters." : {
-
     },
     "Try Kharcha — free expense tracker" : {
       "localizations" : {
@@ -38673,6 +39952,7 @@
 
     },
     "Week" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -39354,6 +40634,7 @@
       }
     },
     "Year" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -40812,7 +42093,116 @@
       }
     },
     "Your financial history cannot be recovered once erased. Consider creating a backup first." : {
-
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "لا يمكن استرداد تاريخك المالي بعد الحذف. فكّر في إنشاء نسخة احتياطية أولًا."
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "একবার মুছে ফেললে আপনার আর্থিক ইতিহাস আর পুনরুদ্ধার করা যাবে না। আগে একটি ব্যাকআপ তৈরি করার কথা ভাবুন।"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Dein Finanzverlauf kann nach dem Löschen nicht wiederhergestellt werden. Am besten erstellst du vorher eine Sicherung."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Tu historial financiero no se podrá recuperar una vez que se haya borrado. Considera crear una copia de seguridad antes."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Ton historique financier ne pourra pas être récupéré une fois effacé. Envisage de créer une sauvegarde d’abord."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "आपका वित्तीय इतिहास एक बार मिट जाने के बाद वापस नहीं आ सकता। पहले बैकअप बना लें।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Riwayat keuanganmu tidak bisa dipulihkan setelah dihapus. Pertimbangkan untuk membuat cadangan terlebih dahulu."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "消去後、家計の履歴は復元できません。先にバックアップを作成することをおすすめします。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "한번 삭제하면 재무 내역을 복구할 수 없어요. 먼저 백업을 만들어 두는 걸 권장해요."
+          }
+        },
+        "mr" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "एकदा मिटवल्यानंतर तुमचा आर्थिक इतिहास परत मिळवता येत नाही. आधी बॅकअप घेण्याचा विचार करा."
+          }
+        },
+        "ne" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "तपाईंको वित्तीय इतिहास एकपटक मेटिएपछि फिर्ता पाउन सकिँदैन। पहिले ब्याकअप बनाउने विचार गर्नुहोस्।"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Seu histórico financeiro não poderá ser recuperado após ser apagado. Considere criar um backup antes."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "После удаления финансовую историю восстановить невозможно. Рекомендуем сначала создать резервную копию."
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "அழிந்தபின் உங்கள் நிதி வரலாறை மீட்டெடுக்க முடியாது. முதலில் காப்புப் பிரதி எடுக்க பரிசீலிக்கவும்."
+          }
+        },
+        "te" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "తొలగించిన తర్వాత మీ ఆర్థిక చరిత్రను తిరిగి పొందడం సాధ్యం కాదు. ముందుగా బ్యాకప్ తీసుకోవడం పరిశీలించండి."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Finansal geçmişiniz silindikten sonra kurtarılamaz. Önce bir yedek oluşturmayı düşünün."
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "مٹانے کے بعد آپ کی مالی تاریخچہ واپس نہیں مل سکتی۔ پہلے بیک اپ بنانے پر غور کریں۔"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "machine_translated",
+            "value" : "Lịch sử tài chính của bạn không thể khôi phục được sau khi đã xóa. Hãy cân nhắc tạo bản sao lưu trước."
+          }
+        }
+      }
     },
     "Your money is in. Open Paisa Khoi? to plan your month." : {
       "localizations" : {
@@ -41162,6 +42552,9 @@
           }
         }
       }
+    },
+    "Zero" : {
+
     }
   },
   "version" : "1.3"
