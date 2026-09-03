@@ -233,6 +233,13 @@ struct ActivityBarChart: View {
         return (ceiling as NSDecimalNumber).doubleValue
     }
 
+    /// Top of the y-domain, never zero.
+    ///
+    /// A window where nothing was spent still needs a scale: with `peak` at zero
+    /// the grey stubs were drawn `0 * 0.012` tall, so a run of no-spend days showed
+    /// as an empty black half rather than as a row of days with nothing on them.
+    private var spendTop: Double { peak > 0 ? peak : 1 }
+
     /// Whether a band is deep enough to hold its category name. Below this it is a
     /// colour stripe and the legend has to carry the meaning instead.
     private func bandHoldsItsName(_ p: Point) -> Bool {
@@ -332,15 +339,27 @@ struct ActivityBarChart: View {
             )
             .foregroundStyle(Color.moneyIn)
             .cornerRadius(4)
-            .annotation(position: .bottom,
-                        spacing: 3,
+            // Written inside the bar at its top, just under the zero rule.
+            //
+            // It used to hang off the bottom end, which put it on top of the date
+            // axis for any bar reaching the floor — and the taller the income, the
+            // worse the collision. Anchoring to the zero line instead means the
+            // figure sits in the same place whatever the bar's height, and it
+            // mirrors the expense total, which also sits at its bar's zero end.
+            .annotation(position: .overlay,
+                        alignment: .top,
+                        spacing: 0,
                         overflowResolution: AnnotationOverflowResolution(x: .fit(to: .chart), y: .fit(to: .chart))) {
                 Text(AmountFormatter.money(p.amount))
-                    .font(.caption2.weight(.semibold))
+                    .font(.caption2.weight(.bold))
                     .monospacedDigit()
-                    .minimumScaleFactor(0.75)
+                    .minimumScaleFactor(0.7)
                     .lineLimit(1)
-                    .foregroundStyle(Color.moneyIn)
+                    // Dark ink on the green fill, the same treatment the category
+                    // name gets inside a spend band.
+                    .foregroundStyle(.black.opacity(0.72))
+                    .padding(.horizontal, 2)
+                    .padding(.top, 4)
             }
         }
     }
@@ -362,7 +381,7 @@ struct ActivityBarChart: View {
             BarMark(
                 x: .value("Date", bar.date, unit: unit),
                 yStart: .value("Amount", 0),
-                yEnd: .value("Amount", peak * 0.012),
+                yEnd: .value("Amount", spendTop * 0.018),
                 width: .ratio(barRatio)
             )
             .foregroundStyle(Color.secondary.opacity(0.28))
@@ -455,7 +474,7 @@ struct ActivityBarChart: View {
         }
         // `chartCeiling` already includes its headroom, so no second helping here.
         // The floor drops below zero only when the window actually holds income.
-        .chartYScale(domain: floorValue...(peak > 0 ? peak : 1))
+        .chartYScale(domain: floorValue...spendTop)
         .chartXSelection(value: selectedDate)
         // The detail rides on the bar you tapped. It used to appear at the foot of
         // the screen, far from the thing it described.
