@@ -266,3 +266,20 @@ private func row(_ amount: Decimal, _ kind: TxnKind, _ date: Date) -> TxnRow {
                                              now: d(2026, 8, 15), calendar: testCal)
     #expect(bars.last?.date == testCal.startOfDay(for: d(2026, 11, 30)))
 }
+
+@Test func continuousBarsAreCappedSoALongHistoryDoesNotBuildThousandsOfBuckets() throws {
+    // A ledger spanning years must not turn into one ActivityBar per day across
+    // the whole range on every reload. The cap keeps the series bounded; the
+    // window stays anchored on `now`, which is where the chart opens.
+    let txns = [
+        row(100, .expense, d(2018, 1, 5)),
+        row(100, .expense, d(2026, 8, 5))
+    ]
+    let bars = ActivitySeries.continuousBars(txns, period: .month,
+                                             now: d(2026, 8, 15),
+                                             calendar: testCal, maxBuckets: 100)
+    #expect(bars.count <= 100)
+    // The window still covers today, so the chart has somewhere to land.
+    let last = try #require(bars.last).date
+    #expect(last >= testCal.startOfDay(for: d(2026, 8, 1)))
+}

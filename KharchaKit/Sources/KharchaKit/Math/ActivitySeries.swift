@@ -198,7 +198,7 @@ public enum ActivitySeries {
     ///
     /// With no transactions there is no range to derive, so the result is exactly the
     /// period containing `now`.
-    public static func continuousBars(_ txns: [TxnRow], period: ActivityPeriod, now: Date, calendar: Calendar) -> [ActivityBar] {
+    public static func continuousBars(_ txns: [TxnRow], period: ActivityPeriod, now: Date, calendar: Calendar, maxBuckets: Int = 800) -> [ActivityBar] {
         let dates = txns.map(\.date)
         // `now` is always inside the domain, so the chart can land on the current
         // period even when the newest transaction is months old (or entirely in the future).
@@ -216,13 +216,22 @@ public enum ActivitySeries {
         let start = bounding.dateInterval(of: unit, for: earliest)!.start
         let end = bounding.dateInterval(of: unit, for: latest)!.end
 
+        // Cap the series so a multi-year ledger does not become one bucket per day
+        // across the whole range. The window keeps its most recent end — that is
+        // where the chart opens — and drops the oldest buckets beyond the cap.
+        let bucket: Calendar.Component = (period == .year) ? .month : .day
+        let available = calendar.dateComponents([bucket], from: start, to: end).value(for: bucket) ?? 0
+        let clampedStart = available > maxBuckets
+            ? calendar.date(byAdding: bucket, value: -maxBuckets, to: end)!
+            : start
+
         switch period {
         case .week, .month:
-            let days = calendar.dateComponents([.day], from: start, to: end).day!
-            return dailyBars(txns, from: start, days: days, calendar: calendar)
+            let days = calendar.dateComponents([.day], from: clampedStart, to: end).day!
+            return dailyBars(txns, from: clampedStart, days: days, calendar: calendar)
         case .year:
-            let months = calendar.dateComponents([.month], from: start, to: end).month!
-            return monthlyBars(txns, from: start, months: months, calendar: calendar)
+            let months = calendar.dateComponents([.month], from: clampedStart, to: end).month!
+            return monthlyBars(txns, from: clampedStart, months: months, calendar: calendar)
         }
     }
 
