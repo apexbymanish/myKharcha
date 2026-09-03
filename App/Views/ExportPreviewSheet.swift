@@ -4,10 +4,11 @@ import KharchaKit
 /// What the export contains, shown before it leaves the app.
 ///
 /// Export used to hand straight to the share sheet, so the first look anyone
-/// got at their own data was in whatever app they sent it to. A day-by-day
-/// table answers "is this the right period, and is this everything?" while the
-/// file is still yours — which is the question people actually have at the
-/// moment they tap Export.
+/// got at their own data was in whatever app they sent it to. Listing the
+/// transactions themselves — category, note, signed amount, grouped by day —
+/// answers "is this the right period, and is this everything?" while the file
+/// is still yours, which is the question people actually have at the moment
+/// they tap Export.
 struct ExportPreviewSheet: View {
     let rows: [TxnRow]
     let periodLabel: String
@@ -15,20 +16,29 @@ struct ExportPreviewSheet: View {
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject private var privacy: PrivacyManager
 
-    /// One line per day, newest first, both directions on the same row so a day
-    /// that earned and spent reads as one day rather than two entries.
-    private struct DayLine: Identifiable {
+    /// A day and everything on it, newest first.
+    ///
+    /// The preview lists transactions rather than daily totals because that is
+    /// what the file holds. A roll-up looked tidier and answered the wrong
+    /// question: "₩900,000 on the 26th" tells you nothing you can check, where
+    /// "Other · Loan payed · ₩900,000" is the line you either recognise or
+    /// don't. Days are the grouping so the list stays scannable, not the unit.
+    private struct DayGroup: Identifiable {
         let id: Date
+        let rows: [TxnRow]
         let spent: Decimal
         let received: Decimal
     }
 
-    private var lines: [DayLine] {
+    private var dayGroups: [DayGroup] {
         let cal = Calendar.current
         return Dictionary(grouping: rows) { cal.startOfDay(for: $0.date) }
             .map { date, dayRows in
-                DayLine(
+                DayGroup(
                     id: date,
+                    // Largest first within a day: the entry worth checking is
+                    // almost always the big one.
+                    rows: dayRows.sorted { $0.amount > $1.amount },
                     spent: dayRows.filter { $0.kind == .expense }.reduce(Decimal(0)) { $0 + $1.amount },
                     received: dayRows.filter { $0.kind == .income }.reduce(Decimal(0)) { $0 + $1.amount }
                 )
@@ -36,17 +46,12 @@ struct ExportPreviewSheet: View {
             .sorted { $0.id > $1.id }
     }
 
-    /// The CSV carries every transaction, not the daily roll-up above. The table
-    /// is there to be read; the file is there to be worked with, and collapsing
-    /// it to one line a day would throw away the categories and notes that make
-    /// it worth exporting at all.
     private var exportURL: URL? {
         CSVFileWriter.write(CSVExporter.export(rows, timeZone: .current))
     }
 
     private func money(_ amount: Decimal) -> String {
-        guard privacy.isRevealed else { return "••••" }
-        return amount > 0 ? AmountFormatter.money(amount) : "—"
+        privacy.isRevealed ? AmountFormatter.money(amount) : "••••"
     }
 
     var body: some View {
@@ -54,43 +59,16 @@ struct ExportPreviewSheet: View {
             VStack(spacing: 0) {
                 header
 
-                // A glyph per column instead of a heading per column: three
-                // words of header would wrap at large text sizes and push the
-                // first row of real data off the screen.
-                HStack(spacing: 0) {
-                    Image(systemName: "calendar")
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                    Image(systemName: "minus.circle.fill")
-                        .foregroundStyle(Color.moneyOut)
-                        .frame(maxWidth: .infinity, alignment: .trailing)
-                    Image(systemName: "plus.circle.fill")
-                        .foregroundStyle(Color.moneyIn)
-                        .frame(maxWidth: .infinity, alignment: .trailing)
-                }
-                .font(.footnote)
-                .padding(.horizontal)
-                .padding(.bottom, 6)
-                .accessibilityHidden(true)
-
-                List(lines) { line in
-                    HStack(spacing: 0) {
-                        Text(line.id.formatted(.dateTime.month(.abbreviated).day().year()))
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                        Text(money(line.spent))
-                            .monospacedDigit()
-                            .foregroundStyle(line.spent > 0 ? Color.moneyOut : .secondary)
-                            .frame(maxWidth: .infinity, alignment: .trailing)
-                        Text(money(line.received))
-                            .monospacedDigit()
-                            .foregroundStyle(line.received > 0 ? Color.moneyIn : .secondary)
-                            .frame(maxWidth: .infinity, alignment: .trailing)
+                List {
+                    ForEach(dayGroups) { day in
+                        Section {
+                            ForEach(day.rows, id: \.id) { row in
+                                ExportRowView(row: row, isRevealed: privacy.isRevealed)
+                            }
+                        } header: {
+                            dayHeader(day)
+                        }
                     }
-                    .font(.subheadline)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.7)
-                    .listRowSeparator(.hidden)
-                    .listRowInsets(EdgeInsets(top: 5, leading: 16, bottom: 5, trailing: 16))
-                    .accessibilityElement(children: .combine)
                 }
                 .listStyle(.plain)
 
@@ -99,6 +77,31 @@ struct ExportPreviewSheet: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar(.hidden, for: .navigationBar)
         }
+    }
+
+    /// The date, and the day's two totals in the signs the rows use, so a day
+    /// can be checked against its parts without adding them up yourself.
+    @ViewBuilder private func dayHeader(_ day: DayGroup) -> some View {
+        HStack(spacing: 8) {
+            Text(day.id.formatted(.dateTime.month(.abbreviated).day().year()))
+                .font(.footnote.weight(.semibold))
+                .foregroundStyle(.primary)
+            Spacer(minLength: 4)
+            if day.spent > 0 {
+                Text("−" + money(day.spent))
+                    .font(.caption.monospacedDigit())
+                    .foregroundStyle(Color.moneyOut)
+            }
+            if day.received > 0 {
+                Text("+" + money(day.received))
+                    .font(.caption.monospacedDigit())
+                    .foregroundStyle(Color.moneyIn)
+            }
+        }
+        .lineLimit(1)
+        .minimumScaleFactor(0.7)
+        .textCase(nil)
+        .accessibilityElement(children: .combine)
     }
 
     @ViewBuilder private var header: some View {
@@ -150,5 +153,49 @@ struct ExportPreviewSheet: View {
                 .foregroundStyle(.secondary)
                 .padding(.bottom, 12)
         }
+    }
+}
+
+/// One transaction as it will appear in the file: its category, whatever note
+/// was written on it, and the amount signed by direction.
+///
+/// The note is the whole point of previewing at all. "Other · ₩900,000" is a
+/// figure you have to trust; "Other · Loan payed · ₩900,000" is one you can
+/// check. Where a row has no note the category stands alone rather than leaving
+/// an empty line under it.
+private struct ExportRowView: View {
+    let row: TxnRow
+    let isRevealed: Bool
+
+    private var category: String {
+        row.categoryName.isEmpty ? String(localized: "Uncategorized") : row.categoryName
+    }
+
+    private var note: String? {
+        guard let note = row.note?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !note.isEmpty else { return nil }
+        return note
+    }
+
+    var body: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 12) {
+            VStack(alignment: .leading, spacing: 1) {
+                Text(category)
+                    .font(.subheadline)
+                if let note {
+                    Text(note)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(2)
+                }
+            }
+            Spacer(minLength: 4)
+            Text((row.kind == .expense ? "−" : "+") + (isRevealed ? AmountFormatter.money(row.amount) : "••••"))
+                .font(.subheadline.monospacedDigit().weight(.medium))
+                .foregroundStyle(row.kind == .expense ? Color.moneyOut : Color.moneyIn)
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+        }
+        .accessibilityElement(children: .combine)
     }
 }
