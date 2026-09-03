@@ -117,6 +117,40 @@ private struct TooltipCard: View {
     }
 }
 
+/// The figure written against a bar: neutral ink, with a small tinted arrow
+/// carrying the direction.
+///
+/// Amounts used to be tinted to the day's leading category, which made the text
+/// a competing colour above the bands it labelled — and on a pale category it
+/// fell below contrast against the chart's own background. Neutral ink reads at
+/// any size in either theme, and the arrow points the way its bar does: up for
+/// money spent, down for money received.
+private struct AmountTag: View {
+    enum Direction { case spent, received }
+
+    let amount: Decimal
+    let direction: Direction
+
+    private var symbol: String { direction == .spent ? "arrow.up" : "arrow.down" }
+    private var tint: Color { direction == .spent ? .moneyOut : .moneyIn }
+
+    var body: some View {
+        HStack(spacing: 2) {
+            // `imageScale` rather than a fixed point size, so the arrow grows
+            // with the amount under Dynamic Type instead of shrinking beside it.
+            Image(systemName: symbol)
+                .imageScale(.small)
+                .foregroundStyle(tint)
+            Text(AmountFormatter.money(amount))
+                .monospacedDigit()
+                .foregroundStyle(.primary)
+        }
+        .font(.caption2.weight(.semibold))
+        .minimumScaleFactor(0.75)
+        .lineLimit(1)
+    }
+}
+
 /// Grouped spend-vs-income bar chart over a set of `ActivityBar` buckets.
 /// `unit` is `.day` for week/month periods and `.month` for the year period.
 /// Bind `selectedDate` to track which bar the user tapped; the binding is
@@ -326,7 +360,12 @@ struct ActivityBarChart: View {
 
     private var incomePoints: [IncomePoint] {
         guard incomePeak > 0 else { return [] }
-        let depth = abs(floorValue)
+        // Four fifths of the income half, not all of it. The last fifth is the
+        // gutter the amount is written in: the figure sits under its bar on the
+        // chart's own background rather than on the green fill, so the tinted
+        // arrow beside it stays visible. Without the gutter the tallest bar
+        // reaches the floor and the label has nowhere to go but the date axis.
+        let depth = abs(floorValue) * 0.8
         return bars.compactMap { bar in
             guard bar.income > 0 else { return nil }
             let value = (bar.income as NSDecimalNumber).doubleValue
@@ -353,27 +392,16 @@ struct ActivityBarChart: View {
             )
             .foregroundStyle(Color.moneyIn)
             .cornerRadius(4)
-            // Written inside the bar at its top, just under the zero rule.
+            // Under the bar, in the gutter `incomePoints` leaves for it, so the
+            // tag sits on the chart's background and its green arrow reads.
             //
-            // It used to hang off the bottom end, which put it on top of the date
-            // axis for any bar reaching the floor — and the taller the income, the
-            // worse the collision. Anchoring to the zero line instead means the
-            // figure sits in the same place whatever the bar's height, and it
-            // mirrors the expense total, which also sits at its bar's zero end.
-            .annotation(position: .overlay,
-                        alignment: .top,
-                        spacing: 0,
-                        overflowResolution: AnnotationOverflowResolution(x: .fit(to: .chart), y: .fit(to: .chart))) {
-                Text(AmountFormatter.money(p.amount))
-                    .font(.caption2.weight(.bold))
-                    .monospacedDigit()
-                    .minimumScaleFactor(0.7)
-                    .lineLimit(1)
-                    // Dark ink on the green fill, the same treatment the category
-                    // name gets inside a spend band.
-                    .foregroundStyle(.black.opacity(0.72))
-                    .padding(.horizontal, 2)
-                    .padding(.top, 4)
+            // `.fit(to: .plot)`, not `.fit(to: .chart)`: the chart includes the
+            // date axis, so fitting to it is what allowed the figure to land on
+            // top of the dates in the first place.
+            .annotation(position: .bottom,
+                        spacing: 3,
+                        overflowResolution: AnnotationOverflowResolution(x: .fit(to: .chart), y: .fit(to: .plot))) {
+                AmountTag(amount: p.amount, direction: .received)
             }
         }
     }
@@ -442,12 +470,7 @@ struct ActivityBarChart: View {
                         spacing: 3,
                         overflowResolution: AnnotationOverflowResolution(x: .fit(to: .chart), y: .fit(to: .chart))) {
                 if labelsFit, p.isLead {
-                    Text(AmountFormatter.money(Decimal(p.dayTotal)))
-                        .font(.caption2.weight(.semibold))
-                        .monospacedDigit()
-                        .minimumScaleFactor(0.75)
-                        .lineLimit(1)
-                        .foregroundStyle(barColor(for: p))
+                    AmountTag(amount: Decimal(p.dayTotal), direction: .spent)
                 }
             }
         }
