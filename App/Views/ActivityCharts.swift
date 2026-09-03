@@ -117,29 +117,31 @@ private struct TooltipCard: View {
     }
 }
 
-/// The figure written against a bar: neutral ink, with a small tinted arrow
-/// carrying the direction.
+/// The figure written against a bar: neutral ink, with a small tinted sign
+/// carrying the direction — minus in red for money spent, plus in green for
+/// money received.
 ///
 /// Amounts used to be tinted to the day's leading category, which made the text
 /// a competing colour above the bands it labelled — and on a pale category it
 /// fell below contrast against the chart's own background. Neutral ink reads at
-/// any size in either theme, and the arrow points the way its bar does: up for
-/// money spent, down for money received.
+/// any size in either theme, and the sign says which way the money went in the
+/// notation a ledger already uses.
 private struct AmountTag: View {
     enum Direction { case spent, received }
 
     let amount: Decimal
     let direction: Direction
 
-    private var symbol: String { direction == .spent ? "arrow.up" : "arrow.down" }
+    private var symbol: String { direction == .spent ? "minus" : "plus" }
     private var tint: Color { direction == .spent ? .moneyOut : .moneyIn }
 
     var body: some View {
         HStack(spacing: 2) {
-            // `imageScale` rather than a fixed point size, so the arrow grows
+            // `imageScale` rather than a fixed point size, so the sign grows
             // with the amount under Dynamic Type instead of shrinking beside it.
             Image(systemName: symbol)
                 .imageScale(.small)
+                .fontWeight(.bold)
                 .foregroundStyle(tint)
             Text(AmountFormatter.money(amount))
                 .monospacedDigit()
