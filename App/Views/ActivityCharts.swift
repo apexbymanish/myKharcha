@@ -2,96 +2,69 @@ import SwiftUI
 import Charts
 import KharchaKit
 
-/// A period summary above the chart: total Received, total Spent, and the Net —
-/// with an up/down arrow and green/red color so it's instantly clear whether you
-/// came out ahead or spent more than you earned.
-///
-/// Pass `prevBars` to show "+X% vs prior" deltas beneath each figure.
-/// Pass `isRevealed: false` to redact amounts (PrivacyManager locked state).
-struct ActivitySummaryHeader: View {
-    let bars: [ActivityBar]
-    var prevBars: [ActivityBar]? = nil
+/// The sentence above the chart — "Spending in August 2026 is down 8%, totalling
+/// ₹8,450." Apple's charts guidance asks that a chart carry text describing its
+/// contents that stays informative read on its own, which a bare "Analytics" label
+/// does not. It names the period explicitly, so the figure can never be mistaken
+/// for today's when the chart is scrolled elsewhere.
+struct ChartHeadline: View {
+    let summary: ActivitySummary
+    let period: ActivityPeriod
     var isRevealed: Bool = true
 
-    private var received: Decimal { bars.reduce(0) { $0 + $1.income } }
-    private var spent: Decimal { bars.reduce(0) { $0 + $1.expense } }
-    private var net: Decimal { received - spent }
-    private var isLoss: Bool { net < 0 }
+    private var total: String {
+        isRevealed ? AmountFormatter.money(summary.expense) : "••••"
+    }
 
-    private var prevReceived: Decimal? { prevBars.map { $0.reduce(0) { $0 + $1.income } } }
-    private var prevSpent: Decimal? { prevBars.map { $0.reduce(0) { $0 + $1.expense } } }
+    /// "August 2026" / "Aug 17–23, 2026" / "2026", matching the scope on screen.
+    private var periodLabel: String {
+        let f = DateFormatter()
+        switch period {
+        case .week:
+            let end = Calendar.current.date(byAdding: .day, value: 6, to: summary.start) ?? summary.start
+            f.setLocalizedDateFormatFromTemplate("MMMd")
+            let range = "\(f.string(from: summary.start)) – \(f.string(from: end))"
+            f.setLocalizedDateFormatFromTemplate("yyyy")
+            return "\(range), \(f.string(from: summary.start))"
+        case .month:
+            f.setLocalizedDateFormatFromTemplate("MMMMyyyy")
+            return f.string(from: summary.start)
+        case .year:
+            f.setLocalizedDateFormatFromTemplate("yyyy")
+            return f.string(from: summary.start)
+        }
+    }
+
+    private var trendPhrase: Text? {
+        // No prior period to compare against — drop the clause rather than
+        // claiming a change from nothing.
+        guard let pct = summary.changePercent, summary.trend != .unknown else { return nil }
+        switch summary.trend {
+        case .flat:
+            return Text(" is ") + Text("unchanged").foregroundStyle(.secondary) + Text(",")
+        case .up:
+            return Text(" is ") + Text("up \(pct)%").foregroundStyle(Color.moneyOut) + Text(",")
+        case .down:
+            return Text(" is ") + Text("down \(pct)%").foregroundStyle(Color.moneyIn) + Text(",")
+        case .unknown:
+            return nil
+        }
+    }
 
     var body: some View {
-        HStack(alignment: .top) {
-            statColumn(title: "Received", amount: received, tint: .moneyIn,
-                       prev: prevReceived, alignment: .leading)
-            Spacer()
-            statColumn(title: "Spent", amount: spent, tint: .moneyOut,
-                       prev: prevSpent, alignment: .center)
-            Spacer()
-            netColumn
+        Group {
+            if let trend = trendPhrase {
+                Text("Spending in \(periodLabel)") + trend + Text(" totalling \(total).")
+            } else {
+                Text("Spending in \(periodLabel) totalled \(total).")
+            }
         }
-        .padding(.vertical, 2)
-        .accessibilityElement(children: .ignore)
+        .font(.subheadline)
+        .fixedSize(horizontal: false, vertical: true)
+        .frame(maxWidth: .infinity, alignment: .leading)
         .accessibilityLabel(isRevealed
-            ? "Received \(AmountFormatter.money(received)), spent \(AmountFormatter.money(spent)). "
-                + (isLoss ? "Net loss \(AmountFormatter.money(abs(net)))" : "Net gain \(AmountFormatter.money(net))")
+            ? "Spending in \(periodLabel), \(AmountFormatter.money(summary.expense))"
             : "Amounts hidden")
-    }
-
-    private func masked(_ amount: Decimal) -> String {
-        isRevealed ? AmountFormatter.money(amount) : "••••"
-    }
-
-    private func statColumn(
-        title: LocalizedStringKey, amount: Decimal, tint: Color,
-        prev: Decimal?, alignment: HorizontalAlignment
-    ) -> some View {
-        VStack(alignment: alignment, spacing: 2) {
-            Text(title).font(.caption).foregroundStyle(.secondary)
-            Text(masked(amount))
-                .font(.subheadline.monospacedDigit().weight(.semibold))
-                .foregroundStyle(isRevealed ? tint : Color.secondary)
-            if let p = prev, isRevealed {
-                Text(pctDelta(current: amount, prev: p))
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-            }
-        }
-    }
-
-    private var netColumn: some View {
-        VStack(alignment: .trailing, spacing: 2) {
-            Text("Net").font(.caption).foregroundStyle(.secondary)
-            HStack(spacing: 3) {
-                Image(systemName: isLoss ? "arrow.down.right" : "arrow.up.right")
-                    .font(.caption.weight(.bold))
-                Text(masked(abs(net)))
-                    .font(.subheadline.monospacedDigit().weight(.semibold))
-            }
-            .foregroundStyle(isRevealed
-                ? (isLoss ? Color.moneyOut : Color.moneyIn)
-                : Color.secondary)
-            // Net delta: show only when revealed and prior data exists.
-            if isRevealed, let pr = prevReceived, let ps = prevSpent {
-                let prevNet = pr - ps
-                let delta = net - prevNet
-                Text("\(delta >= 0 ? "+" : "")\(AmountFormatter.money(delta)) vs prior")
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-            }
-        }
-    }
-
-    /// "+12% vs prior" / "−8% vs prior" / "< +1%" for sub-1% changes / "—" when no prior data.
-    private func pctDelta(current: Decimal, prev: Decimal) -> String {
-        guard prev != 0 else { return current == 0 ? "—" : "new" }
-        let pct = Double(truncating: ((current - prev) / prev * 100) as NSDecimalNumber)
-        if pct != 0 && abs(pct) < 1 {
-            return (pct > 0 ? "< +1%" : "< −1%") + " vs prior"
-        }
-        let sign = pct >= 0 ? "+" : ""
-        return "\(sign)\(Int(pct.rounded()))% vs prior"
     }
 }
 
@@ -104,6 +77,37 @@ struct ActivityBarChart: View {
     let unit: Calendar.Component
     /// Two-way binding — updated live as the user taps/drags across the chart.
     var selectedDate: Binding<Date?> = .constant(nil)
+    /// Scope of the chart — sets how much timeline is visible at once and what
+    /// the horizontal scroll snaps to (a week, a month, or a year per page).
+    var period: ActivityPeriod = .month
+    /// Budget one bar is measured against, for colouring. Zero disables colouring.
+    var allowance: Decimal = 0
+    /// Leading edge of the visible window, bound to the view model's chart anchor.
+    /// Writing to it is how scrolling moves the period the header describes.
+    @Binding var scrollPosition: Date
+
+    /// Roughly nine bars are visible at a time. That is the ceiling for keeping an
+    /// amount label on every bar legible — a full 31-day month of labels does not
+    /// fit — so the chart scrolls through the timeline rather than framing a period.
+    private var visibleDomain: TimeInterval {
+        let day: TimeInterval = 24 * 60 * 60
+        switch period {
+        case .week, .month: return 9 * day          // nine days
+        case .year:         return 9 * 30 * day     // roughly nine months
+        }
+    }
+
+    /// Bar colour by how the day sat against its budget, the way Pedometer++
+    /// colours a day by whether the step goal was met. Income keeps its own tint.
+    private func barColor(for p: Point) -> Color {
+        guard p.series == spentLabel else { return .moneyIn }
+        switch ActivitySeries.spendLevel(expense: Decimal(p.amount), allowance: allowance) {
+        case .under:   return Color(hex: "#0B7167")
+        case .near:    return Color(hex: "#E8A33D")
+        case .over:    return Color(hex: "#ba1a1a")
+        case .unknown: return .moneyOut
+        }
+    }
 
     private struct Point: Identifiable {
         let id = UUID()
@@ -124,15 +128,45 @@ struct ActivityBarChart: View {
         }
     }
 
+    /// Buckets where nothing was spent or received. A zero-height bar draws
+    /// nothing, so without their own mark these are indistinguishable from days
+    /// with no data at all — and from the empty space past the end of the ledger.
+    private var emptyBars: [ActivityBar] { bars.filter(\.isEmpty) }
+
     var body: some View {
         Chart {
+            // A no-spend day is a real, and good, outcome in a spend tracker —
+            // not missing data. It gets a baseline dot rather than a stub bar,
+            // because a bar would imply an amount that was not spent.
+            ForEach(emptyBars) { bar in
+                PointMark(
+                    x: .value("Date", bar.date, unit: unit),
+                    y: .value("Amount", 0)
+                )
+                .symbol(.circle)
+                .symbolSize(14)
+                .foregroundStyle(Color.secondary.opacity(0.35))
+            }
             ForEach(points) { p in
                 BarMark(
                     x: .value("Date", p.date, unit: unit),
-                    y: .value("Amount", p.amount)
+                    y: .value("Amount", p.amount),
+                    // Chunky bars with tight gutters. A thin bar reads as
+                    // decoration; a wide one reads as data.
+                    width: .fixed(22)
                 )
-                .foregroundStyle(by: .value("Series", p.series))
+                .foregroundStyle(barColor(for: p))
+                .cornerRadius(3)
                 .position(by: .value("Series", p.series))
+                // Every spend bar carries its own amount, so a value never needs
+                // to be uncovered by tapping or scrubbing.
+                .annotation(position: .top, spacing: 2) {
+                    if p.series == spentLabel, p.amount > 0 {
+                        Text(AmountFormatter.money(Decimal(p.amount)))
+                            .font(.system(size: 9).monospacedDigit())
+                            .foregroundStyle(.secondary)
+                    }
+                }
             }
             // Selection indicator — a faint vertical rule at the chosen bucket.
             if let sel = selectedDate.wrappedValue {
@@ -142,8 +176,27 @@ struct ActivityBarChart: View {
                     .zIndex(-1)
             }
         }
-        .chartForegroundStyleScale([spentLabel: Color.moneyOut, receivedLabel: Color.moneyIn])
+        .chartLegend(.hidden)   // colour now encodes budget, not series
+        // No Y axis and no gridlines. Every bar already carries its own amount, so
+        // an axis would be the same information twice — and the axis furniture is
+        // most of what makes a chart look busy. Pedometer++ draws neither.
+        .chartYAxis(.hidden)
+        // X axis keeps the dates but drops the gridlines and the axis rule.
+        .chartXAxis {
+            AxisMarks(values: .automatic(desiredCount: 5)) { _ in
+                AxisValueLabel().font(.system(size: 9))
+            }
+        }
         .chartXSelection(value: selectedDate)
+        .chartScrollableAxes(.horizontal)
+        .chartXVisibleDomain(length: visibleDomain)
+        // No `chartScrollTargetBehavior`: scrolling runs free with momentum rather
+        // than snapping to period boundaries. Snapping is what made the earlier
+        // build feel stiff; Pedometer++ glides because nothing catches it.
+        .chartScrollPosition(x: $scrollPosition)
+        // Long-press scrubbing is deliberately absent. With every bar labelled
+        // there is no hidden value to uncover, so the gesture would only compete
+        // with the scroll pan for no gain. Tap-to-select still filters the list.
         .frame(height: 200)
     }
 }
@@ -273,98 +326,3 @@ struct BarSelectionBreakdown: View {
     }
 }
 
-/// A month calendar where each day is tinted by its net (green = net income,
-/// red = net spend) and tappable to filter the list to that day.
-/// Pass `isRevealed: false` to neutralize color coding and hide amounts in accessibility.
-struct MonthHeatGrid: View {
-    let bars: [ActivityBar]
-    let calendar: Calendar
-    let selectedDay: Date?
-    var isRevealed: Bool = true
-    let onSelect: (Date) -> Void
-
-    private var leadingBlanks: Int {
-        guard let first = bars.first?.date else { return 0 }
-        let weekday = calendar.component(.weekday, from: first)
-        return (weekday - calendar.firstWeekday + 7) % 7
-    }
-
-    private var weekdaySymbols: [String] {
-        let s = calendar.veryShortStandaloneWeekdaySymbols
-        let shift = calendar.firstWeekday - 1
-        return Array(s[shift...] + s[..<shift])
-    }
-
-    private let columns = Array(repeating: GridItem(.flexible(), spacing: 4), count: 7)
-
-    var body: some View {
-        VStack(spacing: 6) {
-            HStack(spacing: 4) {
-                ForEach(Array(weekdaySymbols.enumerated()), id: \.offset) { _, sym in
-                    Text(sym).font(.caption2).foregroundStyle(.secondary)
-                        .frame(maxWidth: .infinity)
-                }
-            }
-            LazyVGrid(columns: columns, spacing: 4) {
-                ForEach(0..<leadingBlanks, id: \.self) { _ in Color.clear.frame(height: 40) }
-                ForEach(bars) { bar in
-                    DayCell(
-                        bar: bar,
-                        day: calendar.component(.day, from: bar.date),
-                        isSelected: selectedDay.map { calendar.isDate($0, inSameDayAs: bar.date) } ?? false,
-                        isRevealed: isRevealed
-                    )
-                    .onTapGesture { onSelect(bar.date) }
-                }
-            }
-        }
-    }
-
-    private struct DayCell: View {
-        let bar: ActivityBar
-        let day: Int
-        let isSelected: Bool
-        var isRevealed: Bool = true
-
-        private var fill: Color {
-            guard isRevealed else { return Color.secondary.opacity(0.10) }
-            if bar.net > 0 { return .moneyIn.opacity(0.22) }
-            if bar.net < 0 { return .moneyOut.opacity(0.22) }
-            return Color.secondary.opacity(0.10)
-        }
-
-        private var dotColor: Color {
-            guard isRevealed else { return .secondary }
-            return bar.net >= 0 ? Color.moneyIn : Color.moneyOut
-        }
-
-        var body: some View {
-            VStack(spacing: 2) {
-                Text("\(day)").font(.caption2)
-                if !bar.isEmpty {
-                    Circle()
-                        .fill(dotColor)
-                        .frame(width: 5, height: 5)
-                } else {
-                    Circle().fill(.clear).frame(width: 5, height: 5)
-                }
-            }
-            .frame(maxWidth: .infinity)
-            .frame(height: 40)
-            .background(fill)
-            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .stroke(Color.brandPrimary, lineWidth: isSelected ? 2 : 0)
-            )
-            .accessibilityElement(children: .ignore)
-            .accessibilityLabel(bar.date.formatted(.dateTime.month(.wide).day()))
-            .accessibilityValue(
-                bar.isEmpty ? "No activity"
-                    : isRevealed ? "Net \(AmountFormatter.money(bar.net))"
-                    : "Amounts hidden"
-            )
-            .accessibilityAddTraits(isSelected ? .isSelected : [])
-        }
-    }
-}

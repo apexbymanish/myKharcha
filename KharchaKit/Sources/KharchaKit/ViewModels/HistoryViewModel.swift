@@ -21,8 +21,24 @@ public final class HistoryViewModel: ObservableObject {
         public var searchText: String = ""
         public var categories: [CategorySnapshot] = []
         public var errorMessage: String?
-        /// The month shown in the calendar heat grid — navigable independently.
-        public var calendarMonth: Date = Date()
+
+        /// Time scope of the History chart (week/month/year), set by the W|M|Y control.
+        public var chartPeriod: ActivityPeriod = .month
+        /// The period the chart is currently scrolled to. This is the single source
+        /// of truth for what the chart and its header describe — never `Date()`.
+        public var chartAnchor: Date = Date()
+        /// Bars spanning the whole timeline, so the chart can be scrolled through it.
+        /// Cached here rather than recomputed on every SwiftUI body pass.
+        public var chartBars: [ActivityBar] = []
+        /// Totals and period-over-period change for `chartAnchor`'s window.
+        public var chartSummary: ActivitySummary?
+        /// Budget one bar is measured against, for the bar colours. Zero when the
+        /// user has set no category budgets, which renders bars in a neutral tint.
+        public var chartAllowance: Decimal = 0
+        /// The period the chart came to rest on. `chartAnchor` moves continuously
+        /// under the finger so the headline can track it; this only catches up once
+        /// scrolling stops, so the transaction list is not rebuilt every frame.
+        public var settledAnchor: Date = Date()
 
         /// True when any kind or category filter is active.
         public var hasActiveFilters: Bool {
@@ -32,6 +48,9 @@ public final class HistoryViewModel: ObservableObject {
 
     @Published public private(set) var state = State()
     private let store: ExpenseStore
+    /// "Today" as far as the scrollable domain is concerned, captured once per load
+    /// so the domain stays put while the user scrolls around inside it.
+    private var seriesNow = Date()
 
     /// Localized "Month Year" formatter, created once (DateFormatter is expensive).
     private static let sectionTitleFormatter: DateFormatter = {
@@ -85,11 +104,59 @@ public final class HistoryViewModel: ObservableObject {
         await reloadSections(calendar: calendar)
     }
 
-    /// Navigate the calendar heat grid to a different month; also clears the day filter.
-    public func setCalendarMonth(_ date: Date, calendar: Calendar = .current) async {
-        state.calendarMonth = date
-        state.dayFilter = nil
+    /// Move the chart to the period containing `date` — driven by the chart's scroll
+    /// position, so the header and totals follow whatever is on screen.
+    ///
+    /// Only the summary is recomputed. The scrollable domain must stay fixed while
+    /// scrolling, or the anchor would feed back into it and the timeline would keep
+    /// growing under the user's finger. It is also the expensive half.
+    public func setChartAnchor(_ date: Date, calendar: Calendar = .current) async {
+        state.chartAnchor = date
+        recomputeSummary(calendar: calendar)
+    }
+
+    /// Switch the chart's time scope. `chartAnchor` is deliberately left alone, so
+    /// month→week lands in a week of the month being viewed instead of snapping
+    /// back to today and discarding where the user had navigated to.
+    public func setChartPeriod(_ period: ActivityPeriod, calendar: Calendar = .current) async {
+        state.chartPeriod = period
+        recomputeChart(calendar: calendar)
+    }
+
+    /// Called when the chart's scroll comes to rest. Brings the list's period up to
+    /// where the chart actually stopped — deferred until now so a fling costs one
+    /// list rebuild rather than one per frame.
+    public func settleChartAnchor(calendar: Calendar = .current) async {
+        guard state.settledAnchor != state.chartAnchor else { return }
+        state.settledAnchor = state.chartAnchor
         await reloadSections(calendar: calendar)
+    }
+
+    /// Rebuilds both halves — the scrollable domain and the summary on top of it.
+    private func recomputeChart(calendar: Calendar) {
+        recomputeSeries(calendar: calendar)
+        recomputeSummary(calendar: calendar)
+    }
+
+    /// The scrollable domain, spanning the data plus today. Deliberately independent
+    /// of `chartAnchor` so scrolling can never extend it.
+    private func recomputeSeries(calendar: Calendar) {
+        state.chartBars = ActivitySeries.continuousBars(
+            state.allRows, period: state.chartPeriod, now: seriesNow, calendar: calendar
+        )
+    }
+
+    /// Totals and change for whichever window the chart is scrolled to, plus the
+    /// per-bar budget allowance those bars are coloured against.
+    private func recomputeSummary(calendar: Calendar) {
+        state.chartSummary = ActivitySeries.summary(
+            state.allRows, period: state.chartPeriod, containing: state.chartAnchor, calendar: calendar
+        )
+        let budgetTotal = state.categories.compactMap(\.monthlyBudget).reduce(Decimal(0), +)
+        let days = calendar.range(of: .day, in: .month, for: state.chartAnchor)?.count ?? 30
+        state.chartAllowance = ActivitySeries.allowancePerBucket(
+            monthlyBudgetTotal: budgetTotal, period: state.chartPeriod, daysInMonth: days
+        )
     }
 
     public func delete(_ id: UUID, calendar: Calendar = .current) async {
@@ -138,6 +205,9 @@ public final class HistoryViewModel: ObservableObject {
                     rows: sectionRows
                 )
             }
+
+            // Chart reads from the unfiltered ledger, so it refreshes whenever rows do.
+            recomputeChart(calendar: calendar)
         } catch {
             state.errorMessage = (error as? LocalizedError)?.errorDescription ?? "Something went wrong."
         }

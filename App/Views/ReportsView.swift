@@ -5,6 +5,9 @@ import KharchaKit
 struct ReportsView: View {
     let allRows: [TxnRow]
     let categories: [CategorySnapshot]
+    /// Month History was showing when Reports was opened, so the sheet starts on
+    /// the same period the user was already looking at rather than its own default.
+    var initialMonth: Date? = nil
 
     @EnvironmentObject private var privacy: PrivacyManager
     @Environment(\.dismiss) private var dismiss
@@ -149,6 +152,9 @@ struct ReportsView: View {
             }
             .navigationTitle("Reports")
             .navigationBarTitleDisplayMode(.large)
+            // Inherit History's month on open so Reports doesn't silently show a
+            // different period than the screen it was opened from.
+            .onAppear { if selectedMonth == nil { selectedMonth = initialMonth } }
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Done") { dismiss() }

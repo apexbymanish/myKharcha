@@ -7,16 +7,17 @@ struct HistoryView: View {
     @StateObject private var vm: HistoryViewModel
     @EnvironmentObject private var privacy: PrivacyManager
     @State private var editingRow: TxnRow?
-    @State private var period: ActivityPeriod = .month
     @State private var searchText = ""
     @State private var selectedBarDate: Date?
     // Month navigation (client-side filter on top of VM filters)
     @State private var selectedMonth: Date? = nil
-    // Sections the user has explicitly collapsed; empty = all expanded
+    // Explicit user overrides of the default expansion (which follows the chart).
     @State private var collapsedSections: Set<String> = []
-    @State private var analyticsExpanded = false
+    @State private var expandedSections: Set<String> = []
+    // Expanded by default: the chart now sits at the top of the screen, so
+    // landing on a collapsed row would hide the thing you came to see.
+    @State private var analyticsExpanded = true
     // Local calendar day selection — shown inline below heatmap, does NOT filter the main list
-    @State private var selectedCalendarDay: Date? = nil
     @State private var showReports = false
     @State private var selectedYear: Int? = nil
     @State private var showFiltersSheet = false
@@ -28,15 +29,24 @@ struct HistoryView: View {
 
     // MARK: - Computed
 
-    private var bars: [ActivityBar] {
-        ActivitySeries.bars(vm.state.allRows, period: period, now: Date(), calendar: .current)
+    /// The scope currently shown by the chart. Owned by the view model so the
+    /// scroll position, the summary and the bars can never disagree about it.
+    private var period: ActivityPeriod { vm.state.chartPeriod }
+
+    /// Debounces the end of a scroll. `chartScrollPosition` fires continuously
+    /// while a fling decelerates, so each update cancels the previous pending
+    /// settle; whichever one survives the quiet gap is the real stop.
+    @State private var settleTask: Task<Void, Never>?
+
+    private func scheduleSettle() {
+        settleTask?.cancel()
+        settleTask = Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(180))
+            guard !Task.isCancelled else { return }
+            await vm.settleChartAnchor()
+        }
     }
-    private var prevBars: [ActivityBar] {
-        ActivitySeries.barsPrior(vm.state.allRows, period: period, now: Date(), calendar: .current)
-    }
-    private var monthBars: [ActivityBar] {
-        ActivitySeries.daysInMonth(vm.state.allRows, monthOf: vm.state.calendarMonth, calendar: .current)
-    }
+
 
     private var hasActiveFilter: Bool {
         vm.state.hasActiveFilters
@@ -67,6 +77,41 @@ struct HistoryView: View {
     // Transaction count for the currently visible (filtered) sections — shown
     // as the Filters sheet's live "Show N results" button.
     private var filteredTxnCount: Int { visibleSections.reduce(0) { $0 + $1.rows.count } }
+
+    /// Whether a month section shows its rows.
+    ///
+    /// By default only the period the chart has settled on is open — the others
+    /// stay as tappable headers, so the whole ledger is still reachable without
+    /// the screen opening every month at once. An explicit tap always wins, so
+    /// the user can pin a month open (or shut) and scrolling the chart won't
+    /// fight them over it.
+    private func isExpanded(_ section: HistoryViewModel.Section) -> Bool {
+        if collapsedSections.contains(section.title) { return false }
+        if expandedSections.contains(section.title) { return true }
+        return sectionMatchesSettledPeriod(section)
+    }
+
+    private func toggleSection(_ section: HistoryViewModel.Section, currentlyExpanded: Bool) {
+        collapsedSections.remove(section.title)
+        expandedSections.remove(section.title)
+        // Record the choice only where it differs from the default, so a section
+        // the user re-aligns with the chart goes back to following it.
+        if currentlyExpanded {
+            if sectionMatchesSettledPeriod(section) { collapsedSections.insert(section.title) }
+        } else {
+            if !sectionMatchesSettledPeriod(section) { expandedSections.insert(section.title) }
+        }
+    }
+
+    /// Does this month section fall inside the period the chart came to rest on?
+    /// Year scope matches the whole year, since one bar there is a month.
+    private func sectionMatchesSettledPeriod(_ section: HistoryViewModel.Section) -> Bool {
+        let cal = Calendar.current
+        let granularity: Calendar.Component = period == .year ? .year : .month
+        return section.rows.contains {
+            cal.isDate($0.date, equalTo: vm.state.settledAnchor, toGranularity: granularity)
+        }
+    }
 
     // Sections after applying the client-side month/year filter.
     private var visibleSections: [HistoryViewModel.Section] {
@@ -100,9 +145,13 @@ struct HistoryView: View {
                 // ── 1. Type segment (All / Expenses / Income) ─────────────
                 controlsRowSection
 
-                // ── 2. Expandable transaction sections ────────────────────
+                // ── 2. Analytics — above the ledger, so the chart is what you
+                //      land on rather than a stack of collapsed month rows ───
+                analyticsSection
+
+                // ── 3. Expandable transaction sections ────────────────────
                 ForEach(visibleSections, id: \.title) { section in
-                    let isExpanded = !collapsedSections.contains(section.title)
+                    let isExpanded = isExpanded(section)
                     Section {
                         if isExpanded {
                             ForEach(section.rows, id: \.id) { row in
@@ -130,17 +179,13 @@ struct HistoryView: View {
                             isRevealed: privacy.isRevealed
                         ) {
                             withAnimation(.easeInOut(duration: 0.2)) {
-                                if isExpanded {
-                                    collapsedSections.insert(section.title)
-                                } else {
-                                    collapsedSections.remove(section.title)
-                                }
+                                toggleSection(section, currentlyExpanded: isExpanded)
                             }
                         }
                     }
                 }
 
-                // ── 3. No-results when filters match nothing ──────────────
+                // ── 4. No-results when filters match nothing ──────────────
                 if visibleSections.isEmpty && !vm.state.allRows.isEmpty && vm.state.errorMessage == nil {
                     EmptyStateView(
                         icon: "magnifyingglass",
@@ -150,9 +195,6 @@ struct HistoryView: View {
                     .listRowBackground(Color.clear)
                     .listRowSeparator(.hidden)
                 }
-
-                // ── 4. Analytics — collapsed by default ───────────────────
-                analyticsSection
             }
 
             if let error = vm.state.errorMessage {
@@ -191,7 +233,8 @@ struct HistoryView: View {
             }
         }
         .sheet(isPresented: $showReports) {
-            ReportsView(allRows: vm.state.allRows, categories: vm.state.categories)
+            ReportsView(allRows: vm.state.allRows, categories: vm.state.categories,
+                        initialMonth: vm.state.chartAnchor)
         }
         .sheet(item: $editingRow, onDismiss: {
             Task { await vm.load() }
@@ -218,9 +261,15 @@ struct HistoryView: View {
         .onChange(of: searchText) { _, text in Task { await vm.setSearchFilter(text) } }
         .task { await vm.load() }
         .refreshable { await vm.load() }
-        .onChange(of: period) { _, _ in
+        .onChange(of: vm.state.chartPeriod) { _, _ in
             selectedBarDate = nil
             Task { await vm.setDayFilter(nil) }
+        }
+        // Picking a month in Filters moves the chart to it, so the list filter and
+        // the chart can't end up describing different months.
+        .onChange(of: selectedMonth) { _, month in
+            guard let month else { return }
+            Task { await vm.setChartAnchor(month) }
         }
         .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
             Task { await vm.load() }
@@ -234,15 +283,6 @@ struct HistoryView: View {
                 try? await Task.sleep(for: .milliseconds(120))
                 withAnimation(.easeInOut(duration: 0.3)) {
                     proxy.scrollTo("barSelectionBreakdown", anchor: .top)
-                }
-            }
-        }
-        .onChange(of: selectedCalendarDay) { _, newDay in
-            guard newDay != nil else { return }
-            Task { @MainActor in
-                try? await Task.sleep(for: .milliseconds(120))
-                withAnimation(.easeInOut(duration: 0.3)) {
-                    proxy.scrollTo("calendarDayDetail", anchor: .top)
                 }
             }
         }
@@ -293,11 +333,32 @@ struct HistoryView: View {
     @ViewBuilder private var analyticsSection: some View {
         Section {
             DisclosureGroup(isExpanded: $analyticsExpanded) {
-                ActivitySummaryHeader(bars: bars, prevBars: prevBars, isRevealed: privacy.isRevealed)
+                if let summary = vm.state.chartSummary {
+                    ChartHeadline(summary: summary, period: period, isRevealed: privacy.isRevealed)
+                }
                 ActivityBarChart(
-                    bars: bars,
+                    // The whole timeline, so the chart can be scrolled through it —
+                    // not just the anchored window the header summarises.
+                    bars: vm.state.chartBars,
                     unit: period == .year ? .month : .day,
-                    selectedDate: $selectedBarDate
+                    selectedDate: $selectedBarDate,
+                    period: period,
+                    allowance: vm.state.chartAllowance,
+                    scrollPosition: Binding(
+                        get: { vm.state.chartAnchor },
+                        set: { newAnchor in
+                            // Paging away from a selected bar makes the selection
+                            // meaningless, so drop it as the window moves.
+                            selectedBarDate = nil
+                            // The chart is the navigator once the user scrolls it —
+                            // release the Filters month so the two can't contradict.
+                            selectedMonth = nil
+                            // The headline follows the finger; the list waits for
+                            // the scroll to stop (see settleTask below).
+                            Task { await vm.setChartAnchor(newAnchor) }
+                            scheduleSettle()
+                        }
+                    )
                 )
                 if let date = selectedBarDate {
                     BarSelectionBreakdown(allRows: vm.state.allRows, date: date, period: period) {
@@ -305,14 +366,20 @@ struct HistoryView: View {
                     }
                     .id("barSelectionBreakdown")
                 }
-                calendarContent
             } label: {
                 HStack {
-                    Label("Analytics & Calendar", systemImage: "chart.bar.xaxis")
+                    Label("Analytics", systemImage: "chart.bar.xaxis")
                         .font(.subheadline.weight(.medium))
                         .foregroundStyle(.primary)
                     Spacer()
-                    Picker("Period", selection: $period) {
+                    Picker("Period", selection: Binding(
+                        get: { vm.state.chartPeriod },
+                        set: { newPeriod in
+                            // Selection is meaningless once the buckets change shape.
+                            selectedBarDate = nil
+                            Task { await vm.setChartPeriod(newPeriod) }
+                        }
+                    )) {
                         Text("Week").tag(ActivityPeriod.week)
                         Text("Month").tag(ActivityPeriod.month)
                         Text("Year").tag(ActivityPeriod.year)
@@ -325,219 +392,6 @@ struct HistoryView: View {
         }
     }
 
-    @ViewBuilder private var calendarContent: some View {
-        HStack {
-            Button {
-                let prev = Calendar.current.date(byAdding: .month, value: -1, to: vm.state.calendarMonth)!
-                selectedCalendarDay = nil
-                Task { await vm.setCalendarMonth(prev) }
-            } label: {
-                Image(systemName: "chevron.left").font(.caption.weight(.semibold))
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel("Previous month")
-
-            Spacer()
-            Text(vm.state.calendarMonth.formatted(.dateTime.month(.wide).year()))
-                .font(.subheadline.weight(.medium))
-            Spacer()
-
-            Button {
-                let next = Calendar.current.date(byAdding: .month, value: 1, to: vm.state.calendarMonth)!
-                selectedCalendarDay = nil
-                Task { await vm.setCalendarMonth(next) }
-            } label: {
-                Image(systemName: "chevron.right").font(.caption.weight(.semibold))
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel("Next month")
-        }
-
-        MonthHeatGrid(
-            bars: monthBars,
-            calendar: .current,
-            selectedDay: selectedCalendarDay,
-            isRevealed: privacy.isRevealed
-        ) { day in
-            withAnimation(.spring(response: 0.3, dampingFraction: 0.75)) {
-                let alreadySelected = selectedCalendarDay.map {
-                    Calendar.current.isDate($0, inSameDayAs: day)
-                } ?? false
-                selectedCalendarDay = alreadySelected ? nil : day
-            }
-        }
-
-        // Inline day detail — appears immediately below the heatmap on tap.
-        if let day = selectedCalendarDay {
-            DayDetailExpansion(
-                day: day,
-                allRows: vm.state.allRows,
-                categories: vm.state.categories,
-                isRevealed: privacy.isRevealed,
-                onDismiss: {
-                    withAnimation(.easeInOut(duration: 0.2)) { selectedCalendarDay = nil }
-                },
-                onEdit: { row in
-                    editingRow = row
-                }
-            )
-            .id("calendarDayDetail")
-            .transition(.opacity.combined(with: .move(edge: .top)))
-        }
-    }
-}
-
-// MARK: - Inline day detail (shown below heatmap on tap)
-
-private struct DayDetailExpansion: View {
-    let day: Date
-    let allRows: [TxnRow]
-    let categories: [CategorySnapshot]
-    let isRevealed: Bool
-    let onDismiss: () -> Void
-    let onEdit: (TxnRow) -> Void
-
-    private var dayRows: [TxnRow] {
-        allRows.filter { Calendar.current.isDate($0.date, inSameDayAs: day) }
-            .sorted { $0.date > $1.date }
-    }
-
-    private var totalExpense: Decimal { dayRows.filter { $0.kind == .expense }.reduce(0) { $0 + $1.amount } }
-    private var totalIncome:  Decimal { dayRows.filter { $0.kind == .income  }.reduce(0) { $0 + $1.amount } }
-
-    // Show category breakdown only when 2+ transactions span 2+ distinct categories.
-    private var distinctCategoryCount: Int {
-        Set(dayRows.map { $0.categoryName.isEmpty ? "Other" : $0.categoryName }).count
-    }
-    private var showBreakdown: Bool { dayRows.count >= 2 && distinctCategoryCount >= 2 }
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            // Header
-            HStack(spacing: 6) {
-                VStack(alignment: .leading, spacing: 1) {
-                    Text(day.formatted(.dateTime.weekday(.wide).month(.abbreviated).day()))
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(.primary)
-                    HStack(spacing: 8) {
-                        if totalExpense > 0 {
-                            Text(isRevealed ? "−\(AmountFormatter.money(totalExpense))" : "−••••")
-                                .font(.caption2.monospacedDigit())
-                                .foregroundStyle(Color.moneyOut)
-                        }
-                        if totalIncome > 0 {
-                            Text(isRevealed ? "+\(AmountFormatter.money(totalIncome))" : "+••••")
-                                .font(.caption2.monospacedDigit())
-                                .foregroundStyle(Color.moneyIn)
-                        }
-                        if dayRows.isEmpty {
-                            Text("No transactions")
-                                .font(.caption2).foregroundStyle(.secondary)
-                        }
-                    }
-                }
-                Spacer()
-                Button(action: onDismiss) {
-                    Image(systemName: "xmark.circle.fill")
-                        .font(.callout)
-                        .foregroundStyle(Color.secondary.opacity(0.6))
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel("Close day detail")
-            }
-            .padding(.bottom, dayRows.isEmpty ? 0 : 10)
-
-            // Transaction rows
-            ForEach(Array(dayRows.enumerated()), id: \.element.id) { index, row in
-                if index > 0 { Divider().padding(.vertical, 4) }
-                Button { onEdit(row) } label: { TxnRowView(row: row, categories: categories) }
-                    .buttonStyle(.plain)
-                    .accessibilityHint("Edits this transaction")
-            }
-
-            // Category breakdown bars — only when 2+ categories
-            if showBreakdown {
-                DayCategoryBars(rows: dayRows, categories: categories, isRevealed: isRevealed)
-                    .padding(.top, 10)
-            }
-        }
-        .padding(12)
-        .background(Color.secondary.opacity(0.07))
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-        .padding(.top, 6)
-    }
-}
-
-// MARK: - Day category breakdown bars
-
-private struct DayCategoryBars: View {
-    let rows: [TxnRow]
-    let categories: [CategorySnapshot]
-    let isRevealed: Bool
-
-    private struct Bar: Identifiable {
-        let id: String; let name: String; let amount: Decimal; let color: Color; let fraction: Double
-    }
-
-    private func bars(for kind: TxnKind) -> [Bar] {
-        let kindRows = rows.filter { $0.kind == kind }
-        guard !kindRows.isEmpty else { return [] }
-        let total = kindRows.reduce(0) { $0 + $1.amount }
-        guard total > 0 else { return [] }
-
-        let grouped = Dictionary(grouping: kindRows, by: { $0.categoryName.isEmpty ? "Other" : $0.categoryName })
-        let sorted = grouped
-            .map { name, txns in (name, txns.reduce(0) { $0 + $1.amount }) }
-            .sorted { $0.1 > $1.1 }
-
-        let top  = sorted.prefix(4)
-        let rest = sorted.dropFirst(4)
-
-        var result: [Bar] = top.map { name, amount in
-            let color = categories.first(where: { $0.name == name }).map { Color(hex: $0.colorHex) } ?? Color.brandPrimary
-            let frac  = min(max(NSDecimalNumber(decimal: amount / total).doubleValue, 0), 1)
-            return Bar(id: name, name: name, amount: amount, color: color, fraction: frac)
-        }
-        if !rest.isEmpty {
-            let amt  = rest.reduce(Decimal(0)) { $0 + $1.1 }
-            let frac = min(max(NSDecimalNumber(decimal: amt / total).doubleValue, 0), 1)
-            result.append(Bar(id: "Others", name: "Others", amount: amt, color: .secondary, fraction: frac))
-        }
-        return result
-    }
-
-    var body: some View {
-        let expBars = bars(for: .expense)
-        let incBars = bars(for: .income)
-
-        if !expBars.isEmpty || !incBars.isEmpty {
-            VStack(alignment: .leading, spacing: 6) {
-                Divider()
-                ForEach(expBars) { bar in barRow(bar, tint: bar.color) }
-                if !incBars.isEmpty && !expBars.isEmpty { Divider() }
-                ForEach(incBars) { bar in barRow(bar, tint: Color.moneyIn) }
-            }
-        }
-    }
-
-    private func barRow(_ bar: Bar, tint: Color) -> some View {
-        VStack(alignment: .leading, spacing: 2) {
-            HStack {
-                Text(bar.name).font(.caption2).lineLimit(1)
-                Spacer()
-                Text(isRevealed ? AmountFormatter.money(bar.amount) : "••••")
-                    .font(.caption2.monospacedDigit())
-                Text("\(Int((bar.fraction * 100).rounded()))%")
-                    .font(.caption2).foregroundStyle(.secondary).frame(width: 30, alignment: .trailing)
-            }
-            GeometryReader { geo in
-                ZStack(alignment: .leading) {
-                    Capsule().fill(Color.secondary.opacity(0.1))
-                    Capsule().fill(tint).frame(width: geo.size.width * bar.fraction)
-                }
-            }.frame(height: 4)
-        }
-    }
 }
 
 // MARK: - Expandable section header

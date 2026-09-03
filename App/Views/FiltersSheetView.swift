@@ -191,7 +191,9 @@ struct FiltersSheetView: View {
                                     } else {
                                         selectedMonth = month
                                         selectedYear = Calendar.current.component(.year, from: month)
-                                        Task { await vm.setCalendarMonth(month) }
+                                        // Move the chart to the picked month so the
+                                        // list filter and the chart never disagree.
+                                        Task { await vm.setChartAnchor(month) }
                                     }
                                 }
                             }
