@@ -355,17 +355,30 @@ struct ReportsView: View {
         let isCurrent: Bool
     }
 
+    /// Three periods drawn from the ones that actually hold transactions, not
+    /// the three calendar periods ending at the one selected.
+    ///
+    /// Counting backwards from the selection meant that picking the earliest
+    /// month on record put two empty columns beside it — months with no data,
+    /// which the period chips do not even offer. Two thirds of the chart said
+    /// nothing, and "nothing recorded" read as "nothing spent".
+    ///
+    /// The window slides instead: it prefers the periods before the selection
+    /// and fills forward when there are not enough of them, so the selected
+    /// period is always in view with real neighbours on whichever side exist.
     private var comparisonTotals: [PeriodTotal] {
-        let cal = Calendar.current
-        return (0..<3).reversed().compactMap { back -> PeriodTotal? in
-            guard let date = cal.date(byAdding: scope.component, value: -back, to: reportPeriod)
-            else { return nil }
-            let start = periodStart(containing: date)
+        let ordered = availablePeriods.sorted()
+        guard !ordered.isEmpty else { return [] }
+        let width = min(3, ordered.count)
+        let index = ordered.firstIndex(of: reportPeriod) ?? ordered.count - 1
+        let lower = max(0, min(index - (width - 1), ordered.count - width))
+
+        return ordered[lower..<(lower + width)].map { start in
             let spent = rows(in: start).filter { $0.kind == .expense }.reduce(Decimal(0)) { $0 + $1.amount }
             return PeriodTotal(id: start,
                                label: scope.label(for: start),
                                amount: spent,
-                               isCurrent: back == 0)
+                               isCurrent: start == reportPeriod)
         }
     }
 
