@@ -39,6 +39,10 @@ public final class HistoryViewModel: ObservableObject {
         /// under the finger so the headline can track it; this only catches up once
         /// scrolling stops, so the transaction list is not rebuilt every frame.
         public var settledAnchor: Date = Date()
+        /// Live magnification while a pinch is in flight, 1.0 at rest. Scales the
+        /// chart's visible domain only — bars keep their granularity until the
+        /// fingers lift, so nothing re-buckets under them mid-gesture.
+        public var zoomScale: Double = 1.0
 
         /// True when any kind or category filter is active.
         public var hasActiveFilters: Bool {
@@ -121,6 +125,22 @@ public final class HistoryViewModel: ObservableObject {
     public func setChartPeriod(_ period: ActivityPeriod, calendar: Calendar = .current) async {
         state.chartPeriod = period
         recomputeChart(calendar: calendar)
+    }
+
+    /// Track the pinch. Deliberately synchronous and free of any reload: this
+    /// fires continuously while the fingers move, and must cost nothing but a
+    /// layout pass.
+    public func setZoomScale(_ scale: Double) {
+        state.zoomScale = scale
+    }
+
+    /// Called when the fingers lift. Snaps to the nearest rung and re-buckets
+    /// once. `chartAnchor` is untouched, so zooming changes detail, not place.
+    public func settleZoom(calendar: Calendar = .current) async {
+        let target = ActivitySeries.rung(forScale: state.zoomScale, from: state.chartPeriod)
+        state.zoomScale = 1.0
+        guard target != state.chartPeriod else { return }
+        await setChartPeriod(target, calendar: calendar)
     }
 
     /// Called when the chart's scroll comes to rest. Brings the list's period up to
