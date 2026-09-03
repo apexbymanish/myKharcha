@@ -1,0 +1,949 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 63;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		067717EB2D703DFBD346877C /* InfoPlist.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 36168CACFAFADE230F7F9E20 /* InfoPlist.xcstrings */; };
+		09AFACDF6F80B0748CBA1A44 /* SyncEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0153C7891692D8C9E2843570 /* SyncEngine.swift */; };
+		111785BD48CCEA7EEB8AD720 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28183456CBEAB046E6AC7829 /* Theme.swift */; };
+		16B589669E10043DBBDA2386 /* RemindersView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4ABA52414CD34EBD8EB3CE1 /* RemindersView.swift */; };
+		201DD3C9D16397855B31A709 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69FEAF37EE3107CA468FAED2 /* RootView.swift */; };
+		24DC0675303D30CD00D581FB /* InfoPlist.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 24DC0673303D30CD00D581FB /* InfoPlist.xcstrings */; };
+		24DC0676303D30CD00D581FB /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 24DC0674303D30CD00D581FB /* Localizable.xcstrings */; };
+		24DC0688303D7AC800D581FB /* PrivacyManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24DC0687303D7AC800D581FB /* PrivacyManager.swift */; };
+		24DC068A303D7C4100D581FB /* AppUpdateChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24DC0689303D7C4100D581FB /* AppUpdateChecker.swift */; };
+		24DC068C303DD18C00D581FB /* SplashView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24DC068B303DD18C00D581FB /* SplashView.swift */; };
+		24DC068E304004EC00D581FB /* ReportsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24DC068D304004EC00D581FB /* ReportsView.swift */; };
+		24DC069430410C8200D581FB /* BackupFileWriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24DC069330410C8200D581FB /* BackupFileWriter.swift */; };
+		2F936B922B1C50E76C08C463 /* CurrencyPreference.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEE3A422870C98FB94EF78AB /* CurrencyPreference.swift */; };
+		32C5F60669B04F632ADD0B19 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = FE154007F5FAC9B9C1C521F8 /* FirebaseFirestore */; };
+		3BA4A022DF6B6F8726650E6B /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2AC177A02071D0D0843C2B /* HistoryView.swift */; };
+		4829E6FA827CD9BAED036C52 /* ImportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43F929D57FA89898B0B7C4AD /* ImportView.swift */; };
+		4AE837573A29441C158B8F50 /* KharchaKit in Frameworks */ = {isa = PBXBuildFile; productRef = 0E07F004FC632ACED67AC07C /* KharchaKit */; };
+		4E967966AD04903960205246 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 0544C067B863B0B91F044150 /* GoogleService-Info.plist */; };
+		4EA295C514095F8614356165 /* NotificationScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB1E5C96417E43021CD9A6E1 /* NotificationScheduler.swift */; };
+		59175C702E8D18E83EDB0158 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = CB6037022150DDC84F6E73D1 /* FirebaseAuth */; };
+		5BD0AE89CAF38588218DE003 /* KharchaIntentsExtension.appex in Embed ExtensionKit Extensions */ = {isa = PBXBuildFile; fileRef = C9B1C67CC809A3D2F4BEFB0C /* KharchaIntentsExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		6069A68846AA50BC0652548A /* KharchaShortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 437A08250B1C4583CA7A9752 /* KharchaShortcuts.swift */; };
+		6B35F1EEE3A608DBF6978973 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 61EF15F1DD792AA7A1D99D80 /* Localizable.xcstrings */; };
+		760E53929D70E082DD2C28B3 /* InstallmentsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 703015A09CB6B09846D29DF8 /* InstallmentsView.swift */; };
+		841B26FD78955A9FD61C0BF5 /* AppContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F2521668CBB9D4ABDCFC25D /* AppContainer.swift */; };
+		85AA35126F79C2A9EDDD6554 /* FrankfurterRateService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9736B38E543ACF8EDB42DAD /* FrankfurterRateService.swift */; };
+		8A5559A4802E65DEE4D5F93A /* InstallmentDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 249B7DBA649188A1C67510B1 /* InstallmentDetailView.swift */; };
+		9007BDAE8E3EBCB3FBAB214B /* TxnFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE89EF311C80735B99534F5A /* TxnFormView.swift */; };
+		9B6C6C0FCB774DB3EED8D011 /* Components.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3135AA1A3D54C1360E66E543 /* Components.swift */; };
+		A39C8707E12A8D3B0A069665 /* FirestoreSync.swift in Sources */ = {isa = PBXBuildFile; fileRef = D11AEE16144C1E22DF3097B7 /* FirestoreSync.swift */; };
+		A58AD9C021D20AFEFF1A3DCC /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 90A7B0277CF72370073A5B38 /* Assets.xcassets */; };
+		A5C8647415847128B1E2D528 /* KharchaExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 798E304D56508DA05FAA2F08 /* KharchaExtension.swift */; };
+		A6E5B3D9C3AA768690D1703C /* FriendDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD5A5FDB31A883B6E3EAB77B /* FriendDetailView.swift */; };
+		AEAA4C6A20FED8571186B9FE /* PlanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF5CA484A82528A543A6EBCB /* PlanView.swift */; };
+		B56309503677EA74C792A39C /* KharchaWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 0779EC459B852D7B5514B2EC /* KharchaWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		B66C4F4965A2059588FDEC44 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C387BCC4E5EC254DA66597D /* ProfileView.swift */; };
+		B9E8249D0A7E5D5F5D447892 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCB7EC171A69869421B471B2 /* OnboardingView.swift */; };
+		C6FCA5819BEB204DA2413AE8 /* InfoPlist.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 0851FCF921B964260436074E /* InfoPlist.xcstrings */; };
+		CB5709B8D44A948CB76CC915 /* BudgetsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C907E594924CA417671EA605 /* BudgetsView.swift */; };
+		CB9DD92D01394622FA39037B /* KharchaWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85EBCD6310EE53C7B1487AB2 /* KharchaWidget.swift */; };
+		D05D916D920569343C27050F /* AppleSignIn.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FC6FFA3B42CC2731E0B3C8B /* AppleSignIn.swift */; };
+		D76B8FEBF38309EEAF827F49 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08E503EBB2AE805185B83A7E /* SettingsView.swift */; };
+		D9CA6C09190EC645534A3749 /* AppShortcuts.strings in Resources */ = {isa = PBXBuildFile; fileRef = 603A5A86D90E0B55068BA06D /* AppShortcuts.strings */; };
+		DA8F7CB24A48B6E78F6A4EDC /* ActivityCharts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 959BACA54E01B023276CE8F4 /* ActivityCharts.swift */; };
+		A1E5C0D24B71E0A9C3F10002 /* ExportPreviewSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1E5C0D24B71E0A9C3F10001 /* ExportPreviewSheet.swift */; };
+		DC43AE9520A807F9E5FD5C2B /* KharchaKit in Frameworks */ = {isa = PBXBuildFile; productRef = 3DD61C4907D809C2393BE230 /* KharchaKit */; };
+		E036C51F34E1B1F3EA61E5BC /* FriendsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A34CE6439C8216233EFABD4 /* FriendsView.swift */; };
+		E7D09FB8DA5781CE85EF6389 /* KharchaApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FA8CCC79FEAF1C8A0A478AC /* KharchaApp.swift */; };
+		EDCCA7DDB4E6538BEFD71DEE /* AppBootstrap.swift in Sources */ = {isa = PBXBuildFile; fileRef = 210E3A40B033E1C645DFEA8C /* AppBootstrap.swift */; };
+		F736A659B37EABEBCC787B0F /* CSVFileWriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5510B845D3AB3C6032FEE8FF /* CSVFileWriter.swift */; };
+		F8D31F85E8087B57A87CA5C0 /* SavingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E5032379BA7BAADBF750B5A /* SavingsView.swift */; };
+		F921785F0A5ADF09DAF22627 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D510A06F004F7900AE06B36 /* HomeView.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		2DF52F46DF46612897A4E6E9 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = E33CB455C722C5D9B3F07B27 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 5016591130D4347BB8F7E478;
+			remoteInfo = KharchaIntentsExtension;
+		};
+		FC2121A3C8A1C06A7DC1866E /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = E33CB455C722C5D9B3F07B27 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A80322518F38EA7965769F7F;
+			remoteInfo = KharchaWidget;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		414C4AA94A9D02585AE382BD /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				B56309503677EA74C792A39C /* KharchaWidget.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B4CE6DF722512B37F707A449 /* Embed ExtensionKit Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "$(EXTENSIONS_FOLDER_PATH)";
+			dstSubfolderSpec = 16;
+			files = (
+				5BD0AE89CAF38588218DE003 /* KharchaIntentsExtension.appex in Embed ExtensionKit Extensions */,
+			);
+			name = "Embed ExtensionKit Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		0153C7891692D8C9E2843570 /* SyncEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncEngine.swift; sourceTree = "<group>"; };
+		0544C067B863B0B91F044150 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
+		0779EC459B852D7B5514B2EC /* KharchaWidget.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = KharchaWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		0851FCF921B964260436074E /* InfoPlist.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = InfoPlist.xcstrings; sourceTree = "<group>"; };
+		08E503EBB2AE805185B83A7E /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		0D510A06F004F7900AE06B36 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
+		1E7D1088EC76A3D6B3266C65 /* ko */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ko; path = ko.lproj/AppShortcuts.strings; sourceTree = "<group>"; };
+		210E3A40B033E1C645DFEA8C /* AppBootstrap.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppBootstrap.swift; sourceTree = "<group>"; };
+		249B7DBA649188A1C67510B1 /* InstallmentDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InstallmentDetailView.swift; sourceTree = "<group>"; };
+		24DC0671303D30CD00D581FB /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/AppShortcuts.strings"; sourceTree = "<group>"; };
+		24DC0673303D30CD00D581FB /* InfoPlist.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = InfoPlist.xcstrings; sourceTree = "<group>"; };
+		24DC0674303D30CD00D581FB /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
+		24DC0677303D30D100D581FB /* hi */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = hi; path = hi.lproj/AppShortcuts.strings; sourceTree = "<group>"; };
+		24DC0678303D30D500D581FB /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/AppShortcuts.strings; sourceTree = "<group>"; };
+		24DC0679303D30D800D581FB /* fr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = fr; path = fr.lproj/AppShortcuts.strings; sourceTree = "<group>"; };
+		24DC067A303D30DC00D581FB /* ar */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ar; path = ar.lproj/AppShortcuts.strings; sourceTree = "<group>"; };
+		24DC067B303D30E000D581FB /* bn */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = bn; path = bn.lproj/AppShortcuts.strings; sourceTree = "<group>"; };
+		24DC067C303D30E400D581FB /* pt-BR */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "pt-BR"; path = "pt-BR.lproj/AppShortcuts.strings"; sourceTree = "<group>"; };
+		24DC067D303D30E700D581FB /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = ru.lproj/AppShortcuts.strings; sourceTree = "<group>"; };
+		24DC067E303D30EB00D581FB /* ur */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ur; path = ur.lproj/AppShortcuts.strings; sourceTree = "<group>"; };
+		24DC067F303D30EE00D581FB /* id */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = id; path = id.lproj/AppShortcuts.strings; sourceTree = "<group>"; };
+		24DC0680303D30F100D581FB /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/AppShortcuts.strings; sourceTree = "<group>"; };
+		24DC0681303D30F500D581FB /* ja */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ja; path = ja.lproj/AppShortcuts.strings; sourceTree = "<group>"; };
+		24DC0682303D30F900D581FB /* mr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = mr; path = mr.lproj/AppShortcuts.strings; sourceTree = "<group>"; };
+		24DC0683303D30FC00D581FB /* te */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = te; path = te.lproj/AppShortcuts.strings; sourceTree = "<group>"; };
+		24DC0684303D310000D581FB /* tr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = tr; path = tr.lproj/AppShortcuts.strings; sourceTree = "<group>"; };
+		24DC0685303D310400D581FB /* ta */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ta; path = ta.lproj/AppShortcuts.strings; sourceTree = "<group>"; };
+		24DC0686303D310700D581FB /* vi */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = vi; path = vi.lproj/AppShortcuts.strings; sourceTree = "<group>"; };
+		24DC0687303D7AC800D581FB /* PrivacyManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyManager.swift; sourceTree = "<group>"; };
+		24DC0689303D7C4100D581FB /* AppUpdateChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppUpdateChecker.swift; sourceTree = "<group>"; };
+		24DC068B303DD18C00D581FB /* SplashView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashView.swift; sourceTree = "<group>"; };
+		24DC068D304004EC00D581FB /* ReportsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReportsView.swift; sourceTree = "<group>"; };
+		24DC069330410C8200D581FB /* BackupFileWriter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupFileWriter.swift; sourceTree = "<group>"; };
+		28183456CBEAB046E6AC7829 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
+		2A34CE6439C8216233EFABD4 /* FriendsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendsView.swift; sourceTree = "<group>"; };
+		2F2521668CBB9D4ABDCFC25D /* AppContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppContainer.swift; sourceTree = "<group>"; };
+		3135AA1A3D54C1360E66E543 /* Components.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Components.swift; sourceTree = "<group>"; };
+		36168CACFAFADE230F7F9E20 /* InfoPlist.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = InfoPlist.xcstrings; sourceTree = "<group>"; };
+		437A08250B1C4583CA7A9752 /* KharchaShortcuts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KharchaShortcuts.swift; sourceTree = "<group>"; };
+		43F929D57FA89898B0B7C4AD /* ImportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportView.swift; sourceTree = "<group>"; };
+		4C387BCC4E5EC254DA66597D /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
+		4CCB153C1D76AC0E4C404125 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		5510B845D3AB3C6032FEE8FF /* CSVFileWriter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CSVFileWriter.swift; sourceTree = "<group>"; };
+		5E5032379BA7BAADBF750B5A /* SavingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavingsView.swift; sourceTree = "<group>"; };
+		5FC6FFA3B42CC2731E0B3C8B /* AppleSignIn.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleSignIn.swift; sourceTree = "<group>"; };
+		61EF15F1DD792AA7A1D99D80 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
+		62B253CD42B237423480E375 /* KharchaKit */ = {isa = PBXFileReference; lastKnownFileType = folder; path = KharchaKit; sourceTree = SOURCE_ROOT; };
+		69FEAF37EE3107CA468FAED2 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
+		703015A09CB6B09846D29DF8 /* InstallmentsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InstallmentsView.swift; sourceTree = "<group>"; };
+		798E304D56508DA05FAA2F08 /* KharchaExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KharchaExtension.swift; sourceTree = "<group>"; };
+		82202E5095E40A6F67FE0B67 /* Kharcha.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Kharcha.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		85EBCD6310EE53C7B1487AB2 /* KharchaWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KharchaWidget.swift; sourceTree = "<group>"; };
+		90A7B0277CF72370073A5B38 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		937792B55087B957FB2294FD /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/AppShortcuts.strings; sourceTree = "<group>"; };
+		959BACA54E01B023276CE8F4 /* ActivityCharts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityCharts.swift; sourceTree = "<group>"; };
+		A1E5C0D24B71E0A9C3F10001 /* ExportPreviewSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportPreviewSheet.swift; sourceTree = "<group>"; };
+		9FA8CCC79FEAF1C8A0A478AC /* KharchaApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KharchaApp.swift; sourceTree = "<group>"; };
+		B4ABA52414CD34EBD8EB3CE1 /* RemindersView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemindersView.swift; sourceTree = "<group>"; };
+		B9736B38E543ACF8EDB42DAD /* FrankfurterRateService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrankfurterRateService.swift; sourceTree = "<group>"; };
+		C907E594924CA417671EA605 /* BudgetsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BudgetsView.swift; sourceTree = "<group>"; };
+		C9B1C67CC809A3D2F4BEFB0C /* KharchaIntentsExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.extensionkit-extension"; includeInIndex = 0; path = KharchaIntentsExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		CA2AC177A02071D0D0843C2B /* HistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryView.swift; sourceTree = "<group>"; };
+		CB1E5C96417E43021CD9A6E1 /* NotificationScheduler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationScheduler.swift; sourceTree = "<group>"; };
+		CCB7EC171A69869421B471B2 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
+		CD5A5FDB31A883B6E3EAB77B /* FriendDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendDetailView.swift; sourceTree = "<group>"; };
+		CE89EF311C80735B99534F5A /* TxnFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TxnFormView.swift; sourceTree = "<group>"; };
+		D11AEE16144C1E22DF3097B7 /* FirestoreSync.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirestoreSync.swift; sourceTree = "<group>"; };
+		D50FE78493168AE9CB798FE0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		D6FF8FE34EC6EB27B2C0E259 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		DEFF6F2888A8305DFBBE80F8 /* KharchaWidget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = KharchaWidget.entitlements; sourceTree = "<group>"; };
+		E22CC07B95BFFB95988F1EA3 /* KharchaExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = KharchaExtension.entitlements; sourceTree = "<group>"; };
+		E349D7658EC0B182BAFA4634 /* ne */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ne; path = ne.lproj/AppShortcuts.strings; sourceTree = "<group>"; };
+		E642361E067E71B27DDEBCF9 /* Kharcha.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Kharcha.entitlements; sourceTree = "<group>"; };
+		EEE3A422870C98FB94EF78AB /* CurrencyPreference.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurrencyPreference.swift; sourceTree = "<group>"; };
+		FF5CA484A82528A543A6EBCB /* PlanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanView.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		58C6F01558CC4DD70AE2ABF9 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4AE837573A29441C158B8F50 /* KharchaKit in Frameworks */,
+				59175C702E8D18E83EDB0158 /* FirebaseAuth in Frameworks */,
+				32C5F60669B04F632ADD0B19 /* FirebaseFirestore in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C02B318EBD71C1F5F9B55788 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				DC43AE9520A807F9E5FD5C2B /* KharchaKit in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		1047968AA68E02962BA35230 = {
+			isa = PBXGroup;
+			children = (
+				1B626B9B30EA2157E8EF115E /* App */,
+				4EC5329C7224F5D1D05BE644 /* Extension */,
+				87F451561063F254743274CC /* Packages */,
+				BDA9E555240DA0C236241046 /* Widget */,
+				55B514D39C8736114DD063AC /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		1B626B9B30EA2157E8EF115E /* App */ = {
+			isa = PBXGroup;
+			children = (
+				90A7B0277CF72370073A5B38 /* Assets.xcassets */,
+				0544C067B863B0B91F044150 /* GoogleService-Info.plist */,
+				4CCB153C1D76AC0E4C404125 /* Info.plist */,
+				36168CACFAFADE230F7F9E20 /* InfoPlist.xcstrings */,
+				E642361E067E71B27DDEBCF9 /* Kharcha.entitlements */,
+				9FA8CCC79FEAF1C8A0A478AC /* KharchaApp.swift */,
+				61EF15F1DD792AA7A1D99D80 /* Localizable.xcstrings */,
+				28183456CBEAB046E6AC7829 /* Theme.swift */,
+				4E4D0A8B2A15CFCCB8C96370 /* Resources */,
+				56A889442EFEAF7A510DB45D /* Views */,
+				24DC068F3040093E00D581FB /* Bootstrap */,
+				24DC06903040093F00D581FB /* Auth */,
+				24DC06913040093F00D581FB /* Sync */,
+				24DC06923040093F00D581FB /* Services */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		24DC068F3040093E00D581FB /* Bootstrap */ = {
+			isa = PBXGroup;
+			children = (
+				210E3A40B033E1C645DFEA8C /* AppBootstrap.swift */,
+				2F2521668CBB9D4ABDCFC25D /* AppContainer.swift */,
+			);
+			path = Bootstrap;
+			sourceTree = "<group>";
+		};
+		24DC06903040093F00D581FB /* Auth */ = {
+			isa = PBXGroup;
+			children = (
+				5FC6FFA3B42CC2731E0B3C8B /* AppleSignIn.swift */,
+			);
+			path = Auth;
+			sourceTree = "<group>";
+		};
+		24DC06913040093F00D581FB /* Sync */ = {
+			isa = PBXGroup;
+			children = (
+				0153C7891692D8C9E2843570 /* SyncEngine.swift */,
+				D11AEE16144C1E22DF3097B7 /* FirestoreSync.swift */,
+				B9736B38E543ACF8EDB42DAD /* FrankfurterRateService.swift */,
+			);
+			path = Sync;
+			sourceTree = "<group>";
+		};
+		24DC06923040093F00D581FB /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				CB1E5C96417E43021CD9A6E1 /* NotificationScheduler.swift */,
+				24DC0689303D7C4100D581FB /* AppUpdateChecker.swift */,
+				5510B845D3AB3C6032FEE8FF /* CSVFileWriter.swift */,
+				24DC0687303D7AC800D581FB /* PrivacyManager.swift */,
+				EEE3A422870C98FB94EF78AB /* CurrencyPreference.swift */,
+				437A08250B1C4583CA7A9752 /* KharchaShortcuts.swift */,
+				24DC069330410C8200D581FB /* BackupFileWriter.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		4E4D0A8B2A15CFCCB8C96370 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				603A5A86D90E0B55068BA06D /* AppShortcuts.strings */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		4EC5329C7224F5D1D05BE644 /* Extension */ = {
+			isa = PBXGroup;
+			children = (
+				D50FE78493168AE9CB798FE0 /* Info.plist */,
+				0851FCF921B964260436074E /* InfoPlist.xcstrings */,
+				E22CC07B95BFFB95988F1EA3 /* KharchaExtension.entitlements */,
+				798E304D56508DA05FAA2F08 /* KharchaExtension.swift */,
+			);
+			path = Extension;
+			sourceTree = "<group>";
+		};
+		55B514D39C8736114DD063AC /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				82202E5095E40A6F67FE0B67 /* Kharcha.app */,
+				C9B1C67CC809A3D2F4BEFB0C /* KharchaIntentsExtension.appex */,
+				0779EC459B852D7B5514B2EC /* KharchaWidget.appex */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		56A889442EFEAF7A510DB45D /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				959BACA54E01B023276CE8F4 /* ActivityCharts.swift */,
+				A1E5C0D24B71E0A9C3F10001 /* ExportPreviewSheet.swift */,
+				C907E594924CA417671EA605 /* BudgetsView.swift */,
+				3135AA1A3D54C1360E66E543 /* Components.swift */,
+				CD5A5FDB31A883B6E3EAB77B /* FriendDetailView.swift */,
+				2A34CE6439C8216233EFABD4 /* FriendsView.swift */,
+				CA2AC177A02071D0D0843C2B /* HistoryView.swift */,
+				0D510A06F004F7900AE06B36 /* HomeView.swift */,
+				43F929D57FA89898B0B7C4AD /* ImportView.swift */,
+				249B7DBA649188A1C67510B1 /* InstallmentDetailView.swift */,
+				703015A09CB6B09846D29DF8 /* InstallmentsView.swift */,
+				CCB7EC171A69869421B471B2 /* OnboardingView.swift */,
+				FF5CA484A82528A543A6EBCB /* PlanView.swift */,
+				4C387BCC4E5EC254DA66597D /* ProfileView.swift */,
+				B4ABA52414CD34EBD8EB3CE1 /* RemindersView.swift */,
+				69FEAF37EE3107CA468FAED2 /* RootView.swift */,
+				5E5032379BA7BAADBF750B5A /* SavingsView.swift */,
+				08E503EBB2AE805185B83A7E /* SettingsView.swift */,
+				CE89EF311C80735B99534F5A /* TxnFormView.swift */,
+				24DC068B303DD18C00D581FB /* SplashView.swift */,
+				24DC068D304004EC00D581FB /* ReportsView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		87F451561063F254743274CC /* Packages */ = {
+			isa = PBXGroup;
+			children = (
+				62B253CD42B237423480E375 /* KharchaKit */,
+			);
+			name = Packages;
+			sourceTree = "<group>";
+		};
+		BDA9E555240DA0C236241046 /* Widget */ = {
+			isa = PBXGroup;
+			children = (
+				24DC0673303D30CD00D581FB /* InfoPlist.xcstrings */,
+				24DC0674303D30CD00D581FB /* Localizable.xcstrings */,
+				D6FF8FE34EC6EB27B2C0E259 /* Info.plist */,
+				DEFF6F2888A8305DFBBE80F8 /* KharchaWidget.entitlements */,
+				85EBCD6310EE53C7B1487AB2 /* KharchaWidget.swift */,
+			);
+			path = Widget;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		13545DD5F322F3D3A9F8ADD2 /* Kharcha */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E559125D8869CECA9B8027ED /* Build configuration list for PBXNativeTarget "Kharcha" */;
+			buildPhases = (
+				7C41E102D2216236C41FA6E6 /* Sources */,
+				267C3F21C7A6B21D841AD626 /* Resources */,
+				58C6F01558CC4DD70AE2ABF9 /* Frameworks */,
+				414C4AA94A9D02585AE382BD /* Embed Foundation Extensions */,
+				B4CE6DF722512B37F707A449 /* Embed ExtensionKit Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				A85A88048E1D9E89A8D57658 /* PBXTargetDependency */,
+				BF356352BD7469E4A31F0292 /* PBXTargetDependency */,
+			);
+			name = Kharcha;
+			packageProductDependencies = (
+				0E07F004FC632ACED67AC07C /* KharchaKit */,
+				CB6037022150DDC84F6E73D1 /* FirebaseAuth */,
+				FE154007F5FAC9B9C1C521F8 /* FirebaseFirestore */,
+			);
+			productName = Kharcha;
+			productReference = 82202E5095E40A6F67FE0B67 /* Kharcha.app */;
+			productType = "com.apple.product-type.application";
+		};
+		5016591130D4347BB8F7E478 /* KharchaIntentsExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 91CFBF31024B9B50559B2C3E /* Build configuration list for PBXNativeTarget "KharchaIntentsExtension" */;
+			buildPhases = (
+				971AC4BF2242250084C53FBA /* Sources */,
+				9279CC49875B50F9F96AE4C9 /* Resources */,
+				C02B318EBD71C1F5F9B55788 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = KharchaIntentsExtension;
+			packageProductDependencies = (
+				3DD61C4907D809C2393BE230 /* KharchaKit */,
+			);
+			productName = KharchaIntentsExtension;
+			productReference = C9B1C67CC809A3D2F4BEFB0C /* KharchaIntentsExtension.appex */;
+			productType = "com.apple.product-type.extensionkit-extension";
+		};
+		A80322518F38EA7965769F7F /* KharchaWidget */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D78642A2063F009FD05DAF9D /* Build configuration list for PBXNativeTarget "KharchaWidget" */;
+			buildPhases = (
+				FA062991AC0CAF9C4A172E96 /* Sources */,
+				24DC0672303D30CD00D581FB /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = KharchaWidget;
+			packageProductDependencies = (
+			);
+			productName = KharchaWidget;
+			productReference = 0779EC459B852D7B5514B2EC /* KharchaWidget.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		E33CB455C722C5D9B3F07B27 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					13545DD5F322F3D3A9F8ADD2 = {
+						DevelopmentTeam = 2LZ2H9STBD;
+						ProvisioningStyle = Automatic;
+					};
+					5016591130D4347BB8F7E478 = {
+						DevelopmentTeam = 2LZ2H9STBD;
+						ProvisioningStyle = Automatic;
+					};
+					A80322518F38EA7965769F7F = {
+						DevelopmentTeam = 2LZ2H9STBD;
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = 9F66A4359EC074B15CF69312 /* Build configuration list for PBXProject "Kharcha" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+				ko,
+				ne,
+				"zh-Hans",
+				hi,
+				es,
+				fr,
+				ar,
+				bn,
+				"pt-BR",
+				ru,
+				ur,
+				id,
+				de,
+				ja,
+				mr,
+				te,
+				tr,
+				ta,
+				vi,
+			);
+			mainGroup = 1047968AA68E02962BA35230;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				2F3EF282FFB41E9FE701972C /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+				C87C904710E31C63AA67E5BE /* XCLocalSwiftPackageReference "KharchaKit" */,
+			);
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				13545DD5F322F3D3A9F8ADD2 /* Kharcha */,
+				5016591130D4347BB8F7E478 /* KharchaIntentsExtension */,
+				A80322518F38EA7965769F7F /* KharchaWidget */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		24DC0672303D30CD00D581FB /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				24DC0675303D30CD00D581FB /* InfoPlist.xcstrings in Resources */,
+				24DC0676303D30CD00D581FB /* Localizable.xcstrings in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		267C3F21C7A6B21D841AD626 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D9CA6C09190EC645534A3749 /* AppShortcuts.strings in Resources */,
+				A58AD9C021D20AFEFF1A3DCC /* Assets.xcassets in Resources */,
+				4E967966AD04903960205246 /* GoogleService-Info.plist in Resources */,
+				067717EB2D703DFBD346877C /* InfoPlist.xcstrings in Resources */,
+				6B35F1EEE3A608DBF6978973 /* Localizable.xcstrings in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		9279CC49875B50F9F96AE4C9 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C6FCA5819BEB204DA2413AE8 /* InfoPlist.xcstrings in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		7C41E102D2216236C41FA6E6 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				DA8F7CB24A48B6E78F6A4EDC /* ActivityCharts.swift in Sources */,
+				A1E5C0D24B71E0A9C3F10002 /* ExportPreviewSheet.swift in Sources */,
+				EDCCA7DDB4E6538BEFD71DEE /* AppBootstrap.swift in Sources */,
+				841B26FD78955A9FD61C0BF5 /* AppContainer.swift in Sources */,
+				D05D916D920569343C27050F /* AppleSignIn.swift in Sources */,
+				CB5709B8D44A948CB76CC915 /* BudgetsView.swift in Sources */,
+				F736A659B37EABEBCC787B0F /* CSVFileWriter.swift in Sources */,
+				9B6C6C0FCB774DB3EED8D011 /* Components.swift in Sources */,
+				2F936B922B1C50E76C08C463 /* CurrencyPreference.swift in Sources */,
+				A39C8707E12A8D3B0A069665 /* FirestoreSync.swift in Sources */,
+				85AA35126F79C2A9EDDD6554 /* FrankfurterRateService.swift in Sources */,
+				24DC068A303D7C4100D581FB /* AppUpdateChecker.swift in Sources */,
+				A6E5B3D9C3AA768690D1703C /* FriendDetailView.swift in Sources */,
+				E036C51F34E1B1F3EA61E5BC /* FriendsView.swift in Sources */,
+				3BA4A022DF6B6F8726650E6B /* HistoryView.swift in Sources */,
+				24DC068E304004EC00D581FB /* ReportsView.swift in Sources */,
+				24DC069430410C8200D581FB /* BackupFileWriter.swift in Sources */,
+				F921785F0A5ADF09DAF22627 /* HomeView.swift in Sources */,
+				4829E6FA827CD9BAED036C52 /* ImportView.swift in Sources */,
+				8A5559A4802E65DEE4D5F93A /* InstallmentDetailView.swift in Sources */,
+				760E53929D70E082DD2C28B3 /* InstallmentsView.swift in Sources */,
+				E7D09FB8DA5781CE85EF6389 /* KharchaApp.swift in Sources */,
+				6069A68846AA50BC0652548A /* KharchaShortcuts.swift in Sources */,
+				24DC0688303D7AC800D581FB /* PrivacyManager.swift in Sources */,
+				4EA295C514095F8614356165 /* NotificationScheduler.swift in Sources */,
+				B9E8249D0A7E5D5F5D447892 /* OnboardingView.swift in Sources */,
+				24DC068C303DD18C00D581FB /* SplashView.swift in Sources */,
+				AEAA4C6A20FED8571186B9FE /* PlanView.swift in Sources */,
+				B66C4F4965A2059588FDEC44 /* ProfileView.swift in Sources */,
+				16B589669E10043DBBDA2386 /* RemindersView.swift in Sources */,
+				201DD3C9D16397855B31A709 /* RootView.swift in Sources */,
+				F8D31F85E8087B57A87CA5C0 /* SavingsView.swift in Sources */,
+				D76B8FEBF38309EEAF827F49 /* SettingsView.swift in Sources */,
+				09AFACDF6F80B0748CBA1A44 /* SyncEngine.swift in Sources */,
+				111785BD48CCEA7EEB8AD720 /* Theme.swift in Sources */,
+				9007BDAE8E3EBCB3FBAB214B /* TxnFormView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		971AC4BF2242250084C53FBA /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A5C8647415847128B1E2D528 /* KharchaExtension.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FA062991AC0CAF9C4A172E96 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CB9DD92D01394622FA39037B /* KharchaWidget.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		A85A88048E1D9E89A8D57658 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 5016591130D4347BB8F7E478 /* KharchaIntentsExtension */;
+			targetProxy = 2DF52F46DF46612897A4E6E9 /* PBXContainerItemProxy */;
+		};
+		BF356352BD7469E4A31F0292 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A80322518F38EA7965769F7F /* KharchaWidget */;
+			targetProxy = FC2121A3C8A1C06A7DC1866E /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin PBXVariantGroup section */
+		603A5A86D90E0B55068BA06D /* AppShortcuts.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				937792B55087B957FB2294FD /* en */,
+				1E7D1088EC76A3D6B3266C65 /* ko */,
+				E349D7658EC0B182BAFA4634 /* ne */,
+				24DC0671303D30CD00D581FB /* zh-Hans */,
+				24DC0677303D30D100D581FB /* hi */,
+				24DC0678303D30D500D581FB /* es */,
+				24DC0679303D30D800D581FB /* fr */,
+				24DC067A303D30DC00D581FB /* ar */,
+				24DC067B303D30E000D581FB /* bn */,
+				24DC067C303D30E400D581FB /* pt-BR */,
+				24DC067D303D30E700D581FB /* ru */,
+				24DC067E303D30EB00D581FB /* ur */,
+				24DC067F303D30EE00D581FB /* id */,
+				24DC0680303D30F100D581FB /* de */,
+				24DC0681303D30F500D581FB /* ja */,
+				24DC0682303D30F900D581FB /* mr */,
+				24DC0683303D30FC00D581FB /* te */,
+				24DC0684303D310000D581FB /* tr */,
+				24DC0685303D310400D581FB /* ta */,
+				24DC0686303D310700D581FB /* vi */,
+			);
+			name = AppShortcuts.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		3233D7A55F907897FCBB6174 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		438D37C52310C193B4610895 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = Widget/KharchaWidget.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 2LZ2H9STBD;
+				INFOPLIST_FILE = Widget/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.manish.jebkharcha.widget;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		579B87DB453B992755D67908 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = Widget/KharchaWidget.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 2LZ2H9STBD;
+				INFOPLIST_FILE = Widget/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.manish.jebkharcha.widget;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		5EC4F2473FDCB38F1FB547F1 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
+				CODE_SIGN_ENTITLEMENTS = App/Kharcha.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 3;
+				DEVELOPMENT_TEAM = 2LZ2H9STBD;
+				INFOPLIST_FILE = App/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Paisa Khoi?";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.manish.jebkharcha;
+				SDKROOT = iphoneos;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		6B28D5C85C9B1768C901D19D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
+				CODE_SIGN_ENTITLEMENTS = App/Kharcha.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 3;
+				DEVELOPMENT_TEAM = 2LZ2H9STBD;
+				INFOPLIST_FILE = App/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Paisa Khoi?";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.manish.jebkharcha;
+				SDKROOT = iphoneos;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		6E18BD435373AF82FBD4860F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		E8F585D5F36DE40B60E214CF /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = Extension/KharchaExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 2LZ2H9STBD;
+				INFOPLIST_FILE = Extension/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.manish.jebkharcha.intents;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		F58F285F27339C55B10EFF90 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = Extension/KharchaExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 2LZ2H9STBD;
+				INFOPLIST_FILE = Extension/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.manish.jebkharcha.intents;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		91CFBF31024B9B50559B2C3E /* Build configuration list for PBXNativeTarget "KharchaIntentsExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F58F285F27339C55B10EFF90 /* Debug */,
+				E8F585D5F36DE40B60E214CF /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		9F66A4359EC074B15CF69312 /* Build configuration list for PBXProject "Kharcha" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				6E18BD435373AF82FBD4860F /* Debug */,
+				3233D7A55F907897FCBB6174 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		D78642A2063F009FD05DAF9D /* Build configuration list for PBXNativeTarget "KharchaWidget" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				438D37C52310C193B4610895 /* Debug */,
+				579B87DB453B992755D67908 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		E559125D8869CECA9B8027ED /* Build configuration list for PBXNativeTarget "Kharcha" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5EC4F2473FDCB38F1FB547F1 /* Debug */,
+				6B28D5C85C9B1768C901D19D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		C87C904710E31C63AA67E5BE /* XCLocalSwiftPackageReference "KharchaKit" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = KharchaKit;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		2F3EF282FFB41E9FE701972C /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 11.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		0E07F004FC632ACED67AC07C /* KharchaKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = KharchaKit;
+		};
+		3DD61C4907D809C2393BE230 /* KharchaKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = KharchaKit;
+		};
+		CB6037022150DDC84F6E73D1 /* FirebaseAuth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 2F3EF282FFB41E9FE701972C /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAuth;
+		};
+		FE154007F5FAC9B9C1C521F8 /* FirebaseFirestore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 2F3EF282FFB41E9FE701972C /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseFirestore;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = E33CB455C722C5D9B3F07B27 /* Project object */;
+}

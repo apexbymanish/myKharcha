@@ -1,0 +1,135 @@
+/* (No Comment) */
+"${applicationName} budget" = "${applicationName} budget";
+
+/* (No Comment) */
+"${applicationName} debts" = "${applicationName} debts";
+
+/* (No Comment) */
+"${applicationName} expense" = "${applicationName} expense";
+
+/* (No Comment) */
+"${applicationName} income" = "${applicationName} income";
+
+/* (No Comment) */
+"${applicationName} loan" = "${applicationName} loan";
+
+/* (No Comment) */
+"${applicationName} reminder" = "${applicationName} reminder";
+
+/* (No Comment) */
+"${applicationName} spending" = "${applicationName} spending";
+
+/* SettleDebtIntent */
+"${friend} paid me back in ${applicationName}" = "${friend} paid me back in ${applicationName}";
+
+/* AddReminderIntent */
+"Add a bill reminder in ${applicationName}" = "Add a bill reminder in ${applicationName}";
+
+/* (No Comment) */
+"Add a loan in ${applicationName}" = "Add a loan in ${applicationName}";
+
+/* (No Comment) */
+"Add a reminder in ${applicationName}" = "Add a reminder in ${applicationName}";
+
+/* (No Comment) */
+"Add an expense in ${applicationName}" = "Add an expense in ${applicationName}";
+
+/* (No Comment) */
+"Add income in ${applicationName}" = "Add income in ${applicationName}";
+
+/* (No Comment) */
+"Over budget in ${applicationName}" = "Over budget in ${applicationName}";
+
+/* (No Comment) */
+"Check my budget in ${applicationName}" = "Check my budget in ${applicationName}";
+
+/* (No Comment) */
+"Check my spending in ${applicationName}" = "Check my spending in ${applicationName}";
+
+/* (No Comment) */
+"How are my budgets in ${applicationName}" = "How are my budgets in ${applicationName}";
+
+/* BudgetStatusIntent */
+"How is my budget in ${applicationName}" = "How is my budget in ${applicationName}";
+
+/* SpendingQueryIntent */
+"How much did I spend in ${applicationName}" = "How much did I spend in ${applicationName}";
+
+/* (No Comment) */
+"How much have I spent in ${applicationName}" = "How much have I spent in ${applicationName}";
+
+/* (No Comment) */
+"I borrowed money from ${friend} in ${applicationName}" = "I borrowed money from ${friend} in ${applicationName}";
+
+/* (No Comment) */
+"I gave money to ${friend} in ${applicationName}" = "I gave money to ${friend} in ${applicationName}";
+
+/* (No Comment) */
+"I got paid in ${applicationName}" = "I got paid in ${applicationName}";
+
+/* (No Comment) */
+"I lent money to ${friend} in ${applicationName}" = "I lent money to ${friend} in ${applicationName}";
+
+/* (No Comment) */
+"I paid back ${friend} in ${applicationName}" = "I paid back ${friend} in ${applicationName}";
+
+/* (No Comment) */
+"I received money in ${applicationName}" = "I received money in ${applicationName}";
+
+/* (No Comment) */
+"I spent money in ${applicationName}" = "I spent money in ${applicationName}";
+
+/* (No Comment) */
+"I took money from ${friend} in ${applicationName}" = "I took money from ${friend} in ${applicationName}";
+
+/* (No Comment) */
+"Log ${category} spending in ${applicationName}" = "Log ${category} spending in ${applicationName}";
+
+/* LogDebtIntent */
+"Log a loan in ${applicationName}" = "Log a loan in ${applicationName}";
+
+/* LogExpenseIntent */
+"Log an expense in ${applicationName}" = "Log an expense in ${applicationName}";
+
+/* LogIncomeIntent */
+"Log income in ${applicationName}" = "Log income in ${applicationName}";
+
+/* (No Comment) */
+"New bill reminder in ${applicationName}" = "New bill reminder in ${applicationName}";
+
+/* (No Comment) */
+"New expense in ${applicationName}" = "New expense in ${applicationName}";
+
+/* (No Comment) */
+"Record an expense in ${applicationName}" = "Record an expense in ${applicationName}";
+
+/* (No Comment) */
+"Record income in ${applicationName}" = "Record income in ${applicationName}";
+
+/* (No Comment) */
+"Remind me about a bill in ${applicationName}" = "Remind me about a bill in ${applicationName}";
+
+/* (No Comment) */
+"Settle a debt in ${applicationName}" = "Settle a debt in ${applicationName}";
+
+/* (No Comment) */
+"Settle up in ${applicationName}" = "Settle up in ${applicationName}";
+
+/* (No Comment) */
+"Show my debts in ${applicationName}" = "Show my debts in ${applicationName}";
+
+/* (No Comment) */
+"Show my spending in ${applicationName}" = "Show my spending in ${applicationName}";
+
+/* (No Comment) */
+"Track a ${category} expense in ${applicationName}" = "Track a ${category} expense in ${applicationName}";
+
+/* (No Comment) */
+"What did I spend on ${category} in ${applicationName}" = "What did I spend on ${category} in ${applicationName}";
+
+/* (No Comment) */
+"Who do I owe in ${applicationName}" = "Who do I owe in ${applicationName}";
+
+/* DebtQueryIntent */
+"Who owes me money in ${applicationName}" = "Who owes me money in ${applicationName}";
+

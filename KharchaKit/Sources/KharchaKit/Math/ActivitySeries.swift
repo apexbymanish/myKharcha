@@ -1,0 +1,394 @@
+import Foundation
+
+/// The time window a History chart covers.
+public enum ActivityPeriod: String, Sendable, CaseIterable {
+    case week, month, year
+}
+
+/// One category's share of a bucket's spending. Bars stack these so a day shows
+/// what it went on, not just how much.
+public struct CategorySlice: Sendable, Equatable, Identifiable {
+    public let categoryName: String
+    public let amount: Decimal
+    public var id: String { categoryName }
+
+    public init(categoryName: String, amount: Decimal) {
+        self.categoryName = categoryName
+        self.amount = amount
+    }
+}
+
+/// One bucket of activity — a day (week/month periods) or a month (year period) —
+/// with its expense and income totals. Pure value type; all bucketing is exact.
+public struct ActivityBar: Sendable, Equatable, Identifiable {
+    /// Bucket start: start-of-day for daily buckets, start-of-month for monthly.
+    public let date: Date
+    public let expense: Decimal
+    public let income: Decimal
+    /// How many transactions made up this bucket, income and expense together.
+    /// A large bar raises one question — one purchase or fifteen? — and this is
+    /// the answer, carried on the bar rather than hidden behind a tap.
+    public let count: Int
+    /// The bucket's spending split by category, largest first, with slivers folded
+    /// into one `otherSegmentName` slice. Always sums to `expense`.
+    public let segments: [CategorySlice]
+
+    /// Name of the slice that small categories are merged into.
+    public static let otherSegmentName = "Other"
+
+    /// A category smaller than this share of the bucket is not worth its own band —
+    /// at a twelfth of a bar it is a few pixels nobody can identify or tap.
+    static let segmentFloor = Decimal(string: "0.083")!
+
+    /// The share of a bucket "Other" is allowed to reach before named categories
+    /// are promoted back out of it. A residual band bigger than about a third of
+    /// the bar has stopped being a residue.
+    static let otherCeiling = Decimal(string: "0.35")!
+
+    /// How many named bands one bar will carry. Past this the bands are thinner
+    /// than the text that would sit in them, and the colours stop being telling
+    /// apart from one another.
+    static let maxNamedSlices = 5
+
+    public var id: Date { date }
+    /// Income minus expense — positive means you netted money that bucket.
+    public var net: Decimal { income - expense }
+    public var isEmpty: Bool { expense == 0 && income == 0 }
+
+    public init(date: Date, expense: Decimal, income: Decimal, count: Int = 0,
+                segments: [CategorySlice] = []) {
+        self.date = date
+        self.expense = expense
+        self.income = income
+        self.count = count
+        self.segments = segments
+    }
+}
+
+/// Everything the History chart header reports about the period the chart is
+/// currently scrolled to. Derived from the calendar, so a 28-day February and a
+/// 31-day August each describe their own true length.
+public struct ActivitySummary: Sendable, Equatable {
+    /// First bucket of the window (start-of-day, or start-of-month for `.year`).
+    public let start: Date
+    /// Number of buckets in the window — 28 for February, 31 for August, 12 for a year.
+    public let barCount: Int
+    public let expense: Decimal
+    public let income: Decimal
+    /// Change in expense against the immediately preceding period, or `nil`
+    /// when that period had no spending to compare against.
+    public let changeRatio: Decimal?
+
+    /// Direction of travel against the prior period, for the header sentence.
+    public enum Trend: Sendable, Equatable {
+        case up, down, flat
+        /// No prior spending to compare against — the header drops the clause
+        /// rather than claiming a rise from nothing.
+        case unknown
+    }
+
+    public var trend: Trend {
+        guard let r = changeRatio else { return .unknown }
+        if r > 0 { return .up }
+        if r < 0 { return .down }
+        return .flat
+    }
+
+    /// Magnitude of the change as a whole percent — 8 for both −8% and +8%.
+    /// `trend` carries the direction. `nil` when there is nothing to compare.
+    public var changePercent: Int? {
+        guard let r = changeRatio else { return nil }
+        let magnitude = (r < 0 ? -r : r) * 100
+        return Int((magnitude as NSDecimalNumber).doubleValue.rounded())
+    }
+
+    /// True when the window holds no activity of any kind. Distinct from a
+    /// no-spend day, which is a real day that happened to cost nothing — this is
+    /// a stretch of timeline with nothing in it, and says so on the chart.
+    public var isEmpty: Bool { expense == 0 && income == 0 }
+}
+
+/// How a single bucket's spending sits against its budget allowance. Drives the
+/// bar colour, so a glance at the chart shows which days went over.
+public enum SpendLevel: Sendable, Equatable {
+    case under, near, over
+    /// No budget configured — the bar takes a neutral tint rather than implying
+    /// the user did well or badly.
+    case unknown
+}
+
+/// Buckets transactions into spend/income bars for the History charts and the
+/// calendar heat grid. No presentation here — the view renders these with Charts.
+public enum ActivitySeries {
+
+    /// Fraction of the allowance at which a bucket stops being comfortably under.
+    private static let nearThreshold = Decimal(string: "0.8")!
+
+    /// The budget one bar is measured against. Bars are days in week and month
+    /// scope, so the monthly budget is divided by that month's own length — using
+    /// a flat 30 would misjudge February and every 31-day month. In year scope a
+    /// bar is a whole month, so the monthly budget applies as-is.
+    public static func allowancePerBucket(monthlyBudgetTotal: Decimal, period: ActivityPeriod, daysInMonth: Int) -> Decimal {
+        switch period {
+        case .week, .month:
+            guard daysInMonth > 0 else { return 0 }
+            return monthlyBudgetTotal / Decimal(daysInMonth)
+        case .year:
+            return monthlyBudgetTotal
+        }
+    }
+
+    /// The top of the chart's y-scale for a set of bucket totals.
+    ///
+    /// Spending is spiky in a way step counts are not: rent can be twenty times an
+    /// ordinary day. Scaled to the maximum, that one bar takes the whole height and
+    /// every other day collapses into a stub — arithmetic no styling can fix. So the
+    /// ceiling comes from the 90th percentile, letting a true outlier clip off the
+    /// top while the rest of the period stays readable.
+    ///
+    /// When nothing is an outlier the percentile lands on the maximum anyway, so an
+    /// even month still fills the frame.
+    public static func chartCeiling(_ amounts: [Decimal]) -> Decimal {
+        let positive = amounts.filter { $0 > 0 }.sorted()
+        guard let maximum = positive.last else { return 0 }
+        // Too few points to judge what is typical — trust the max.
+        guard positive.count >= 4 else { return maximum }
+
+        let index = Int((Double(positive.count - 1) * 0.9).rounded())
+        let percentile = positive[index]
+        // A little headroom above the percentile so the bars at that level are not
+        // flush with the ceiling.
+        return percentile * Decimal(string: "1.1")!
+    }
+
+    /// Classifies one bucket's spend against its allowance for colouring.
+    /// Spending exactly the allowance counts as `.near`, not `.over` — hitting the
+    /// target precisely should not be flagged as a failure.
+    public static func spendLevel(expense: Decimal, allowance: Decimal) -> SpendLevel {
+        guard allowance > 0 else { return .unknown }
+        if expense > allowance { return .over }
+        if expense >= allowance * nearThreshold { return .near }
+        return .under
+    }
+
+    /// Totals and period-over-period change for the window containing `date`.
+    /// The chart's scroll position supplies `date`, so the header always describes
+    /// what is on screen rather than today.
+    public static func summary(_ txns: [TxnRow], period: ActivityPeriod, containing date: Date, calendar: Calendar) -> ActivitySummary {
+        let window = bars(txns, period: period, now: date, calendar: calendar)
+        let prior = barsPrior(txns, period: period, now: date, calendar: calendar)
+        let expense = window.reduce(Decimal(0)) { $0 + $1.expense }
+        let priorExpense = prior.reduce(Decimal(0)) { $0 + $1.expense }
+        return ActivitySummary(
+            start: window.first?.date ?? calendar.startOfDay(for: date),
+            barCount: window.count,
+            expense: expense,
+            income: window.reduce(Decimal(0)) { $0 + $1.income },
+            changeRatio: changeRatio(current: expense, prior: priorExpense)
+        )
+    }
+
+    /// Bars for the period containing `now`:
+    /// - `.week`: 7 daily bars (the calendar week containing `now`)
+    /// - `.month`: one daily bar per day of `now`'s calendar month
+    /// - `.year`: 12 monthly bars for `now`'s calendar year
+    /// Empty buckets are included (as zero bars) so the axis is continuous.
+    public static func bars(_ txns: [TxnRow], period: ActivityPeriod, now: Date, calendar: Calendar) -> [ActivityBar] {
+        switch period {
+        case .week:
+            let start = sundayFirst(calendar).dateInterval(of: .weekOfYear, for: now)!.start
+            return dailyBars(txns, from: start, days: 7, calendar: calendar)
+        case .month:
+            let start = calendar.dateInterval(of: .month, for: now)!.start
+            let days = calendar.range(of: .day, in: .month, for: now)!.count
+            return dailyBars(txns, from: start, days: days, calendar: calendar)
+        case .year:
+            let start = calendar.dateInterval(of: .year, for: now)!.start
+            return monthlyBars(txns, from: start, months: 12, calendar: calendar)
+        }
+    }
+
+    /// Bars for the period immediately before the one containing `now` —
+    /// same structure as `bars(_:period:now:calendar:)` but offset back by one period.
+    /// Used by the History summary header to compute "vs prior" deltas.
+    public static func barsPrior(_ txns: [TxnRow], period: ActivityPeriod, now: Date, calendar: Calendar) -> [ActivityBar] {
+        let offset: Calendar.Component
+        switch period {
+        case .week:  offset = .weekOfYear
+        case .month: offset = .month
+        case .year:  offset = .year
+        }
+        let prior = calendar.date(byAdding: offset, value: -1, to: now)!
+        return bars(txns, period: period, now: prior, calendar: calendar)
+    }
+
+    /// Fractional change from `prior` to `current` — `-0.08` means 8% lower.
+    /// Drives the chart header's "…is down 8%, totalling ₹8,450." sentence.
+    ///
+    /// `nil` when `prior` is zero: there is no percentage change from nothing, and
+    /// `Decimal` division by zero yields NaN rather than trapping, so the caller
+    /// must fall back to a plain total instead of rendering a bogus figure.
+    public static func changeRatio(current: Decimal, prior: Decimal) -> Decimal? {
+        guard prior != 0 else { return nil }
+        return (current - prior) / prior
+    }
+
+    /// One continuous run of bars spanning every period that holds data, for the
+    /// horizontally scrollable History chart. Unlike `bars(_:period:now:)` — which
+    /// returns a single window — this covers the whole timeline so the chart can be
+    /// scrolled through it, with empty buckets filled in so gaps stay visible.
+    ///
+    /// With no transactions there is no range to derive, so the result is exactly the
+    /// period containing `now`.
+    public static func continuousBars(_ txns: [TxnRow], period: ActivityPeriod, now: Date, calendar: Calendar, maxBuckets: Int = 800) -> [ActivityBar] {
+        let dates = txns.map(\.date)
+        // `now` is always inside the domain, so the chart can land on the current
+        // period even when the newest transaction is months old (or entirely in the future).
+        let earliest = min(dates.min() ?? now, now)
+        let latest = max(dates.max() ?? now, now)
+
+        let unit: Calendar.Component
+        switch period {
+        case .week:  unit = .weekOfYear
+        case .month: unit = .month
+        case .year:  unit = .year
+        }
+        // Round out to whole periods so the scroll always snaps to a period boundary.
+        let bounding = sundayFirst(calendar)
+        let start = bounding.dateInterval(of: unit, for: earliest)!.start
+        let end = bounding.dateInterval(of: unit, for: latest)!.end
+
+        // Cap the series so a multi-year ledger does not become one bucket per day
+        // across the whole range. The window keeps its most recent end — that is
+        // where the chart opens — and drops the oldest buckets beyond the cap.
+        let bucket: Calendar.Component = (period == .year) ? .month : .day
+        let available = calendar.dateComponents([bucket], from: start, to: end).value(for: bucket) ?? 0
+        let clampedStart = available > maxBuckets
+            ? calendar.date(byAdding: bucket, value: -maxBuckets, to: end)!
+            : start
+
+        switch period {
+        case .week, .month:
+            let days = calendar.dateComponents([.day], from: clampedStart, to: end).day!
+            return dailyBars(txns, from: clampedStart, days: days, calendar: calendar)
+        case .year:
+            let months = calendar.dateComponents([.month], from: clampedStart, to: end).month!
+            return monthlyBars(txns, from: clampedStart, months: months, calendar: calendar)
+        }
+    }
+
+    // MARK: - Private
+
+    /// Kharcha always runs Sunday→Saturday weeks, whatever the device locale's
+    /// `firstWeekday` says, so week buckets stay stable across regions and travel.
+    private static func sundayFirst(_ calendar: Calendar) -> Calendar {
+        var c = calendar
+        c.firstWeekday = 1
+        return c
+    }
+
+    /// Splits one bucket's expense rows into stacked segments, largest first.
+    ///
+    /// Categories under `segmentFloor` of the bucket are folded into a single
+    /// "Other" slice: below roughly a twelfth of the bar they render as a few
+    /// pixels, which nobody can identify and which turns the bar into confetti.
+    /// The merged slice keeps their money, so the segments always sum to the
+    /// bucket's expense — a stacked bar that falls short of its own total lies.
+    static func segments(for rows: [TxnRow]) -> [CategorySlice] {
+        let expenses = rows.filter { $0.kind == .expense }
+        let total = expenses.reduce(Decimal(0)) { $0 + $1.amount }
+        guard total > 0 else { return [] }
+
+        let grouped = Dictionary(grouping: expenses) { row in
+            row.categoryName.isEmpty ? ActivityBar.otherSegmentName : row.categoryName
+        }
+        // Ranked once; the floor and the promotion below both work in this order.
+        let ranked = grouped
+            .map { name, rows in
+                CategorySlice(categoryName: name,
+                              amount: rows.reduce(Decimal(0)) { $0 + $1.amount })
+            }
+            .sorted { $0.amount > $1.amount }
+
+        var kept: [CategorySlice] = []
+        // Below the floor, but nameable — these can be promoted back out.
+        var promotable: [CategorySlice] = []
+        // Genuinely uncategorised. Never promotable: it has no name to show.
+        var unnamed: Decimal = 0
+
+        for slice in ranked {
+            if slice.categoryName == ActivityBar.otherSegmentName {
+                unnamed += slice.amount
+            } else if slice.amount / total < ActivityBar.segmentFloor {
+                promotable.append(slice)
+            } else {
+                kept.append(slice)
+            }
+        }
+
+        // The floor alone was wrong for an evenly spread day. Thirteen roughly
+        // equal categories are each below a twelfth of the day, so every one of
+        // them merged and the bar rendered as a single featureless block — a
+        // stacked bar that has stopped saying the one thing it exists to say.
+        //
+        // So "Other" is capped as well as floored: while it would take more than
+        // `otherCeiling` of the bucket, the largest merged categories are
+        // promoted back out, up to `maxNamedSlices`. A ₩2,000 coffee inside a
+        // ₩200,000 day still merges, because there "Other" is 2% and dominates
+        // nothing.
+        var tail = unnamed + promotable.reduce(Decimal(0)) { $0 + $1.amount }
+        var next = 0
+        while next < promotable.count,
+              kept.count < ActivityBar.maxNamedSlices,
+              tail / total > ActivityBar.otherCeiling {
+            kept.append(promotable[next])
+            tail -= promotable[next].amount
+            next += 1
+        }
+
+        kept.sort { $0.amount > $1.amount }
+        // Appended last however large it is, so it sits at the top of the stack
+        // and never leads. The leading band is what carries the category name,
+        // and a bar labelled "Other" names nothing.
+        if tail > 0 {
+            kept.append(CategorySlice(categoryName: ActivityBar.otherSegmentName, amount: tail))
+        }
+        return kept
+    }
+
+    private static func dailyBars(_ txns: [TxnRow], from start: Date, days: Int, calendar: Calendar) -> [ActivityBar] {
+        var byDay: [Date: [TxnRow]] = [:]
+        for t in txns {
+            byDay[calendar.startOfDay(for: t.date), default: []].append(t)
+        }
+        return (0..<days).map { offset in
+            let key = calendar.startOfDay(for: calendar.date(byAdding: .day, value: offset, to: start)!)
+            let rows = byDay[key] ?? []
+            return ActivityBar(
+                date: key,
+                expense: rows.filter { $0.kind == .expense }.reduce(Decimal(0)) { $0 + $1.amount },
+                income: rows.filter { $0.kind == .income }.reduce(Decimal(0)) { $0 + $1.amount },
+                count: rows.count,
+                segments: segments(for: rows)
+            )
+        }
+    }
+
+    private static func monthlyBars(_ txns: [TxnRow], from start: Date, months: Int, calendar: Calendar) -> [ActivityBar] {
+        var byMonth: [Date: [TxnRow]] = [:]
+        for t in txns {
+            byMonth[calendar.dateInterval(of: .month, for: t.date)!.start, default: []].append(t)
+        }
+        return (0..<months).map { offset in
+            let key = calendar.dateInterval(of: .month, for: calendar.date(byAdding: .month, value: offset, to: start)!)!.start
+            let rows = byMonth[key] ?? []
+            return ActivityBar(
+                date: key,
+                expense: rows.filter { $0.kind == .expense }.reduce(Decimal(0)) { $0 + $1.amount },
+                income: rows.filter { $0.kind == .income }.reduce(Decimal(0)) { $0 + $1.amount },
+                count: rows.count,
+                segments: segments(for: rows)
+            )
+        }
+    }
+}

@@ -1,0 +1,60 @@
+/* LogExpenseIntent */
+"Log an expense in ${applicationName}" = "${applicationName} मा खर्च लेख्नुहोस्";
+"Add an expense in ${applicationName}" = "${applicationName} मा खर्च थप्नुहोस्";
+"Record an expense in ${applicationName}" = "${applicationName} मा खर्च रेकर्ड गर्नुहोस्";
+"New expense in ${applicationName}" = "${applicationName} मा नयाँ खर्च";
+"Log ${category} spending in ${applicationName}" = "${applicationName} मा ${category} खर्च लेख्नुहोस्";
+"Track a ${category} expense in ${applicationName}" = "${applicationName} मा ${category} खर्च ट्र्याक गर्नुहोस्";
+"I spent money in ${applicationName}" = "मैले ${applicationName} मा पैसा खर्च गरेँ";
+"${applicationName} expense" = "${applicationName} खर्च";
+
+/* LogIncomeIntent */
+"Log income in ${applicationName}" = "${applicationName} मा आम्दानी लेख्नुहोस्";
+"Add income in ${applicationName}" = "${applicationName} मा आम्दानी थप्नुहोस्";
+"Record income in ${applicationName}" = "${applicationName} मा आम्दानी रेकर्ड गर्नुहोस्";
+"I got paid in ${applicationName}" = "मैले ${applicationName} मा तलब पाएँ";
+"I received money in ${applicationName}" = "मैले ${applicationName} मा पैसा पाएँ";
+"${applicationName} income" = "${applicationName} आम्दानी";
+
+/* SpendingQueryIntent */
+"How much did I spend in ${applicationName}" = "${applicationName} मा मैले कति खर्च गरेँ";
+"How much have I spent in ${applicationName}" = "${applicationName} मा मैले कति खर्च गरेको छु";
+"Check my spending in ${applicationName}" = "${applicationName} मा मेरो खर्च हेर्नुहोस्";
+"Show my spending in ${applicationName}" = "${applicationName} मा मेरो खर्च देखाउनुहोस्";
+"What did I spend on ${category} in ${applicationName}" = "${applicationName} मा ${category} मा कति खर्च भयो";
+"${applicationName} spending" = "${applicationName} खर्च विवरण";
+
+/* BudgetStatusIntent */
+"How is my budget in ${applicationName}" = "${applicationName} मा मेरो बजेट कस्तो छ";
+"How are my budgets in ${applicationName}" = "${applicationName} मा मेरा बजेटहरू कस्ता छन्";
+"Check my budget in ${applicationName}" = "${applicationName} मा मेरो बजेट हेर्नुहोस्";
+"Over budget in ${applicationName}" = "${applicationName} मा म बजेट नाघेको छु कि";
+"${applicationName} budget" = "${applicationName} बजेट";
+
+/* AddReminderIntent */
+"Add a bill reminder in ${applicationName}" = "${applicationName} मा बिल रिमाइन्डर थप्नुहोस्";
+"Add a reminder in ${applicationName}" = "${applicationName} मा रिमाइन्डर थप्नुहोस्";
+"Remind me about a bill in ${applicationName}" = "${applicationName} मा बिलको सम्झना गराउनुहोस्";
+"New bill reminder in ${applicationName}" = "${applicationName} मा नयाँ बिल रिमाइन्डर";
+"${applicationName} reminder" = "${applicationName} रिमाइन्डर";
+
+/* LogDebtIntent */
+"Log a loan in ${applicationName}" = "${applicationName} मा ऋण लेख्नुहोस्";
+"Add a loan in ${applicationName}" = "${applicationName} मा ऋण थप्नुहोस्";
+"I gave money to ${friend} in ${applicationName}" = "मैले ${applicationName} मा ${friend} लाई पैसा दिएँ";
+"I lent money to ${friend} in ${applicationName}" = "मैले ${applicationName} मा ${friend} लाई पैसा सापटी दिएँ";
+"I took money from ${friend} in ${applicationName}" = "मैले ${applicationName} मा ${friend} बाट पैसा लिएँ";
+"I borrowed money from ${friend} in ${applicationName}" = "मैले ${applicationName} मा ${friend} बाट पैसा सापटी लिएँ";
+"${applicationName} loan" = "${applicationName} ऋण";
+
+/* SettleDebtIntent */
+"${friend} paid me back in ${applicationName}" = "${friend} ले ${applicationName} मा मलाई पैसा फिर्ता गर्‍यो";
+"I paid back ${friend} in ${applicationName}" = "मैले ${applicationName} मा ${friend} लाई पैसा फिर्ता गरेँ";
+"Settle up in ${applicationName}" = "${applicationName} मा हिसाब मिलाउनुहोस्";
+"Settle a debt in ${applicationName}" = "${applicationName} मा ऋण चुक्ता गर्नुहोस्";
+
+/* DebtQueryIntent */
+"Who owes me money in ${applicationName}" = "${applicationName} मा मलाई कसले पैसा तिर्नुपर्छ";
+"Who do I owe in ${applicationName}" = "${applicationName} मा मैले कसलाई तिर्नुपर्छ";
+"Show my debts in ${applicationName}" = "${applicationName} मा मेरा ऋणहरू देखाउनुहोस्";
+"${applicationName} debts" = "${applicationName} ऋणहरू";

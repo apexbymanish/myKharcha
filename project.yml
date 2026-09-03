@@ -1,0 +1,108 @@
+name: Kharcha
+options:
+  bundleIdPrefix: com.manish
+  deploymentTarget:
+    iOS: "26.0"
+  createIntermediateGroups: true
+packages:
+  KharchaKit:
+    path: KharchaKit
+  Firebase:
+    url: https://github.com/firebase/firebase-ios-sdk
+    from: "11.0.0"
+targets:
+  Kharcha:
+    type: application
+    platform: iOS
+    sources:
+      - App
+    dependencies:
+      - package: KharchaKit
+      - package: Firebase
+        product: FirebaseAuth
+      - package: Firebase
+        product: FirebaseFirestore
+      - target: KharchaIntentsExtension
+        embed: true
+      - target: KharchaWidget
+        embed: true
+    entitlements:
+      path: App/Kharcha.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - group.com.manish.jebkharcha
+        com.apple.developer.applesignin:
+          - Default
+    info:
+      path: App/Info.plist
+      properties:
+        CFBundleDisplayName: jebkharcha
+        UILaunchScreen: {}
+        CFBundleURLTypes:
+          - CFBundleURLName: com.manish.jebkharcha
+            CFBundleURLSchemes:
+              - jebkharcha
+        INAlternativeAppNames:
+          - INAlternativeAppName: Kharcha
+          - INAlternativeAppName: Jeb
+          - INAlternativeAppName: Jeb Kharcha
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.manish.jebkharcha
+        TARGETED_DEVICE_FAMILY: "1"
+        CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: 2LZ2H9STBD
+        SWIFT_EMIT_LOC_STRINGS: "YES"
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+  KharchaIntentsExtension:
+    type: extensionkit-extension
+    platform: iOS
+    sources:
+      - Extension
+    dependencies:
+      - package: KharchaKit
+    entitlements:
+      path: Extension/KharchaExtension.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - group.com.manish.jebkharcha
+    info:
+      path: Extension/Info.plist
+      properties:
+        EXAppExtensionAttributes:
+          EXExtensionPointIdentifier: com.apple.appintents-extension
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.manish.jebkharcha.intents
+        CODE_SIGN_STYLE: Automatic
+        TARGETED_DEVICE_FAMILY: "1"
+        DEVELOPMENT_TEAM: 2LZ2H9STBD
+  KharchaWidget:
+    type: app-extension
+    platform: iOS
+    sources:
+      - Widget
+    entitlements:
+      path: Widget/KharchaWidget.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - group.com.manish.jebkharcha
+    info:
+      path: Widget/Info.plist
+      properties:
+        CFBundleDisplayName: jebkharcha
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.manish.jebkharcha.widget
+        CODE_SIGN_STYLE: Automatic
+        TARGETED_DEVICE_FAMILY: "1"
+        DEVELOPMENT_TEAM: 2LZ2H9STBD
+schemes:
+  Kharcha:
+    build:
+      targets: { Kharcha: all }
+    run:
+      config: Debug

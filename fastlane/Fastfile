@@ -1,0 +1,32 @@
+default_platform :ios
+
+platform :ios do
+
+  desc "Push App Store metadata (name, description, keywords) — no binary upload"
+  lane :metadata do
+    app_store_connect_api_key(
+      key_id:       "D7P7N5J6FV",
+      issuer_id:    "85bc4fc9-c2cc-4efa-9ae0-4a0c165a7cd6",
+      key_filepath: "#{Dir.home}/.appstoreconnect/private_keys/AuthKey_D7P7N5J6FV.p8"
+    )
+    deliver(
+      skip_binary_upload:              true,
+      skip_screenshots:                true,
+      skip_app_version_update:         true,
+      precheck_include_in_app_purchases: false,
+      force:                           true
+    )
+  end
+
+  desc "Full release: build, upload binary + metadata"
+  lane :release do
+    app_store_connect_api_key(
+      key_id:       "D7P7N5J6FV",
+      issuer_id:    "85bc4fc9-c2cc-4efa-9ae0-4a0c165a7cd6",
+      key_filepath: "#{Dir.home}/.appstoreconnect/private_keys/AuthKey_D7P7N5J6FV.p8"
+    )
+    build_app(scheme: "Kharcha", export_method: "app-store")
+    deliver(skip_screenshots: true, force: true)
+  end
+
+end

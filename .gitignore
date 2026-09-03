@@ -1,0 +1,10 @@
+.DS_Store
+.build/
+.swiftpm/
+xcuserdata/
+.superpowers/
+DerivedData/
+*.xcuserdatad
+GoogleService-Info.plist
+*.xcworkspace/xcshareddata/
+AuthKey_*.p8
