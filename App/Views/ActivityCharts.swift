@@ -105,25 +105,14 @@ struct ActivityBarChart: View {
     /// Writing to it is how scrolling moves the period the header describes.
     @Binding var scrollPosition: Date
 
-    /// One whole period fills the screen, so the scope control decides both what a
-    /// bar means and how far one swipe travels: a week, a month, or a year.
+    /// About nine bars on screen at a time, scrolling freely through the rest.
+    /// Nine is the ceiling for keeping an amount on every bar legible, and it is
+    /// roughly what Pedometer++ shows.
     private var visibleDomain: TimeInterval {
         let day: TimeInterval = 24 * 60 * 60
         switch period {
-        case .week:  return 7 * day
-        case .month: return 31 * day     // the longest month, so none is clipped
-        case .year:  return 365 * day
-        }
-    }
-
-    /// Where a swipe comes to rest — the start of a week, a month, or a year, to
-    /// match the scope. Without this the chart halts mid-period and the header
-    /// ends up describing a window straddling two months.
-    private var snapTo: DateComponents {
-        switch period {
-        case .week:  return DateComponents(hour: 0, weekday: 1)   // 1 == Sunday
-        case .month: return DateComponents(day: 1)
-        case .year:  return DateComponents(month: 1, day: 1)
+        case .week, .month: return 9 * day
+        case .year:         return 9 * 30 * day
         }
     }
 
@@ -225,9 +214,8 @@ struct ActivityBarChart: View {
         .chartXSelection(value: selectedDate)
         .chartScrollableAxes(.horizontal)
         .chartXVisibleDomain(length: visibleDomain)
-        // Scrolling pages by whichever unit the scope control names: pick Month and
-        // one swipe moves one month, landing on the 1st rather than part-way in.
-        .chartScrollTargetBehavior(.valueAligned(matching: snapTo))
+        // Plain momentum scrolling, nothing catching it — Pedometer++ glides
+        // because it never snaps to a boundary.
         .chartScrollPosition(x: $scrollPosition)
         // Long-press scrubbing is deliberately absent. With every bar labelled
         // there is no hidden value to uncover, so the gesture would only compete

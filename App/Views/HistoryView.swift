@@ -7,7 +7,6 @@ struct HistoryView: View {
     @StateObject private var vm: HistoryViewModel
     @EnvironmentObject private var privacy: PrivacyManager
     @State private var editingRow: TxnRow?
-    @State private var searchText = ""
     @State private var selectedBarDate: Date?
     // Month navigation (client-side filter on top of VM filters)
     @State private var selectedMonth: Date? = nil
@@ -19,7 +18,6 @@ struct HistoryView: View {
     // Local calendar day selection — shown inline below heatmap, does NOT filter the main list
     @State private var showReports = false
     @State private var selectedYear: Int? = nil
-    @State private var showFiltersSheet = false
 
     init(store: ExpenseStore) {
         self.store = store
@@ -46,14 +44,6 @@ struct HistoryView: View {
         }
     }
 
-
-    private var hasActiveFilter: Bool {
-        vm.state.hasActiveFilters
-            || vm.state.dayFilter != nil
-            || !vm.state.searchText.isEmpty
-            || selectedMonth != nil
-            || selectedYear != nil
-    }
 
     // Unique years derived from all transactions, newest first.
     private var availableYears: [Int] {
@@ -178,10 +168,7 @@ struct HistoryView: View {
                 .listRowBackground(Color.clear)
                 .listRowSeparator(.hidden)
             } else {
-                // ── 1. Type segment (All / Expenses / Income) ─────────────
-                controlsRowSection
-
-                // ── 2. Analytics — above the ledger, so the chart is what you
+                // ── 1. Analytics — above the ledger, so the chart is what you
                 //      land on rather than a stack of collapsed month rows ───
                 analyticsSection
 
@@ -214,56 +201,34 @@ struct HistoryView: View {
                 }
                 .accessibilityLabel("Reports")
             }
-            ToolbarItem(placement: .topBarTrailing) {
-                Button { showFiltersSheet = true } label: {
-                    HStack(spacing: 5) {
-                        Image(systemName: "line.3.horizontal.decrease.circle")
-                        Text("Filters")
-                    }
-                    .font(.subheadline.weight(.semibold))
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
-                    .background(Color.brandPrimary, in: Capsule())
-                    .foregroundStyle(.white)
-                    .overlay(alignment: .topTrailing) {
-                        if hasActiveFilter {
-                            Circle()
-                                .fill(Color.moneyIn)
-                                .frame(width: 8, height: 8)
-                                .offset(x: 2, y: -2)
-                        }
-                    }
-                }
-                .accessibilityLabel(hasActiveFilter ? "Filters active" : "Filter transactions")
-            }
         }
         .sheet(isPresented: $showReports) {
-            ReportsView(allRows: vm.state.allRows, categories: vm.state.categories,
-                        initialMonth: vm.state.chartAnchor)
+            ReportsView(
+                allRows: vm.state.allRows,
+                categories: vm.state.categories,
+                initialMonth: vm.state.chartAnchor,
+                // Filters are presented from Reports but still drive this screen's
+                // list, so the state stays here and Reports gets the bindings.
+                filterHost: .init(
+                    vm: vm,
+                    selectedYear: $selectedYear,
+                    selectedMonth: $selectedMonth,
+                    availableYears: availableYears,
+                    availableMonths: availableMonths,
+                    resultsCount: filteredTxnCount,
+                    onReset: {
+                        selectedMonth = nil
+                        selectedYear = nil
+                        Task { await vm.clearAllFilters() }
+                    }
+                )
+            )
         }
         .sheet(item: $editingRow, onDismiss: {
             Task { await vm.load() }
         }) { row in
             NavigationStack { TxnFormView(store: store, editing: row) }
         }
-        .sheet(isPresented: $showFiltersSheet) {
-            FiltersSheetView(
-                vm: vm,
-                selectedYear: $selectedYear,
-                selectedMonth: $selectedMonth,
-                availableYears: availableYears,
-                availableMonths: availableMonths,
-                resultsCount: filteredTxnCount,
-                onReset: {
-                    searchText = ""
-                    selectedMonth = nil
-                    selectedYear = nil
-                    Task { await vm.clearAllFilters() }
-                }
-            )
-        }
-        .searchable(text: $searchText, placement: .toolbar, prompt: "Search transactions")
-        .onChange(of: searchText) { _, text in Task { await vm.setSearchFilter(text) } }
         .task { await vm.load() }
         .refreshable { await vm.load() }
         .onChange(of: vm.state.chartPeriod) { _, _ in
@@ -294,24 +259,8 @@ struct HistoryView: View {
         } // ScrollViewReader
     }
 
-    // MARK: - Controls row (Type segment)
-
-    @ViewBuilder private var controlsRowSection: some View {
-        Section {
-            Picker("Type", selection: kindFilterBinding) {
-                Text("All").tag(TxnKindFilter.all)
-                Text("Expenses").tag(TxnKindFilter.expense)
-                Text("Income").tag(TxnKindFilter.income)
-            }
-            .pickerStyle(.segmented)
-            .listRowInsets(EdgeInsets(top: 4, leading: 12, bottom: 4, trailing: 12))
-            .listRowSeparator(.hidden)
-            .listRowBackground(Color.clear)
-        }
-    }
-
-    /// Maps the VM's optional `filterKind` to/from the 3-way segment, used by
-    /// both the controls row above and the Filters sheet's Type section.
+    /// Maps the VM's optional `filterKind` to/from the 3-way segment. Only the
+    /// Filters sheet uses it now — filtering belongs on Reports, not here.
     private var kindFilterBinding: Binding<TxnKindFilter> {
         Binding(
             get: {
@@ -372,27 +321,11 @@ struct HistoryView: View {
                     .id("barSelectionBreakdown")
                 }
             } label: {
-                HStack {
-                    Label("Analytics", systemImage: "chart.bar.xaxis")
-                        .font(.subheadline.weight(.medium))
-                        .foregroundStyle(.primary)
-                    Spacer()
-                    Picker("Period", selection: Binding(
-                        get: { vm.state.chartPeriod },
-                        set: { newPeriod in
-                            // Selection is meaningless once the buckets change shape.
-                            selectedBarDate = nil
-                            Task { await vm.setChartPeriod(newPeriod) }
-                        }
-                    )) {
-                        Text("Week").tag(ActivityPeriod.week)
-                        Text("Month").tag(ActivityPeriod.month)
-                        Text("Year").tag(ActivityPeriod.year)
-                    }
-                    .pickerStyle(.segmented)
-                    .fixedSize()
-                    .labelsHidden()
-                }
+                // No scope control here. Week/Month/Year lives in Reports, the way
+                // Pedometer++ keeps its main screen to the graph alone.
+                Label("Analytics", systemImage: "chart.bar.xaxis")
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(.primary)
             }
         }
     }

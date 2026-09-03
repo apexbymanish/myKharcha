@@ -9,9 +9,27 @@ struct ReportsView: View {
     /// the same period the user was already looking at rather than its own default.
     var initialMonth: Date? = nil
 
+    /// Filtering lives here, not on History. History is the ledger and its graph;
+    /// narrowing what it shows is an analysis job, so the control sits with the
+    /// other analysis. The state itself stays owned by History, which renders the
+    /// list — these are its bindings.
+    var filterHost: FilterHost? = nil
+
+    /// Everything Reports needs to present the Filters sheet on History's behalf.
+    struct FilterHost {
+        let vm: HistoryViewModel
+        let selectedYear: Binding<Int?>
+        let selectedMonth: Binding<Date?>
+        let availableYears: [Int]
+        let availableMonths: [Date]
+        let resultsCount: Int
+        let onReset: () -> Void
+    }
+
     @EnvironmentObject private var privacy: PrivacyManager
     @Environment(\.dismiss) private var dismiss
     @State private var selectedMonth: Date? = nil
+    @State private var showFilters = false
 
     // MARK: - Period helpers
 
@@ -156,8 +174,29 @@ struct ReportsView: View {
             // different period than the screen it was opened from.
             .onAppear { if selectedMonth == nil { selectedMonth = initialMonth } }
             .toolbar {
+                if filterHost != nil {
+                    ToolbarItem(placement: .topBarLeading) {
+                        Button { showFilters = true } label: {
+                            Image(systemName: "line.3.horizontal.decrease.circle")
+                        }
+                        .accessibilityLabel("Filter transactions")
+                    }
+                }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Done") { dismiss() }
+                }
+            }
+            .sheet(isPresented: $showFilters) {
+                if let host = filterHost {
+                    FiltersSheetView(
+                        vm: host.vm,
+                        selectedYear: host.selectedYear,
+                        selectedMonth: host.selectedMonth,
+                        availableYears: host.availableYears,
+                        availableMonths: host.availableMonths,
+                        resultsCount: host.resultsCount,
+                        onReset: host.onReset
+                    )
                 }
             }
         }
