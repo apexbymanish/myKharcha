@@ -40,14 +40,32 @@ struct HistoryView: View {
     /// is always what the chart is drawing.
     @State private var scaleAnchor: Date?
 
+    /// Where the chart is actually scrolled to, written synchronously by the
+    /// scroll binding.
+    ///
+    /// This used to live in the view model, written as `Task { await
+    /// vm.setChartAnchor(...) }` from a callback that fires every frame of a
+    /// fling. Each frame spawned a task, the tasks had no ordering guarantee
+    /// between them, and the binding's getter kept returning the old value until
+    /// one landed — so the anchor drifted behind the scroll and sometimes
+    /// settled on a position the user had passed through pages ago. The header
+    /// then described a window the bars were not drawing. It is `@State` now:
+    /// one synchronous write per frame, in order, and the view model hears about
+    /// it once when the scroll stops.
+    @State private var liveAnchor: Date?
+
     private func scheduleSettle() {
         settleTask?.cancel()
         settleTask = Task { @MainActor in
             try? await Task.sleep(for: .milliseconds(180))
             guard !Task.isCancelled else { return }
+            let resting = liveAnchor ?? vm.state.chartAnchor
             withAnimation(.spring(response: 0.42, dampingFraction: 0.86)) {
-                scaleAnchor = vm.state.chartAnchor
+                scaleAnchor = resting
             }
+            // The view model learns where the scroll ended once, at rest, rather
+            // than once per frame.
+            await vm.setChartAnchor(resting)
             await vm.settleChartAnchor()
         }
     }
@@ -62,7 +80,7 @@ struct HistoryView: View {
     /// indefinitely is the bug above. This bounds it: the hero can lag the bars
     /// by a fraction of a second, never by a different month.
     private var effectiveScaleAnchor: Date {
-        let live = vm.state.chartAnchor
+        let live = liveAnchor ?? vm.state.chartAnchor
         guard let settled = scaleAnchor else { return live }
         let domain = ActivityBarChart.visibleDomain(for: period)
         return abs(settled.timeIntervalSince(live)) > domain ? live : settled
@@ -227,10 +245,10 @@ struct HistoryView: View {
                     selectedEntries: selectedEntries,
                     scaleAnchor: effectiveScaleAnchor,
                     scrollPosition: Binding(
-                        get: { vm.state.chartAnchor },
+                        get: { liveAnchor ?? vm.state.chartAnchor },
                         set: { newAnchor in
                             selectedBarDate = nil
-                            Task { await vm.setChartAnchor(newAnchor) }
+                            liveAnchor = newAnchor
                             scheduleSettle()
                         }
                     )
@@ -315,14 +333,16 @@ struct HistoryView: View {
         }
         .task {
             await vm.load()
-            // Seed the settled window, so a screen that is never scrolled still
-            // measures the bars it is actually drawing.
+            // Seed both, so a screen that is never scrolled still measures the
+            // bars it is actually drawing.
+            liveAnchor = vm.state.chartAnchor
             scaleAnchor = vm.state.chartAnchor
         }
         // Covers anchor moves that arrive without a scroll — a reload, or the
         // period being switched underneath.
         .onChange(of: vm.state.chartBars.count) { _, _ in
-            if scaleAnchor == nil { scaleAnchor = vm.state.chartAnchor }
+            if liveAnchor == nil { liveAnchor = vm.state.chartAnchor }
+            if scaleAnchor == nil { scaleAnchor = liveAnchor }
         }
         // No `.refreshable`: the screen is a fixed layout with no scroll container,
         // so pull-to-refresh had nothing to attach to and never fired. Reloads come
