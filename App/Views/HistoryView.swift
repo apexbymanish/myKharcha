@@ -26,11 +26,28 @@ struct HistoryView: View {
     /// settle; whichever one survives the quiet gap is the real stop.
     @State private var settleTask: Task<Void, Never>?
 
+    /// The window the hero and the bar scale are measured over: the live anchor
+    /// as it was when scrolling last came to rest.
+    ///
+    /// Seeded from `chartAnchor` on appear, and re-seeded whenever the anchor
+    /// moves. This deliberately does not use the view model's `settledAnchor`,
+    /// which only advances inside `settleChartAnchor()` — so on a screen that
+    /// had not been scrolled yet it stayed where it was initialised while the
+    /// chart drew somewhere else entirely. The hero then described one window
+    /// and the bars another, and because the stale window held no spending the
+    /// ceiling collapsed to its floor value and the income bars scaled to
+    /// nothing. Nil means "not settled yet"; fall back to the live anchor, which
+    /// is always what the chart is drawing.
+    @State private var scaleAnchor: Date?
+
     private func scheduleSettle() {
         settleTask?.cancel()
         settleTask = Task { @MainActor in
             try? await Task.sleep(for: .milliseconds(180))
             guard !Task.isCancelled else { return }
+            withAnimation(.spring(response: 0.42, dampingFraction: 0.86)) {
+                scaleAnchor = vm.state.chartAnchor
+            }
             await vm.settleChartAnchor()
         }
     }
@@ -38,12 +55,25 @@ struct HistoryView: View {
 
     /// The buckets currently on screen — the same window `ActivityBarChart`
     /// draws, taken from the same function so the two cannot drift apart.
+    /// The settled anchor, unless it has fallen more than a window away from what
+    /// the chart is drawing — then the live one, immediately.
+    ///
+    /// A debounce that can be wrong for 180ms is fine; one that can be wrong
+    /// indefinitely is the bug above. This bounds it: the hero can lag the bars
+    /// by a fraction of a second, never by a different month.
+    private var effectiveScaleAnchor: Date {
+        let live = vm.state.chartAnchor
+        guard let settled = scaleAnchor else { return live }
+        let domain = ActivityBarChart.visibleDomain(for: period)
+        return abs(settled.timeIntervalSince(live)) > domain ? live : settled
+    }
+
     private var visibleBars: [ActivityBar] {
         // The settled anchor, not the live one. Reading the scroll position as it
         // moves made the hero's figures and its date range churn through every
         // intermediate window during a fling; they now change once, when the
         // scroll stops, on the same beat as the bars rescaling.
-        let start = vm.state.settledAnchor
+        let start = effectiveScaleAnchor
         let end = start.addingTimeInterval(ActivityBarChart.visibleDomain(for: period))
         return vm.state.chartBars.filter { $0.date >= start && $0.date < end }
     }
@@ -195,7 +225,7 @@ struct HistoryView: View {
                     ),
                     isRevealed: privacy.isRevealed,
                     selectedEntries: selectedEntries,
-                    scaleAnchor: vm.state.settledAnchor,
+                    scaleAnchor: effectiveScaleAnchor,
                     scrollPosition: Binding(
                         get: { vm.state.chartAnchor },
                         set: { newAnchor in
@@ -283,7 +313,17 @@ struct HistoryView: View {
         }) { row in
             NavigationStack { TxnFormView(store: store, editing: row) }
         }
-        .task { await vm.load() }
+        .task {
+            await vm.load()
+            // Seed the settled window, so a screen that is never scrolled still
+            // measures the bars it is actually drawing.
+            scaleAnchor = vm.state.chartAnchor
+        }
+        // Covers anchor moves that arrive without a scroll — a reload, or the
+        // period being switched underneath.
+        .onChange(of: vm.state.chartBars.count) { _, _ in
+            if scaleAnchor == nil { scaleAnchor = vm.state.chartAnchor }
+        }
         // No `.refreshable`: the screen is a fixed layout with no scroll container,
         // so pull-to-refresh had nothing to attach to and never fired. Reloads come
         // from `.task` on appear, foregrounding, and remote changes below — the
