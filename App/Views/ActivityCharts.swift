@@ -315,6 +315,10 @@ struct ActivityBarChart: View {
         let dayTotal: Double
         /// True for the biggest band of the day: the one that carries the name.
         let isLead: Bool
+        /// True for the last band in the stack — the one whose top edge is the
+        /// top of the whole bar, and so the only place the day's total can sit
+        /// without floating somewhere down the side of it.
+        let isTop: Bool
     }
 
     private var spentLabel: String { String(localized: "Spent") }
@@ -339,7 +343,8 @@ struct ActivityBarChart: View {
                       series: seg.categoryName,
                       amount: (seg.amount as NSDecimalNumber).doubleValue,
                       dayTotal: total,
-                      isLead: index == 0)
+                      isLead: index == 0,
+                      isTop: index == bar.segments.count - 1)
             }
         }
     }
@@ -461,8 +466,13 @@ struct ActivityBarChart: View {
                         .padding(.horizontal, 2)
                 }
             }
-            // The day's total sits above the stack, once, tinted to the
-            // category it mostly went on.
+            // The day's total, written once above the whole stack.
+            //
+            // Keyed on `isTop`, not `isLead`. An annotation attaches to its own
+            // mark, and the lead band is the *biggest* one, which stacks at the
+            // bottom — so on any bar with more than one category the total was
+            // drawn just above that bottom band, floating down beside the bar it
+            // was meant to be labelling instead of sitting on top of it.
             //
             // `overflowResolution` keeps it on screen for a bar that clips at
             // the percentile ceiling. Without it the label is positioned above
@@ -471,7 +481,7 @@ struct ActivityBarChart: View {
             .annotation(position: .top,
                         spacing: 3,
                         overflowResolution: AnnotationOverflowResolution(x: .fit(to: .chart), y: .fit(to: .chart))) {
-                if labelsFit, p.isLead {
+                if labelsFit, p.isTop {
                     AmountTag(amount: Decimal(p.dayTotal), direction: .spent)
                 }
             }
