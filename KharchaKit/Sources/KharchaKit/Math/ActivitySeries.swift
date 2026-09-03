@@ -108,32 +108,6 @@ public enum ActivitySeries {
         return .under
     }
 
-    /// Scale beyond which a pinch counts as a deliberate zoom rather than a wobble.
-    /// Below it the rung is unchanged, so resting two fingers on the chart does
-    /// nothing.
-    private static let rungThreshold = 1.5
-
-    /// The rung a pinch lands on when the fingers lift.
-    ///
-    /// `scale` is the live magnification: greater than 1 means the fingers spread
-    /// (zoom in, less time in more detail), less than 1 means they pinched
-    /// together. Movement inside the threshold keeps the current rung, and the
-    /// ladder clamps at both ends rather than wrapping.
-    public static func rung(forScale scale: Double, from current: ActivityPeriod) -> ActivityPeriod {
-        let ladder: [ActivityPeriod] = [.week, .month, .year]   // in → out
-        guard let index = ladder.firstIndex(of: current) else { return current }
-        let step: Int
-        if scale >= rungThreshold {
-            step = -1                       // zoom in, toward .week
-        } else if scale <= 1 / rungThreshold {
-            step = 1                        // zoom out, toward .year
-        } else {
-            step = 0
-        }
-        let target = min(max(index + step, 0), ladder.count - 1)
-        return ladder[target]
-    }
-
     /// Totals and period-over-period change for the window containing `date`.
     /// The chart's scroll position supplies `date`, so the header always describes
     /// what is on screen rather than today.

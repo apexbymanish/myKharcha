@@ -185,44 +185,4 @@ struct HistoryViewModelTests {
         #expect(testCal.component(.weekday, from: start) == 1) // Sunday-aligned
     }
 
-    @Test
-    @MainActor
-    func pinchingScalesLiveThenSettlesOntoARung() async throws {
-        // Mid-gesture only the scale moves — re-bucketing while the fingers are
-        // down would pop the bars under them. The rung changes once, on release.
-        let store = try makeStore()
-        _ = try await store.addTxn(amount: 10_000, kind: .expense, categoryID: nil,
-                                   note: nil, date: d(2026, 8, 10), source: .manual)
-        let vm = HistoryViewModel(store: store)
-        await vm.load(calendar: testCal)
-        await vm.setChartPeriod(.month, calendar: testCal)
-
-        vm.setZoomScale(2.0)
-        #expect(vm.state.zoomScale == 2.0)
-        #expect(vm.state.chartPeriod == .month)     // not yet re-bucketed
-
-        await vm.settleZoom(calendar: testCal)
-        #expect(vm.state.chartPeriod == .week)      // snapped in
-        #expect(vm.state.zoomScale == 1.0)          // scale reset for the next pinch
-    }
-
-    @Test
-    @MainActor
-    func settlingAZoomKeepsTheAnchorSoYouStayInTheMonthYouWereLookingAt() async throws {
-        // Zooming is a change of detail, not of place. Landing back on "today"
-        // would throw away wherever the user had scrolled to.
-        let store = try makeStore()
-        _ = try await store.addTxn(amount: 10_000, kind: .expense, categoryID: nil,
-                                   note: nil, date: d(2026, 7, 10), source: .manual)
-        let vm = HistoryViewModel(store: store)
-        await vm.load(calendar: testCal)
-        await vm.setChartAnchor(d(2026, 7, 15), calendar: testCal)
-
-        vm.setZoomScale(2.0)
-        await vm.settleZoom(calendar: testCal)
-
-        #expect(testCal.component(.month, from: vm.state.chartAnchor) == 7)
-        let start = try #require(vm.state.chartSummary?.start)
-        #expect(testCal.component(.month, from: start) == 7)
-    }
 }

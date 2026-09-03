@@ -198,31 +198,6 @@ private func row(_ amount: Decimal, _ kind: TxnKind, _ date: Date) -> TxnRow {
     #expect(monthly == 1_860_000)
 }
 
-// MARK: - Pinch zoom rungs
-
-@Test func zoomingInFromMonthLandsOnWeek() {
-    // A pinch-out gesture (scale > 1) means "show me less time, in more detail".
-    #expect(ActivitySeries.rung(forScale: 2.0, from: .month) == .week)
-}
-
-@Test func zoomingOutFromMonthLandsOnYear() {
-    #expect(ActivitySeries.rung(forScale: 0.4, from: .month) == .year)
-}
-
-@Test func smallScaleChangesDoNotChangeRung() {
-    // Fingers wobble. A gesture that barely moved must not flip the scope,
-    // or the chart would re-bucket every time the user rests two fingers on it.
-    #expect(ActivitySeries.rung(forScale: 1.1, from: .month) == .month)
-    #expect(ActivitySeries.rung(forScale: 0.9, from: .month) == .month)
-}
-
-@Test func rungsDoNotRunPastTheEndsOfTheLadder() {
-    // Week is the most zoomed-in rung and year the most zoomed-out; pinching
-    // harder at either end must clamp rather than wrap around.
-    #expect(ActivitySeries.rung(forScale: 8.0, from: .week) == .week)
-    #expect(ActivitySeries.rung(forScale: 0.1, from: .year) == .year)
-}
-
 // MARK: - Continuous series (scrollable chart)
 
 @Test func continuousMonthBarsWithNoTransactionsCoverOnlyCurrentMonth() {

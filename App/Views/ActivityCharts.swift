@@ -86,16 +86,32 @@ struct ActivityBarChart: View {
     /// Writing to it is how scrolling moves the period the header describes.
     @Binding var scrollPosition: Date
 
-    /// Roughly nine bars are visible at a time. That is the ceiling for keeping an
-    /// amount label on every bar legible — a full 31-day month of labels does not
-    /// fit — so the chart scrolls through the timeline rather than framing a period.
+    /// One whole period fills the screen, so the scope control decides both what a
+    /// bar means and how far one swipe travels: a week, a month, or a year.
     private var visibleDomain: TimeInterval {
         let day: TimeInterval = 24 * 60 * 60
         switch period {
-        case .week, .month: return 9 * day          // nine days
-        case .year:         return 9 * 30 * day     // roughly nine months
+        case .week:  return 7 * day
+        case .month: return 31 * day     // the longest month, so none is clipped
+        case .year:  return 365 * day
         }
     }
+
+    /// Where a swipe comes to rest — the start of a week, a month, or a year, to
+    /// match the scope. Without this the chart halts mid-period and the header
+    /// ends up describing a window straddling two months.
+    private var snapTo: DateComponents {
+        switch period {
+        case .week:  return DateComponents(hour: 0, weekday: 1)   // 1 == Sunday
+        case .month: return DateComponents(day: 1)
+        case .year:  return DateComponents(month: 1, day: 1)
+        }
+    }
+
+    /// Bars are only labelled while the labels can be read. A month is 31 bars and
+    /// a label on each collides into noise, so past this count the amounts drop out
+    /// and the bars carry the shape on their own.
+    private var labelsFit: Bool { bars.count <= 14 }
 
     /// Bar colour by how the day sat against its budget, the way Pedometer++
     /// colours a day by whether the step goal was met. Income keeps its own tint.
@@ -161,7 +177,7 @@ struct ActivityBarChart: View {
                 // Every spend bar carries its own amount, so a value never needs
                 // to be uncovered by tapping or scrubbing.
                 .annotation(position: .top, spacing: 2) {
-                    if p.series == spentLabel, p.amount > 0 {
+                    if labelsFit, p.series == spentLabel, p.amount > 0 {
                         Text(AmountFormatter.money(Decimal(p.amount)))
                             .font(.system(size: 9).monospacedDigit())
                             .foregroundStyle(.secondary)
@@ -190,9 +206,9 @@ struct ActivityBarChart: View {
         .chartXSelection(value: selectedDate)
         .chartScrollableAxes(.horizontal)
         .chartXVisibleDomain(length: visibleDomain)
-        // No `chartScrollTargetBehavior`: scrolling runs free with momentum rather
-        // than snapping to period boundaries. Snapping is what made the earlier
-        // build feel stiff; Pedometer++ glides because nothing catches it.
+        // Scrolling pages by whichever unit the scope control names: pick Month and
+        // one swipe moves one month, landing on the 1st rather than part-way in.
+        .chartScrollTargetBehavior(.valueAligned(matching: snapTo))
         .chartScrollPosition(x: $scrollPosition)
         // Long-press scrubbing is deliberately absent. With every bar labelled
         // there is no hidden value to uncover, so the gesture would only compete
