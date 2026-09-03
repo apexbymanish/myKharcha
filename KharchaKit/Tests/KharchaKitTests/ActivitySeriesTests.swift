@@ -109,6 +109,23 @@ private func row(_ amount: Decimal, _ kind: TxnKind, _ date: Date) -> TxnRow {
     #expect(aug.barCount == 31)
 }
 
+@Test func summaryKnowsWhenItsWindowHoldsNothingAtAll() {
+    // Scrolling into an unused year must be able to say so, rather than showing
+    // a blank plot the user has to interpret.
+    let empty = ActivitySeries.summary([], period: .month,
+                                       containing: d(2021, 3, 15), calendar: testCal)
+    #expect(empty.isEmpty)
+}
+
+@Test func summaryIsNotEmptyWhenOnlyIncomeLandsInTheWindow() {
+    // Income with no spending is still activity. Only a window with neither
+    // counts as empty.
+    let txns = [row(3_000_000, .income, d(2026, 8, 25))]
+    let s = ActivitySeries.summary(txns, period: .month,
+                                   containing: d(2026, 8, 15), calendar: testCal)
+    #expect(!s.isEmpty)
+}
+
 // MARK: - Headline trend (the "is down 8%" half of the header sentence)
 
 @Test func summaryTrendReadsDownAndRoundsToWholePercent() {

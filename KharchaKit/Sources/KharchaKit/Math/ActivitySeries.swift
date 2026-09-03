@@ -61,6 +61,11 @@ public struct ActivitySummary: Sendable, Equatable {
         let magnitude = (r < 0 ? -r : r) * 100
         return Int((magnitude as NSDecimalNumber).doubleValue.rounded())
     }
+
+    /// True when the window holds no activity of any kind. Distinct from a
+    /// no-spend day, which is a real day that happened to cost nothing — this is
+    /// a stretch of timeline with nothing in it, and says so on the chart.
+    public var isEmpty: Bool { expense == 0 && income == 0 }
 }
 
 /// How a single bucket's spending sits against its budget allowance. Drives the
