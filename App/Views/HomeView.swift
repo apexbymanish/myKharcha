@@ -192,7 +192,7 @@ struct HomeView: View {
             // HIG: surfaced immediately after status so urgent items never hide below actions.
             if !vm.state.budgets.isEmpty || !vm.state.dueSoonItems.isEmpty {
                 Section {
-                    MonthGlanceCard(budgets: vm.state.budgets, dueSoonItems: vm.state.dueSoonItems)
+                    MonthGlanceCard(budgets: vm.state.budgets, dueSoonItems: vm.state.dueSoonItems, isRevealed: privacy.isRevealed)
                 }
             }
 
@@ -230,7 +230,8 @@ struct HomeView: View {
                 Section("This Month") {
                     SpendingDonutChart(
                         breakdown: vm.state.breakdown,
-                        colors: vm.state.categoryColors
+                        colors: vm.state.categoryColors,
+                        isRevealed: privacy.isRevealed
                     )
                 }
             }
@@ -300,7 +301,7 @@ struct HomeView: View {
                             Button {
                                 editingRow = row
                             } label: {
-                                TxnRowView(row: row)
+                                TxnRowView(row: row, categories: vm.state.categories)
                             }
                             .buttonStyle(.plain)
                             .accessibilityHint("Edits this transaction")
@@ -380,21 +381,20 @@ struct HomeView: View {
                 .accessibilityLabel("Import from text")
             }
             ToolbarItem(placement: .topBarTrailing) {
-                HStack(spacing: 20) {
-                    Button {
-                        privacy.toggle()
-                    } label: {
-                        Image(systemName: privacy.isRevealed ? "eye" : "eye.slash")
-                    }
-                    .accessibilityLabel(privacy.isRevealed ? "Hide amounts" : "Show amounts")
-
-                    Button {
-                        showAddSheet = true
-                    } label: {
-                        Image(systemName: "plus")
-                    }
-                    .accessibilityLabel("Add transaction")
+                Button {
+                    showAddSheet = true
+                } label: {
+                    Image(systemName: "plus")
                 }
+                .accessibilityLabel("Add transaction")
+            }
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    privacy.toggle()
+                } label: {
+                    Image(systemName: privacy.isRevealed ? "eye" : "eye.slash")
+                }
+                .accessibilityLabel(privacy.isRevealed ? "Hide amounts" : "Show amounts")
             }
         }
         .sheet(isPresented: $showAddSheet, onDismiss: { Task { await reload() } }) {

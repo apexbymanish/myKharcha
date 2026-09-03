@@ -126,16 +126,16 @@ struct CategoryChip: View {
 
     var body: some View {
         VStack(spacing: 6) {
-            Image(systemName: category.symbol)
-                .font(.title3)
-                .foregroundStyle(isSelected ? .white : Color(hex: category.colorHex))
-                .frame(width: 44, height: 44)
-                .background(isSelected ? Color(hex: category.colorHex) : Color(hex: category.colorHex).opacity(0.15))
-                .clipShape(Circle())
+            CategoryIconBadge(symbol: category.symbol, colorHex: category.colorHex, size: 44)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 44 * 0.28, style: .continuous)
+                        .strokeBorder(isSelected ? Color.brandPrimary : .clear, lineWidth: 2.5)
+                )
             Text(category.name)
                 .font(.caption2)
+                .fontWeight(isSelected ? .semibold : .regular)
                 .multilineTextAlignment(.center)
-                .foregroundStyle(.primary)
+                .foregroundStyle(isSelected ? Color.brandPrimary : .primary)
                 .fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity)
@@ -460,6 +460,7 @@ struct PayCycleCard: View {
 struct MonthGlanceCard: View {
     let budgets: [BudgetStatus]
     let dueSoonItems: [HomeViewModel.State.DueSoonItem]
+    let isRevealed: Bool
 
     private var onTrack: Int { budgets.filter { !$0.isOver }.count }
     private var overBudget: Int { budgets.filter { $0.isOver }.count }
@@ -495,7 +496,7 @@ struct MonthGlanceCard: View {
                                 .foregroundStyle(.secondary)
                         }
                         Spacer()
-                        Text(AmountFormatter.money(item.amount))
+                        Text(isRevealed ? AmountFormatter.money(item.amount) : "••••")
                             .font(.callout.monospacedDigit().weight(.semibold))
                             .foregroundStyle(item.daysUntil == 0 ? Color.moneyOut : Color.orange)
                     }
@@ -551,7 +552,8 @@ struct MonthGlanceCard: View {
     private var soonLabel: String {
         if soonItems.count == 1 {
             let item = soonItems[0]
-            return "\(item.name) · \(AmountFormatter.money(item.amount)) due soon"
+            let amount = isRevealed ? AmountFormatter.money(item.amount) : "••••"
+            return "\(item.name) · \(amount) due soon"
         }
         return "\(soonItems.count) payments due soon"
     }
@@ -583,6 +585,7 @@ struct MonthGlanceCard: View {
 struct SpendingDonutChart: View {
     let breakdown: SpendingBreakdown
     let colors: [UUID: String]
+    let isRevealed: Bool
 
     private struct Slice: Identifiable {
         let id = UUID()
@@ -615,7 +618,7 @@ struct SpendingDonutChart: View {
             .overlay {
                 VStack(spacing: 2) {
                     Text("Total").font(.caption).foregroundStyle(.secondary)
-                    Text(AmountFormatter.money(breakdown.total))
+                    Text(isRevealed ? AmountFormatter.money(breakdown.total) : "••••")
                         .font(.headline.monospacedDigit())
                 }
             }
@@ -627,7 +630,7 @@ struct SpendingDonutChart: View {
                         Circle().fill(slice.color).frame(width: 10, height: 10)
                         Text(slice.name).font(.caption)
                         Spacer()
-                        Text(AmountFormatter.money(Decimal(slice.amount)))
+                        Text(isRevealed ? AmountFormatter.money(Decimal(slice.amount)) : "••••")
                             .font(.caption.monospacedDigit())
                             .foregroundStyle(.secondary)
                     }
