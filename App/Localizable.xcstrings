@@ -2556,6 +2556,7 @@
 
     },
     "+%@" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -2668,6 +2669,7 @@
       }
     },
     "+••••" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -2780,6 +2782,7 @@
       }
     },
     "−%@" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -2892,6 +2895,7 @@
       }
     },
     "−••••" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -5364,9 +5368,6 @@
     "Add your salary and payday to see daily spend limits" : {
 
     },
-    "All" : {
-
-    },
     "All amounts are shown and totalled in this currency. When you paste text with foreign amounts (e.g. $10), they're converted to it automatically." : {
 
     },
@@ -5708,15 +5709,6 @@
           }
         }
       }
-    },
-    "All months" : {
-
-    },
-    "All time" : {
-
-    },
-    "All years" : {
-
     },
     "Amount" : {
       "localizations" : {
@@ -7425,6 +7417,9 @@
         }
       }
     },
+    "BIGGEST DAY" : {
+
+    },
     "Bill Reminder" : {
       "localizations" : {
         "ar" : {
@@ -8210,6 +8205,9 @@
         }
       }
     },
+    "CATEGORIES" : {
+
+    },
     "Category" : {
       "localizations" : {
         "ar" : {
@@ -8657,9 +8655,6 @@
           }
         }
       }
-    },
-    "Clear all filters" : {
-
     },
     "Clear balance with %@?" : {
       "localizations" : {
@@ -9558,6 +9553,9 @@
         }
       }
     },
+    "Couldn't prepare the export." : {
+
+    },
     "Create Full Backup" : {
 
     },
@@ -10011,9 +10009,6 @@
           }
         }
       }
-    },
-    "Date range" : {
-
     },
     "Day %@ (next: %@)" : {
       "extractionState" : "stale",
@@ -13417,6 +13412,9 @@
         }
       }
     },
+    "ENTRIES" : {
+
+    },
     "Erase & Replace" : {
       "localizations" : {
         "ar" : {
@@ -14319,9 +14317,6 @@
         }
       }
     },
-    "Expenses" : {
-
-    },
     "Export" : {
       "localizations" : {
         "ar" : {
@@ -14546,7 +14541,11 @@
         }
       }
     },
+    "Export Data" : {
+
+    },
     "Filter transactions" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -14657,9 +14656,6 @@
           }
         }
       }
-    },
-    "Filters" : {
-
     },
     "Filters active" : {
       "extractionState" : "stale",
@@ -21633,7 +21629,6 @@
       }
     },
     "Month" : {
-      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -23005,6 +23000,9 @@
           }
         }
       }
+    },
+    "NET" : {
+
     },
     "Net %@" : {
       "extractionState" : "stale",
@@ -28101,8 +28099,10 @@
         }
       }
     },
+    "PER DAY" : {
+
+    },
     "Period" : {
-      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -29794,6 +29794,9 @@
         }
       }
     },
+    "RECEIVED" : {
+
+    },
     "Recent" : {
       "localizations" : {
         "ar" : {
@@ -31394,9 +31397,6 @@
     "Reports" : {
 
     },
-    "Reset" : {
-
-    },
     "Reset All Filters" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -32989,6 +32989,9 @@
           }
         }
       }
+    },
+    "Scope" : {
+
     },
     "Search transactions" : {
       "extractionState" : "stale",
@@ -34800,12 +34803,6 @@
         }
       }
     },
-    "Show %lld results" : {
-
-    },
-    "Show 1 result" : {
-
-    },
     "Show amounts" : {
       "localizations" : {
         "ar" : {
@@ -35865,6 +35862,9 @@
           }
         }
       }
+    },
+    "SPENT" : {
+
     },
     "Spent this month" : {
       "localizations" : {
@@ -38468,6 +38468,9 @@
         }
       }
     },
+    "TOTAL RECEIVED" : {
+
+    },
     "Total saved" : {
       "localizations" : {
         "ar" : {
@@ -38579,6 +38582,9 @@
           }
         }
       }
+    },
+    "TOTAL SPENT" : {
+
     },
     "Track what you pay off over months" : {
       "localizations" : {
@@ -38692,7 +38698,7 @@
         }
       }
     },
-    "Transactions" : {
+    "TRANSACTIONS" : {
 
     },
     "Transactions you log will appear here, grouped by month." : {
@@ -39952,7 +39958,6 @@
 
     },
     "Week" : {
-      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -40634,7 +40639,6 @@
       }
     },
     "Year" : {
-      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
