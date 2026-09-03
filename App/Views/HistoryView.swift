@@ -189,17 +189,25 @@ struct HistoryView: View {
                 if visibleTotals.isEmpty {
                     // Sits over the chart rather than in place of it, and lets
                     // touches through so the scroll underneath still works.
-                    VStack(spacing: 6) {
+                    //
+                    // Anchored near the top rather than centred: bars grow from
+                    // the baseline, so the upper third is the part of the frame
+                    // that is reliably clear, and a message dead-centre sat on
+                    // the grey stubs marking the empty days.
+                    VStack(spacing: 8) {
                         Image(systemName: "checkmark.circle")
-                            .font(.title)
+                            .font(.largeTitle)
                             .foregroundStyle(Color.moneyIn)
                             .symbolEffect(.bounce, options: .nonRepeating)
                         Text("No spend")
-                            .font(.title3.weight(.semibold))
+                            .font(.title.weight(.semibold))
                         Text("Swipe to another period")
-                            .font(.subheadline)
+                            .font(.callout)
                             .foregroundStyle(.secondary)
                     }
+                    .multilineTextAlignment(.center)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                    .padding(.top, 36)
                     .allowsHitTesting(false)
                     .transition(.opacity.combined(with: .scale(scale: 0.96)))
                 }
