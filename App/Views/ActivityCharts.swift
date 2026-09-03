@@ -619,6 +619,9 @@ struct ActivityBarChart: View {
 /// A compact, axis-light trend (used on Home) — same data, smaller and legend-free.
 struct MiniTrendChart: View {
     let bars: [ActivityBar]
+    /// Amounts are drawn on the bars, so the privacy toggle has to reach here
+    /// too — the same hole the full chart had.
+    var isRevealed: Bool = true
 
     private struct Point: Identifiable {
         let id = UUID()
@@ -641,11 +644,29 @@ struct MiniTrendChart: View {
             BarMark(x: .value("Date", p.date, unit: .day), y: .value("Amount", p.amount))
                 .foregroundStyle(Color.moneyOut)
                 .cornerRadius(2)
+                // The figure on the bar, as on the full chart. Without it the
+                // week is a shape you can compare against itself and nothing
+                // else — you can see Thursday was the big day and not what it
+                // cost, which is the one thing worth knowing at a glance.
+                .annotation(position: .top,
+                            spacing: 2,
+                            overflowResolution: AnnotationOverflowResolution(x: .fit(to: .chart),
+                                                                             y: .fit(to: .chart))) {
+                    Text(isRevealed ? AmountFormatter.money(Decimal(p.amount)) : "••••")
+                        .font(.system(size: 9, weight: .semibold))
+                        .monospacedDigit()
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                        // Seven columns on a phone leave roughly 45pt each, and a
+                        // five-figure amount wants more than that.
+                        .minimumScaleFactor(0.6)
+                }
         }
         .chartLegend(.hidden)
         .chartXAxis { AxisMarks(values: .stride(by: .day)) { _ in AxisTick() } }
         .chartYAxis(.hidden)
-        .frame(height: 90)
+        // Taller by the height of a label, so adding one did not shorten every bar.
+        .frame(height: 104)
     }
 }
 

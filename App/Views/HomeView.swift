@@ -258,7 +258,7 @@ struct HomeView: View {
                                     .font(.caption2)
                                     .foregroundStyle(.tertiary)
                             }
-                            MiniTrendChart(bars: vm.state.weekBars)
+                            MiniTrendChart(bars: vm.state.weekBars, isRevealed: privacy.isRevealed)
                         }
                     }
                     .buttonStyle(.plain)
