@@ -626,21 +626,66 @@ struct MiniTrendChart: View {
     private struct Point: Identifiable {
         let id = UUID()
         let date: Date
-        let series: String
         let amount: Double
     }
-    /// Spending only, same reason as the full chart: a salary in the window set
-    /// the shared y-scale and squashed every spend bar to nothing.
-    private var points: [Point] {
+
+    /// Income hangs below a zero rule on its own scale, as on the full chart.
+    private struct IncomePoint: Identifiable {
+        let id = UUID()
+        let date: Date
+        let amount: Decimal
+        let plotted: Double
+    }
+
+    private var spendPoints: [Point] {
         bars.compactMap { bar in
             let spent = (bar.expense as NSDecimalNumber).doubleValue
             guard spent > 0 else { return nil }
-            return Point(date: bar.date, series: "e", amount: spent)
+            return Point(date: bar.date, amount: spent)
         }
     }
 
-    var body: some View {
-        Chart(points) { p in
+    private var spendTop: Double {
+        let ceiling = ActivitySeries.chartCeiling(bars.map(\.expense).filter { $0 > 0 })
+        let value = (ceiling as NSDecimalNumber).doubleValue
+        return value > 0 ? value : 1
+    }
+
+    private var incomePeak: Double {
+        let ceiling = ActivitySeries.chartCeiling(bars.map(\.income).filter { $0 > 0 })
+        return (ceiling as NSDecimalNumber).doubleValue
+    }
+
+    /// A slightly deeper share than the full chart's quarter. At this height a
+    /// quarter of 120pt is 30pt, and a bar that short reads as an artefact
+    /// rather than as a measure.
+    private static let incomeShare = 0.3
+
+    private var floorValue: Double {
+        guard incomePeak > 0 else { return 0 }
+        return -spendTop * (Self.incomeShare / (1 - Self.incomeShare))
+    }
+
+    private var incomePoints: [IncomePoint] {
+        guard incomePeak > 0 else { return [] }
+        // Four fifths, leaving a gutter for the figure — same reason as the full
+        // chart: written under the bar it sits on the background, not on green.
+        let depth = abs(floorValue) * 0.8
+        return bars.compactMap { bar in
+            guard bar.income > 0 else { return nil }
+            let value = (bar.income as NSDecimalNumber).doubleValue
+            return IncomePoint(date: bar.date,
+                               amount: bar.income,
+                               plotted: -(value / incomePeak) * depth)
+        }
+    }
+
+    private func money(_ amount: Decimal) -> String {
+        isRevealed ? AmountFormatter.money(amount) : "••••"
+    }
+
+    @ChartContentBuilder private var spendMarks: some ChartContent {
+        ForEach(spendPoints) { p in
             BarMark(x: .value("Date", p.date, unit: .day), y: .value("Amount", p.amount))
                 .foregroundStyle(Color.moneyOut)
                 .cornerRadius(2)
@@ -648,11 +693,9 @@ struct MiniTrendChart: View {
                 // week is a shape you can compare against itself and nothing
                 // else — you can see Thursday was the big day and not what it
                 // cost, which is the one thing worth knowing at a glance.
-                .annotation(position: .top,
-                            spacing: 2,
-                            overflowResolution: AnnotationOverflowResolution(x: .fit(to: .chart),
-                                                                             y: .fit(to: .chart))) {
-                    Text(isRevealed ? AmountFormatter.money(Decimal(p.amount)) : "••••")
+                .annotation(position: .top, spacing: 2,
+                            overflowResolution: .init(x: .fit(to: .chart), y: .fit(to: .chart))) {
+                    Text(money(Decimal(p.amount)))
                         .font(.system(size: 9, weight: .semibold))
                         .monospacedDigit()
                         .foregroundStyle(.secondary)
@@ -662,18 +705,50 @@ struct MiniTrendChart: View {
                         .minimumScaleFactor(0.6)
                 }
         }
+    }
+
+    @ChartContentBuilder private var incomeMarks: some ChartContent {
+        ForEach(incomePoints) { p in
+            BarMark(x: .value("Date", p.date, unit: .day),
+                    yStart: .value("Amount", 0),
+                    yEnd: .value("Amount", p.plotted))
+                .foregroundStyle(Color.moneyIn)
+                .cornerRadius(2)
+                .annotation(position: .bottom, spacing: 2,
+                            overflowResolution: .init(x: .fit(to: .chart), y: .fit(to: .plot))) {
+                    Text(money(p.amount))
+                        .font(.system(size: 9, weight: .semibold))
+                        .monospacedDigit()
+                        .foregroundStyle(Color.moneyIn)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.6)
+                }
+        }
+    }
+
+    var body: some View {
+        Chart {
+            incomeMarks
+            // The line the two measures meet at. Without it the green reads as
+            // negative spending rather than as money coming in.
+            if incomePeak > 0 {
+                RuleMark(y: .value("Zero", 0))
+                    .foregroundStyle(Color.secondary.opacity(0.35))
+                    .lineStyle(StrokeStyle(lineWidth: 0.5))
+            }
+            spendMarks
+        }
         .chartLegend(.hidden)
         .chartXAxis { AxisMarks(values: .stride(by: .day)) { _ in AxisTick() } }
         .chartYAxis(.hidden)
-        // Taller by the height of a label, so adding one did not shorten every bar.
-        .frame(height: 104)
+        .chartYScale(domain: floorValue...spendTop)
+        // Tall enough for a label above and, when there is income, a bar and a
+        // label below. A week with no income keeps the whole frame for spending.
+        .frame(height: incomePeak > 0 ? 138 : 104)
+        .animation(.spring(response: 0.4, dampingFraction: 0.86), value: incomePeak > 0)
     }
 }
 
-/// Per-category spend/income breakdown for a single time bucket (day or month).
-/// Shown in History below the bar chart when the user taps a bar.
-/// Always shows all transactions for the bucket regardless of active list filters,
-/// since it corresponds to the unfiltered chart bars above.
 struct BarSelectionBreakdown: View {
     let allRows: [TxnRow]
     let date: Date
