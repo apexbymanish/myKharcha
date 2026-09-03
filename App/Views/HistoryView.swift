@@ -107,6 +107,12 @@ struct HistoryView: View {
                 }
             }
             .frame(maxWidth: .infinity)
+            // Digits roll to their new values as you scroll to another period,
+            // rather than the whole figure being swapped out. This is what Apple
+            // uses for changing numbers — timers, rings, Weather.
+            .contentTransition(.numericText())
+            .animation(.smooth(duration: 0.3), value: s.expense)
+            .animation(.smooth(duration: 0.3), value: s.income)
             .accessibilityElement(children: .combine)
         }
     }
@@ -132,12 +138,15 @@ struct HistoryView: View {
                     Image(systemName: "checkmark.circle")
                         .font(.system(size: 34))
                         .foregroundStyle(Color.moneyIn)
+                        // Draws itself in rather than appearing fully formed.
+                        .symbolEffect(.bounce, options: .nonRepeating)
                     Text("No spend")
                         .font(.title3.weight(.semibold))
                     Text("Nothing logged in this period.")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
+                .transition(.opacity.combined(with: .scale(scale: 0.96)))
                 Spacer()
             } else {
                 // The chart is the screen, not a card inside it. It takes the
@@ -158,20 +167,34 @@ struct HistoryView: View {
                         }
                     )
                 )
-                .frame(maxHeight: .infinity)
+                // Roughly two fifths of the screen. Full-bleed only works when the
+                // chart is reliably full; spending has empty days and outliers, so
+                // a screen of pure chart is mostly a screen of nothing.
+                .frame(maxHeight: 260)
                 .padding(.horizontal, 8)
+
+                Spacer(minLength: 0)
             }
 
-            if let date = selectedBarDate {
-                BarSelectionBreakdown(allRows: vm.state.allRows, date: date, period: period) {
-                    selectedBarDate = nil
-                }
-                .padding(.horizontal)
-                .padding(.bottom, 8)
-            }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color(.systemGroupedBackground))
+        // Flat white left the bars floating on nothing. A soft vertical wash —
+        // barely-there at the top, grounding under the bars — gives them a surface
+        // to sit on without adding a card or a border.
+        .background {
+            LinearGradient(
+                colors: [
+                    Color(.systemBackground),
+                    Color(.systemGroupedBackground)
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .ignoresSafeArea()
+        }
+        // Crossing between the chart and the empty state is a change of content,
+        // not a jump cut.
+        .animation(.smooth(duration: 0.3), value: vm.state.chartSummary?.isEmpty)
         .navigationTitle("History")
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {

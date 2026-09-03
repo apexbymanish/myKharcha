@@ -87,6 +87,36 @@ struct ChartHeadline: View {
     }
 }
 
+
+/// The snap-up detail for a tapped bar. Sits on the chart, next to the bar it
+/// describes, rather than at the bottom of the screen.
+private struct TooltipCard: View {
+    let date: Date
+    let amount: Decimal
+    let unit: Calendar.Component
+
+    private var label: String {
+        let f = DateFormatter()
+        f.setLocalizedDateFormatFromTemplate(unit == .month ? "MMMMyyyy" : "MMMd")
+        return f.string(from: date)
+    }
+
+    var body: some View {
+        VStack(spacing: 2) {
+            Text(label)
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+            Text(AmountFormatter.money(amount))
+                .font(.subheadline.weight(.semibold))
+                .monospacedDigit()
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 6)
+        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 8))
+        .shadow(color: .black.opacity(0.12), radius: 6, y: 2)
+    }
+}
+
 /// Grouped spend-vs-income bar chart over a set of `ActivityBar` buckets.
 /// `unit` is `.day` for week/month periods and `.month` for the year period.
 /// Bind `selectedDate` to track which bar the user tapped; the binding is
@@ -133,6 +163,22 @@ struct ActivityBarChart: View {
         }
     }
 
+    /// Top of the y-scale. Not the maximum: one rent-sized day would take the whole
+    /// height and flatten every ordinary day into a stub. `chartCeiling` returns the
+    /// 90th percentile so the outlier clips and the rest of the period stays
+    /// readable. See its tests for the two cases.
+    private var peak: Double {
+        let ceiling = ActivitySeries.chartCeiling(points.map { Decimal($0.amount) })
+        return (ceiling as NSDecimalNumber).doubleValue
+    }
+
+    /// The bucket the user tapped, if it has spending.
+    private var selectedPoint: Point? {
+        guard let sel = selectedDate.wrappedValue else { return nil }
+        let cal = Calendar.current
+        return points.first { cal.isDate($0.date, equalTo: sel, toGranularity: unit) }
+    }
+
     private struct Point: Identifiable {
         let id = UUID()
         let date: Date
@@ -143,45 +189,36 @@ struct ActivityBarChart: View {
     private var spentLabel: String { String(localized: "Spent") }
     private var receivedLabel: String { String(localized: "Received") }
 
+    /// Spending only, and only days that have some.
+    ///
+    /// Income used to be a second series here. A ₩3,000,000 salary against days of
+    /// ₩12k–₩128k set the shared y-scale, so every expense bar rendered a few
+    /// pixels tall and the chart showed nothing. Income belongs in the hero, where
+    /// it is a number rather than a bar that flattens the ones around it.
+    ///
+    /// Zero days are dropped rather than drawn: a spend tracker has many of them,
+    /// and each one was eating a column's width to say nothing.
     private var points: [Point] {
-        bars.flatMap { bar in
-            [
-                Point(date: bar.date, series: spentLabel, amount: (bar.expense as NSDecimalNumber).doubleValue),
-                Point(date: bar.date, series: receivedLabel, amount: (bar.income as NSDecimalNumber).doubleValue)
-            ]
+        bars.compactMap { bar in
+            let spent = (bar.expense as NSDecimalNumber).doubleValue
+            guard spent > 0 else { return nil }
+            return Point(date: bar.date, series: spentLabel, amount: spent)
         }
     }
 
-    /// Buckets where nothing was spent or received. A zero-height bar draws
-    /// nothing, so without their own mark these are indistinguishable from days
-    /// with no data at all — and from the empty space past the end of the ledger.
-    private var emptyBars: [ActivityBar] { bars.filter(\.isEmpty) }
-
     var body: some View {
         Chart {
-            // A no-spend day is a real, and good, outcome in a spend tracker —
-            // not missing data. It gets a baseline dot rather than a stub bar,
-            // because a bar would imply an amount that was not spent.
-            ForEach(emptyBars) { bar in
-                PointMark(
-                    x: .value("Date", bar.date, unit: unit),
-                    y: .value("Amount", 0)
-                )
-                .symbol(.circle)
-                .symbolSize(14)
-                .foregroundStyle(Color.secondary.opacity(0.35))
-            }
             ForEach(points) { p in
                 BarMark(
                     x: .value("Date", p.date, unit: unit),
                     y: .value("Amount", p.amount),
-                    // Chunky bars with tight gutters. A thin bar reads as
-                    // decoration; a wide one reads as data.
-                    width: .fixed(22)
+                    // Fat bars. Every column used to reserve a second slot for an
+                    // income bar that was usually zero, so even the spend bar only
+                    // got half a column.
+                    width: .fixed(34)
                 )
                 .foregroundStyle(barColor(for: p))
-                .cornerRadius(3)
-                .position(by: .value("Series", p.series))
+                .cornerRadius(4)
                 // Every spend bar carries its own amount, so a value never needs
                 // to be uncovered by tapping or scrubbing.
                 .annotation(position: .top, spacing: 2) {
@@ -192,11 +229,12 @@ struct ActivityBarChart: View {
                     }
                 }
             }
-            // Selection indicator — a faint vertical rule at the chosen bucket.
+            // Selection highlights the whole column behind the bar rather than
+            // drawing a line through it — the bar stays readable and the tap
+            // clearly belongs to that day.
             if let sel = selectedDate.wrappedValue {
-                RuleMark(x: .value("Selected", sel, unit: unit))
-                    .foregroundStyle(Color.secondary.opacity(0.35))
-                    .lineStyle(StrokeStyle(lineWidth: 1.5, dash: [5, 3]))
+                RectangleMark(x: .value("Selected", sel, unit: unit))
+                    .foregroundStyle(Color.primary.opacity(0.06))
                     .zIndex(-1)
             }
         }
@@ -211,7 +249,35 @@ struct ActivityBarChart: View {
                 AxisValueLabel().font(.system(size: 9))
             }
         }
+        // `chartCeiling` already includes its headroom, so no second helping here.
+        .chartYScale(domain: 0...(peak > 0 ? peak : 1))
         .chartXSelection(value: selectedDate)
+        // The detail rides on the bar you tapped. It used to appear at the foot of
+        // the screen, far from the thing it described.
+        .chartOverlay { proxy in
+            GeometryReader { geo in
+                if let p = selectedPoint,
+                   let plot = proxy.plotFrame,
+                   let x = proxy.position(forX: p.date) {
+                    let originX = geo[plot].origin.x
+                    TooltipCard(date: p.date, amount: Decimal(p.amount), unit: unit)
+                        .position(x: min(max(originX + x, 70), geo.size.width - 70), y: 28)
+                        // Scales up from the bar rather than appearing, and slides
+                        // between bars instead of jumping when the selection moves.
+                        .transition(.scale(scale: 0.85).combined(with: .opacity))
+                        .animation(.spring(response: 0.32, dampingFraction: 0.72),
+                                   value: p.date)
+                }
+            }
+        }
+        // The selection highlight and tooltip arrive together, on one spring.
+        .animation(.spring(response: 0.32, dampingFraction: 0.72),
+                   value: selectedDate.wrappedValue)
+        // Scrolling into a period with a different peak rescales the bars. Without
+        // this they jump to their new heights; with it they grow into them.
+        .animation(.smooth(duration: 0.35), value: peak)
+        // A tap on a bar should feel like it landed.
+        .sensoryFeedback(.selection, trigger: selectedDate.wrappedValue)
         .chartScrollableAxes(.horizontal)
         .chartXVisibleDomain(length: visibleDomain)
         // Plain momentum scrolling, nothing catching it — Pedometer++ glides
@@ -220,7 +286,11 @@ struct ActivityBarChart: View {
         // Long-press scrubbing is deliberately absent. With every bar labelled
         // there is no hidden value to uncover, so the gesture would only compete
         // with the scroll pan for no gain. Tap-to-select still filters the list.
-        .frame(height: 200)
+        //
+        // No fixed height. It used to be pinned at 200pt, so however much room the
+        // caller gave it the chart stayed small and got centred — bars floating
+        // mid-screen with white above and below. It fills what it is handed, and
+        // the bars sit on the bottom of that.
     }
 }
 
@@ -234,20 +304,21 @@ struct MiniTrendChart: View {
         let series: String
         let amount: Double
     }
+    /// Spending only, same reason as the full chart: a salary in the window set
+    /// the shared y-scale and squashed every spend bar to nothing.
     private var points: [Point] {
-        bars.flatMap { bar in
-            [
-                Point(date: bar.date, series: "e", amount: (bar.expense as NSDecimalNumber).doubleValue),
-                Point(date: bar.date, series: "i", amount: (bar.income as NSDecimalNumber).doubleValue)
-            ]
+        bars.compactMap { bar in
+            let spent = (bar.expense as NSDecimalNumber).doubleValue
+            guard spent > 0 else { return nil }
+            return Point(date: bar.date, series: "e", amount: spent)
         }
     }
 
     var body: some View {
         Chart(points) { p in
             BarMark(x: .value("Date", p.date, unit: .day), y: .value("Amount", p.amount))
-                .foregroundStyle(p.series == "e" ? Color.moneyOut : Color.moneyIn)
-                .position(by: .value("Series", p.series))
+                .foregroundStyle(Color.moneyOut)
+                .cornerRadius(2)
         }
         .chartLegend(.hidden)
         .chartXAxis { AxisMarks(values: .stride(by: .day)) { _ in AxisTick() } }

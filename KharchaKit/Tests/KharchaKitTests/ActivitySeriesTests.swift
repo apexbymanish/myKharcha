@@ -275,3 +275,31 @@ private func row(_ amount: Decimal, _ kind: TxnKind, _ date: Date) -> TxnRow {
     let last = try #require(bars.last).date
     #expect(last >= testCal.startOfDay(for: d(2026, 8, 1)))
 }
+
+// MARK: - Chart scale ceiling
+
+@Test func chartCeilingIgnoresASingleOutlierSoOrdinaryDaysStayReadable() {
+    // Rent at 20x a normal day would take the whole chart height and squash every
+    // other bar to a stub. The ceiling comes from the 90th percentile instead, so
+    // the outlier clips and the rest of the month is legible.
+    let ordinary: [Decimal] = [12_000, 20_000, 18_000, 25_000, 15_000,
+                               22_000, 19_000, 30_000, 17_000]
+    let withRent = ordinary + [1_400_000]
+    let ceiling = ActivitySeries.chartCeiling(withRent)
+    #expect(ceiling < 100_000)          // nowhere near the outlier
+    #expect(ceiling >= 30_000)          // still above every ordinary day
+}
+
+@Test func chartCeilingNearlyFillsTheFrameWhenNothingIsAnOutlier() {
+    // Evenly-sized days have no outlier to protect against. The tallest bar must
+    // not clip, and must not sit halfway up the frame either — it should nearly
+    // fill it, with only enough headroom to keep it off the ceiling.
+    let even: [Decimal] = [20_000, 22_000, 19_000, 21_000, 20_500]
+    let ceiling = ActivitySeries.chartCeiling(even)
+    #expect(ceiling >= 22_000)          // the tallest bar is not clipped
+    #expect(ceiling <= 22_000 * 1.2)    // and it still reaches near the top
+}
+
+@Test func chartCeilingIsZeroForNoSpending() {
+    #expect(ActivitySeries.chartCeiling([]) == 0)
+}

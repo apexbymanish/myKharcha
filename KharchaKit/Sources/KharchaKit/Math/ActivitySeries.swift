@@ -98,6 +98,29 @@ public enum ActivitySeries {
         }
     }
 
+    /// The top of the chart's y-scale for a set of bucket totals.
+    ///
+    /// Spending is spiky in a way step counts are not: rent can be twenty times an
+    /// ordinary day. Scaled to the maximum, that one bar takes the whole height and
+    /// every other day collapses into a stub — arithmetic no styling can fix. So the
+    /// ceiling comes from the 90th percentile, letting a true outlier clip off the
+    /// top while the rest of the period stays readable.
+    ///
+    /// When nothing is an outlier the percentile lands on the maximum anyway, so an
+    /// even month still fills the frame.
+    public static func chartCeiling(_ amounts: [Decimal]) -> Decimal {
+        let positive = amounts.filter { $0 > 0 }.sorted()
+        guard let maximum = positive.last else { return 0 }
+        // Too few points to judge what is typical — trust the max.
+        guard positive.count >= 4 else { return maximum }
+
+        let index = Int((Double(positive.count - 1) * 0.9).rounded())
+        let percentile = positive[index]
+        // A little headroom above the percentile so the bars at that level are not
+        // flush with the ceiling.
+        return percentile * Decimal(string: "1.1")!
+    }
+
     /// Classifies one bucket's spend against its allowance for colouring.
     /// Spending exactly the allowance counts as `.near`, not `.over` — hitting the
     /// target precisely should not be flagged as a failure.
