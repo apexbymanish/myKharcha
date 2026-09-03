@@ -2,92 +2,6 @@ import SwiftUI
 import Charts
 import KharchaKit
 
-/// The sentence above the chart — "Spending in August 2026 is down 8%, totalling
-/// ₹8,450." Apple's charts guidance asks that a chart carry text describing its
-/// contents that stays informative read on its own, which a bare "Analytics" label
-/// does not. It names the period explicitly, so the figure can never be mistaken
-/// for today's when the chart is scrolled elsewhere.
-struct ChartHeadline: View {
-    let summary: ActivitySummary
-    let period: ActivityPeriod
-    var isRevealed: Bool = true
-
-    private var total: String {
-        isRevealed ? AmountFormatter.money(summary.expense) : "••••"
-    }
-
-    /// "August 2026" / "Aug 17 – 23, 2026" / "2026", matching the scope on screen.
-    private var periodLabel: String {
-        switch period {
-        case .week:
-            // `DateIntervalFormatter` picks the locale's own range separator and
-            // collapses repeated parts ("Aug 17 – 23" rather than "Aug 17 – Aug 23").
-            // Building the range by hand would bake in an en-dash and comma order
-            // that is wrong in several of the twenty languages this app ships.
-            let end = Calendar.current.date(byAdding: .day, value: 6, to: summary.start) ?? summary.start
-            let f = DateIntervalFormatter()
-            f.dateStyle = .medium
-            f.timeStyle = .none
-            return f.string(from: summary.start, to: end)
-        case .month:
-            let f = DateFormatter()
-            f.setLocalizedDateFormatFromTemplate("MMMMyyyy")
-            return f.string(from: summary.start)
-        case .year:
-            let f = DateFormatter()
-            f.setLocalizedDateFormatFromTemplate("yyyy")
-            return f.string(from: summary.start)
-        }
-    }
-
-    /// One whole sentence per case, never assembled from fragments.
-    ///
-    /// This used to concatenate `Text(" is ") + Text("down 8%") + Text(",")` so the
-    /// percentage could be coloured inline. That hardcodes English word order and
-    /// hands translators meaningless pieces — a key of `" is "` cannot be
-    /// translated, and the fixed order breaks outright in Arabic and Urdu, both of
-    /// which this app ships. The trend colour moved to its own badge below instead.
-    private var sentence: Text {
-        guard let pct = summary.changePercent, summary.trend != .unknown else {
-            return Text("Spending in \(periodLabel) totalled \(total).")
-        }
-        switch summary.trend {
-        case .flat:
-            return Text("Spending in \(periodLabel) is unchanged, totalling \(total).")
-        case .up:
-            return Text("Spending in \(periodLabel) is up \(pct)%, totalling \(total).")
-        case .down:
-            return Text("Spending in \(periodLabel) is down \(pct)%, totalling \(total).")
-        case .unknown:
-            return Text("Spending in \(periodLabel) totalled \(total).")
-        }
-    }
-
-    /// Colour for the trend, carried by the sentence's own tint rather than by a
-    /// span inside it — locating a word inside a translated sentence would mean
-    /// knowing where it lands in twenty languages.
-    private var trendTint: Color {
-        switch summary.trend {
-        case .up:      return .moneyOut
-        case .down:    return .moneyIn
-        case .flat,
-             .unknown: return .primary
-        }
-    }
-
-    var body: some View {
-        sentence
-            .font(.subheadline)
-            .foregroundStyle(trendTint)
-            .fixedSize(horizontal: false, vertical: true)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .accessibilityLabel(isRevealed
-                ? Text("Spending in \(periodLabel), \(AmountFormatter.money(summary.expense))")
-                : Text("Amounts hidden"))
-    }
-}
-
-
 /// The snap-up detail for a tapped bar. Sits on the chart, next to the bar it
 /// describes, rather than at the bottom of the screen.
 private struct TooltipCard: View {
@@ -175,13 +89,20 @@ struct ActivityBarChart: View {
     /// About nine bars on screen at a time, scrolling freely through the rest.
     /// Nine is the ceiling for keeping an amount on every bar legible, and it is
     /// roughly what Pedometer++ shows.
-    private var visibleDomain: TimeInterval {
+    ///
+    /// Static because the hero above the chart has to total the same window the
+    /// bars draw. When each side worked this out for itself the figure described
+    /// the whole month while the bars showed nine days of it, so scrolling to an
+    /// empty week still showed a large number with nothing under it.
+    static func visibleDomain(for period: ActivityPeriod) -> TimeInterval {
         let day: TimeInterval = 24 * 60 * 60
         switch period {
         case .week, .month: return 9 * day
         case .year:         return 9 * 30 * day
         }
     }
+
+    private var visibleDomain: TimeInterval { Self.visibleDomain(for: period) }
 
     /// The buckets actually on screen — from the scroll position forward by one
     /// visible domain. Everything that scales with "what you can see" derives from
