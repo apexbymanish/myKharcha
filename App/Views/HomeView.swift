@@ -86,6 +86,18 @@ struct HomeView: View {
         }
     }
 
+    /// One whole sentence per shape, rather than one format with an optional
+    /// fragment spliced into it. Four variants is more code and four keys a
+    /// translator can actually read.
+    private func a11yLabel(name: String, amount: String?, due: String, isAuto: Bool) -> String {
+        switch (isAuto, amount) {
+        case (true, let a?):  return String(localized: "Auto-pay: \(name), \(a), due \(due)")
+        case (true, nil):     return String(localized: "Auto-pay: \(name), due \(due)")
+        case (false, let a?): return String(localized: "Next bill: \(name), \(a), due \(due)")
+        case (false, nil):    return String(localized: "Next bill: \(name), due \(due)")
+        }
+    }
+
     @ViewBuilder
     private func nextUpcomingRow(_ item: HomeViewModel.State.NextUpcomingItem) -> some View {
         // Auto-pay: never urgent, show calm confirmation. Manual: urgent only if due today.
@@ -99,12 +111,18 @@ struct HomeView: View {
             : dueLabel(for: item.daysUntil)
         let subtitleText = [amountText, dueLabelText]
             .compactMap { $0 }.joined(separator: " · ")
-        let a11yAmount = item.amount > 0
-            ? (privacy.isRevealed ? ", \(AmountFormatter.money(item.amount))" : ", amount hidden")
-            : ""
+        // Nil rather than an empty fragment, so the label below picks a whole
+        // sentence instead of splicing one together. The old form appended
+        // ", amount hidden" as an English literal that never reached the
+        // catalog, and extracted the label as "%@: %@%@, %@".
+        let a11yAmount: String? = item.amount > 0
+            ? (privacy.isRevealed
+               ? AmountFormatter.money(item.amount)
+               : String(localized: "amount hidden"))
+            : nil
         let rowIcon = isAuto ? "bolt.circle" : (isUrgent ? "calendar.badge.exclamationmark" : "calendar")
         let rowColor: Color = isAuto ? .moneyIn : (isUrgent ? .moneyOut : .secondary)
-        let titlePrefix = isAuto ? "Auto: " : "Next: "
+
 
         HStack(spacing: 12) {
             Image(systemName: rowIcon)
@@ -112,7 +130,10 @@ struct HomeView: View {
                 .foregroundStyle(rowColor)
                 .frame(width: 20)
             VStack(alignment: .leading, spacing: 2) {
-                Text("\(titlePrefix)\(item.name)")
+                // Whole strings. `"\(titlePrefix)\(item.name)"` extracted as
+                // "%@%@" — a key with no words in it, and the prefix itself was
+                // English that never went through the catalog.
+                Text(isAuto ? "Auto: \(item.name)" : "Next: \(item.name)")
                     .font(.subheadline)
                     .foregroundStyle(isUrgent ? Color.moneyOut : .primary)
                     .lineLimit(1)
@@ -130,9 +151,8 @@ struct HomeView: View {
         // form extracted as "%@: %@%@, %@" — four unlabelled slots, and the kind
         // ("Auto-pay" / "Next bill") went into one of them as an English literal
         // that never reached the catalog at all.
-        .accessibilityLabel(isAuto
-            ? String(localized: "Auto-pay: \(item.name)\(a11yAmount), \(dueLabelText)")
-            : String(localized: "Next bill: \(item.name)\(a11yAmount), \(dueLabelText)"))
+        .accessibilityLabel(a11yLabel(name: item.name, amount: a11yAmount,
+                                      due: dueLabelText, isAuto: isAuto))
         .accessibilityHint("Opens Reminders")
     }
 
