@@ -8,10 +8,7 @@ struct HistoryView: View {
     @EnvironmentObject private var privacy: PrivacyManager
     @State private var editingRow: TxnRow?
     @State private var selectedBarDate: Date?
-    // Month navigation (client-side filter on top of VM filters)
-    @State private var selectedMonth: Date? = nil
     @State private var showReports = false
-    @State private var selectedYear: Int? = nil
 
     init(store: ExpenseStore) {
         self.store = store
@@ -38,43 +35,6 @@ struct HistoryView: View {
         }
     }
 
-
-    // Unique years derived from all transactions, newest first.
-    private var availableYears: [Int] {
-        let years = Set(vm.state.allRows.map { Calendar.current.component(.year, from: $0.date) })
-        return years.sorted(by: >)
-    }
-
-    // Unique months derived from all transactions (filtered to selectedYear when set), newest first.
-    private var availableMonths: [Date] {
-        let cal = Calendar.current
-        let months = Set(vm.state.allRows.compactMap { row -> Date? in
-            if let year = selectedYear, cal.component(.year, from: row.date) != year { return nil }
-            var comps = cal.dateComponents([.year, .month], from: row.date)
-            comps.day = 1
-            return cal.date(from: comps)
-        })
-        return months.sorted(by: >)
-    }
-
-    // Transaction count for the currently visible (filtered) sections — shown
-    // as the Filters sheet's live "Show N results" button.
-    private var filteredTxnCount: Int { visibleSections.reduce(0) { $0 + $1.rows.count } }
-
-    // Sections after applying the client-side month/year filter.
-    private var visibleSections: [HistoryViewModel.Section] {
-        let cal = Calendar.current
-        if let month = selectedMonth {
-            return vm.state.sections.filter { section in
-                section.rows.contains { cal.isDate($0.date, equalTo: month, toGranularity: .month) }
-            }
-        } else if let year = selectedYear {
-            return vm.state.sections.filter { section in
-                section.rows.contains { cal.component(.year, from: $0.date) == year }
-            }
-        }
-        return vm.state.sections
-    }
 
     /// Spent, received and net for whatever the chart is showing — the Pedometer++
     /// hero, where one figure dominates and the others qualify it. Income used to
@@ -165,7 +125,6 @@ struct HistoryView: View {
                         get: { vm.state.chartAnchor },
                         set: { newAnchor in
                             selectedBarDate = nil
-                            selectedMonth = nil
                             Task { await vm.setChartAnchor(newAnchor) }
                             scheduleSettle()
                         }
@@ -232,22 +191,7 @@ struct HistoryView: View {
                 allRows: vm.state.allRows,
                 categories: vm.state.categories,
                 initialMonth: vm.state.chartAnchor,
-                // Filters are presented from Reports but still drive the ledger,
-                // so the state stays here and Reports gets the bindings.
-                filterHost: .init(
-                    vm: vm,
-                    selectedYear: $selectedYear,
-                    selectedMonth: $selectedMonth,
-                    availableYears: availableYears,
-                    availableMonths: availableMonths,
-                    resultsCount: filteredTxnCount,
-                    onReset: {
-                        selectedMonth = nil
-                        selectedYear = nil
-                        Task { await vm.clearAllFilters() }
-                    }
-                ),
-                sections: visibleSections,
+                sections: vm.state.sections,
                 onEditRow: { editingRow = $0 }
             )
         }
@@ -265,12 +209,6 @@ struct HistoryView: View {
             selectedBarDate = nil
             Task { await vm.setDayFilter(nil) }
         }
-        // Picking a month in Filters moves the chart to it, so the list filter and
-        // the chart can't end up describing different months.
-        .onChange(of: selectedMonth) { _, month in
-            guard let month else { return }
-            Task { await vm.setChartAnchor(month) }
-        }
         .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
             Task { await vm.load() }
         }
@@ -278,63 +216,4 @@ struct HistoryView: View {
             Task { await vm.load() }
         }
     }
-
-    /// Maps the VM's optional `filterKind` to/from the 3-way segment. Only the
-    /// Filters sheet uses it now — filtering belongs on Reports, not here.
-    private var kindFilterBinding: Binding<TxnKindFilter> {
-        Binding(
-            get: {
-                switch vm.state.filterKind {
-                case .expense: return .expense
-                case .income: return .income
-                case nil: return .all
-                }
-            },
-            set: { newValue in
-                Task {
-                    switch newValue {
-                    case .all: await vm.setKindFilter(nil)
-                    case .expense: await vm.setKindFilter(.expense)
-                    case .income: await vm.setKindFilter(.income)
-                    }
-                }
-            }
-        )
-    }
-
 }
-
-// MARK: - Expandable section header
-
-/// A month's title and total. Informational only — the section always shows a
-/// preview of its rows, so there is nothing here to collapse. The one disclosure
-/// is the "Show all" row at the foot of each section, which keeps a single
-/// control governing a single thing rather than nesting two.
-private struct SectionHeader: View {
-    let title: String
-    let totalExpenses: Decimal
-    let totalIncome: Decimal
-    let filterKind: TxnKind?
-    let isRevealed: Bool
-
-    var body: some View {
-        HStack(spacing: 6) {
-            Text(title)
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(.primary)
-
-            Spacer()
-
-            if filterKind == .income {
-                Text(isRevealed ? "+\(AmountFormatter.money(totalIncome))" : "+••••")
-                    .font(.caption.monospacedDigit())
-                    .foregroundStyle(Color.moneyIn.opacity(0.85))
-            } else {
-                Text(isRevealed ? "−\(AmountFormatter.money(totalExpenses))" : "−••••")
-                    .font(.caption.monospacedDigit())
-                    .foregroundStyle(.secondary)
-            }
-        }
-    }
-}
-

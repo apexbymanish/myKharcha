@@ -22,7 +22,6 @@
 		2F936B922B1C50E76C08C463 /* CurrencyPreference.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEE3A422870C98FB94EF78AB /* CurrencyPreference.swift */; };
 		32C5F60669B04F632ADD0B19 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = FE154007F5FAC9B9C1C521F8 /* FirebaseFirestore */; };
 		3BA4A022DF6B6F8726650E6B /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2AC177A02071D0D0843C2B /* HistoryView.swift */; };
-		724F35B6F7C0AE07DEA56538 /* FiltersSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3D34E0334ACFDFA53766A5C /* FiltersSheetView.swift */; };
 		4829E6FA827CD9BAED036C52 /* ImportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43F929D57FA89898B0B7C4AD /* ImportView.swift */; };
 		4AE837573A29441C158B8F50 /* KharchaKit in Frameworks */ = {isa = PBXBuildFile; productRef = 0E07F004FC632ACED67AC07C /* KharchaKit */; };
 		4E967966AD04903960205246 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 0544C067B863B0B91F044150 /* GoogleService-Info.plist */; };
@@ -167,7 +166,6 @@
 		C907E594924CA417671EA605 /* BudgetsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BudgetsView.swift; sourceTree = "<group>"; };
 		C9B1C67CC809A3D2F4BEFB0C /* KharchaIntentsExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.extensionkit-extension"; includeInIndex = 0; path = KharchaIntentsExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		CA2AC177A02071D0D0843C2B /* HistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryView.swift; sourceTree = "<group>"; };
-		F3D34E0334ACFDFA53766A5C /* FiltersSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FiltersSheetView.swift; sourceTree = "<group>"; };
 		CB1E5C96417E43021CD9A6E1 /* NotificationScheduler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationScheduler.swift; sourceTree = "<group>"; };
 		CCB7EC171A69869421B471B2 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		CD5A5FDB31A883B6E3EAB77B /* FriendDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendDetailView.swift; sourceTree = "<group>"; };
@@ -314,7 +312,6 @@
 				A1E5C0D24B71E0A9C3F10001 /* ExportPreviewSheet.swift */,
 				C907E594924CA417671EA605 /* BudgetsView.swift */,
 				3135AA1A3D54C1360E66E543 /* Components.swift */,
-				F3D34E0334ACFDFA53766A5C /* FiltersSheetView.swift */,
 				CD5A5FDB31A883B6E3EAB77B /* FriendDetailView.swift */,
 				2A34CE6439C8216233EFABD4 /* FriendsView.swift */,
 				CA2AC177A02071D0D0843C2B /* HistoryView.swift */,
@@ -541,7 +538,6 @@
 				A6E5B3D9C3AA768690D1703C /* FriendDetailView.swift in Sources */,
 				E036C51F34E1B1F3EA61E5BC /* FriendsView.swift in Sources */,
 				3BA4A022DF6B6F8726650E6B /* HistoryView.swift in Sources */,
-				724F35B6F7C0AE07DEA56538 /* FiltersSheetView.swift in Sources */,
 				24DC068E304004EC00D581FB /* ReportsView.swift in Sources */,
 				24DC069430410C8200D581FB /* BackupFileWriter.swift in Sources */,
 				F921785F0A5ADF09DAF22627 /* HomeView.swift in Sources */,
