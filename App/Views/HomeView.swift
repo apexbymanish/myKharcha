@@ -15,6 +15,7 @@ struct HomeView: View {
     @State private var showProfileNav = false
     @State private var showRemindersNav = false
     @State private var showHistoryNav = false
+    @State private var showBudgetsNav = false
     @AppStorage(PayPreference.dayKey, store: PayPreference.defaults) private var paydayDay = 1
     @AppStorage(PayPreference.salaryKey, store: PayPreference.defaults) private var monthlySalary = 0.0
     @AppStorage("plan.savingsRatePercent", store: PayPreference.defaults) private var savingsRate = 20
@@ -218,7 +219,16 @@ struct HomeView: View {
             // HIG: surfaced immediately after status so urgent items never hide below actions.
             if !vm.state.budgets.isEmpty || !vm.state.dueSoonItems.isEmpty {
                 Section {
-                    MonthGlanceCard(budgets: vm.state.budgets, dueSoonItems: vm.state.dueSoonItems, isRevealed: privacy.isRevealed)
+                    // "2 budgets on track" is a summary of somewhere you can go,
+                    // so it goes there. It used to be the one card on Home that
+                    // reported a state and offered no way to look into it.
+                    Button { showBudgetsNav = true } label: {
+                        MonthGlanceCard(budgets: vm.state.budgets,
+                                        dueSoonItems: vm.state.dueSoonItems,
+                                        isRevealed: privacy.isRevealed)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityHint("Opens budgets")
                 }
             }
 
@@ -235,8 +245,24 @@ struct HomeView: View {
             // (Quick actions moved to sticky safeAreaInset — always visible, no scroll needed)
 
             if vm.state.weekBars.contains(where: { !$0.isEmpty }) {
-                Section("This Week") {
-                    MiniTrendChart(bars: vm.state.weekBars)
+                Section {
+                    // The same seven days History draws in full, so tapping the
+                    // summary opens the thing it summarises.
+                    Button { showHistoryNav = true } label: {
+                        VStack(alignment: .leading, spacing: 8) {
+                            HStack {
+                                Text("This Week")
+                                    .font(.subheadline.weight(.semibold))
+                                Spacer()
+                                Image(systemName: "chevron.right")
+                                    .font(.caption2)
+                                    .foregroundStyle(.tertiary)
+                            }
+                            MiniTrendChart(bars: vm.state.weekBars)
+                        }
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityHint("Opens transaction history")
                 }
             }
 
@@ -394,6 +420,7 @@ struct HomeView: View {
         }
         .navigationTitle("Paisa Khoi?")
         .navigationDestination(isPresented: $showHistoryNav) { HistoryView(store: store) }
+        .navigationDestination(isPresented: $showBudgetsNav) { BudgetsView(store: store) }
         .navigationDestination(isPresented: $showPlanNav) { PlanView(store: store) }
         .navigationDestination(isPresented: $showProfileNav) { ProfileView(store: store) }
         .navigationDestination(isPresented: $showRemindersNav) { RemindersView(store: store) }

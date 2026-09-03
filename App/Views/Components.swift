@@ -488,6 +488,13 @@ struct MonthGlanceCard: View {
                         .font(.subheadline)
                     Text(budgetLabel)
                         .font(.subheadline)
+                    Spacer()
+                    // The card opens Budgets. Without the chevron it reads as a
+                    // status readout, and a tappable thing that does not look
+                    // tappable is one nobody taps.
+                    Image(systemName: "chevron.right")
+                        .font(.caption2)
+                        .foregroundStyle(.tertiary)
                 }
             }
             // Manual items due ≤3 days — urgent, needs user action.
