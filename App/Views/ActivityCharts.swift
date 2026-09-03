@@ -204,9 +204,12 @@ struct ActivityBarChart: View {
     /// empty week still showed a large number with nothing under it.
     static func visibleDomain(for period: ActivityPeriod) -> TimeInterval {
         let day: TimeInterval = 24 * 60 * 60
+        // The same count the view model picks the opening anchor against. Two
+        // copies of this number is two windows that can disagree.
+        let buckets = Double(HistoryViewModel.chartVisibleBuckets)
         switch period {
-        case .week, .month: return 9 * day
-        case .year:         return 9 * 30 * day
+        case .week, .month: return buckets * day
+        case .year:         return buckets * 30 * day
         }
     }
 

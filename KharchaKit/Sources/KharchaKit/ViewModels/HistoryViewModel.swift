@@ -47,6 +47,17 @@ public final class HistoryViewModel: ObservableObject {
     }
 
     @Published public private(set) var state = State()
+
+    /// How many buckets the chart shows at once. Lives here rather than only in
+    /// the view because the opening anchor has to be chosen against the same
+    /// window the chart will draw — pick a different number in either place and
+    /// the header describes a span the bars do not.
+    public static let chartVisibleBuckets = 9
+
+    /// Set once the opening window has been chosen. Later reloads — a foreground,
+    /// a remote change, returning from an edit — must not drag the chart back to
+    /// the newest data while the user is reading an older month.
+    private var hasChosenOpeningAnchor = false
     private let store: ExpenseStore
     /// "Today" as far as the scrollable domain is concerned, captured once per load
     /// so the domain stays put while the user scrolls around inside it.
@@ -144,6 +155,32 @@ public final class HistoryViewModel: ObservableObject {
         state.chartBars = ActivitySeries.continuousBars(
             state.allRows, period: state.chartPeriod, now: seriesNow, calendar: calendar
         )
+        chooseOpeningAnchorIfNeeded()
+    }
+
+    /// Open on the newest bucket that actually holds something, rather than on
+    /// today.
+    ///
+    /// `continuousBars` runs the domain out to `now`, so a ledger whose last row
+    /// is weeks old ends in a run of empty buckets. Anchoring at `Date()` opened
+    /// the chart inside that run: the header totalled an empty window and said
+    /// "No spend" while the bars the user could see held six figures, and the
+    /// y-ceiling — measured over the same empty window — collapsed to its
+    /// fallback, so those bars overflowed the domain, clipped square at the top
+    /// and took the income scale down with them.
+    ///
+    /// Choosing the window here, before the view is built, means the anchor and
+    /// the drawn window agree on the first frame rather than after a scroll.
+    private func chooseOpeningAnchorIfNeeded() {
+        guard !hasChosenOpeningAnchor, !state.chartBars.isEmpty else { return }
+        hasChosenOpeningAnchor = true
+
+        let newest = state.chartBars.lastIndex { $0.expense > 0 || $0.income > 0 }
+            ?? state.chartBars.count - 1
+        let start = max(0, newest - (Self.chartVisibleBuckets - 1))
+        let date = state.chartBars[start].date
+        state.chartAnchor = date
+        state.settledAnchor = date
     }
 
     /// Totals and change for whichever window the chart is scrolled to, plus the

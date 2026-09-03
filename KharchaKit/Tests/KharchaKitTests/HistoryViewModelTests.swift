@@ -185,4 +185,32 @@ struct HistoryViewModelTests {
         #expect(testCal.component(.weekday, from: start) == 1) // Sunday-aligned
     }
 
+    @Test
+    @MainActor
+    func chartOpensOnTheMostRecentActivityNotOnToday() async throws {
+        // The chart used to open wherever `Date()` fell. With a ledger whose
+        // newest row is weeks old that is a window of empty buckets: the header
+        // read "₩0, No spend" while the bars on screen held six figures, because
+        // the anchor and the drawn window described different months.
+        let store = try makeStore()
+        _ = try await store.addTxn(amount: 681_000, kind: .expense, categoryID: nil,
+                                   note: nil, date: d(2026, 8, 20), source: .manual)
+        _ = try await store.addTxn(amount: 31_630, kind: .expense, categoryID: nil,
+                                   note: nil, date: d(2026, 8, 22), source: .manual)
+        _ = try await store.addTxn(amount: 10_000, kind: .expense, categoryID: nil,
+                                   note: nil, date: d(2026, 7, 2), source: .manual)
+
+        let vm = HistoryViewModel(store: store)
+        await vm.load(calendar: testCal)
+
+        let anchor = vm.state.chartAnchor
+        let window = anchor.addingTimeInterval(Double(HistoryViewModel.chartVisibleBuckets) * 86_400)
+
+        // The newest transaction is inside the window the chart opens on.
+        #expect(d(2026, 8, 22) >= anchor)
+        #expect(d(2026, 8, 22) < window)
+        // And the settled anchor agrees from the start, so nothing has to be
+        // scrolled before the header describes what is drawn.
+        #expect(vm.state.settledAnchor == anchor)
+    }
 }
