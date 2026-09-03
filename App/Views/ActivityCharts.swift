@@ -16,55 +16,74 @@ struct ChartHeadline: View {
         isRevealed ? AmountFormatter.money(summary.expense) : "••••"
     }
 
-    /// "August 2026" / "Aug 17–23, 2026" / "2026", matching the scope on screen.
+    /// "August 2026" / "Aug 17 – 23, 2026" / "2026", matching the scope on screen.
     private var periodLabel: String {
-        let f = DateFormatter()
         switch period {
         case .week:
+            // `DateIntervalFormatter` picks the locale's own range separator and
+            // collapses repeated parts ("Aug 17 – 23" rather than "Aug 17 – Aug 23").
+            // Building the range by hand would bake in an en-dash and comma order
+            // that is wrong in several of the twenty languages this app ships.
             let end = Calendar.current.date(byAdding: .day, value: 6, to: summary.start) ?? summary.start
-            f.setLocalizedDateFormatFromTemplate("MMMd")
-            let range = "\(f.string(from: summary.start)) – \(f.string(from: end))"
-            f.setLocalizedDateFormatFromTemplate("yyyy")
-            return "\(range), \(f.string(from: summary.start))"
+            let f = DateIntervalFormatter()
+            f.dateStyle = .medium
+            f.timeStyle = .none
+            return f.string(from: summary.start, to: end)
         case .month:
+            let f = DateFormatter()
             f.setLocalizedDateFormatFromTemplate("MMMMyyyy")
             return f.string(from: summary.start)
         case .year:
+            let f = DateFormatter()
             f.setLocalizedDateFormatFromTemplate("yyyy")
             return f.string(from: summary.start)
         }
     }
 
-    private var trendPhrase: Text? {
-        // No prior period to compare against — drop the clause rather than
-        // claiming a change from nothing.
-        guard let pct = summary.changePercent, summary.trend != .unknown else { return nil }
+    /// One whole sentence per case, never assembled from fragments.
+    ///
+    /// This used to concatenate `Text(" is ") + Text("down 8%") + Text(",")` so the
+    /// percentage could be coloured inline. That hardcodes English word order and
+    /// hands translators meaningless pieces — a key of `" is "` cannot be
+    /// translated, and the fixed order breaks outright in Arabic and Urdu, both of
+    /// which this app ships. The trend colour moved to its own badge below instead.
+    private var sentence: Text {
+        guard let pct = summary.changePercent, summary.trend != .unknown else {
+            return Text("Spending in \(periodLabel) totalled \(total).")
+        }
         switch summary.trend {
         case .flat:
-            return Text(" is ") + Text("unchanged").foregroundStyle(.secondary) + Text(",")
+            return Text("Spending in \(periodLabel) is unchanged, totalling \(total).")
         case .up:
-            return Text(" is ") + Text("up \(pct)%").foregroundStyle(Color.moneyOut) + Text(",")
+            return Text("Spending in \(periodLabel) is up \(pct)%, totalling \(total).")
         case .down:
-            return Text(" is ") + Text("down \(pct)%").foregroundStyle(Color.moneyIn) + Text(",")
+            return Text("Spending in \(periodLabel) is down \(pct)%, totalling \(total).")
         case .unknown:
-            return nil
+            return Text("Spending in \(periodLabel) totalled \(total).")
+        }
+    }
+
+    /// Colour for the trend, carried by the sentence's own tint rather than by a
+    /// span inside it — locating a word inside a translated sentence would mean
+    /// knowing where it lands in twenty languages.
+    private var trendTint: Color {
+        switch summary.trend {
+        case .up:      return .moneyOut
+        case .down:    return .moneyIn
+        case .flat,
+             .unknown: return .primary
         }
     }
 
     var body: some View {
-        Group {
-            if let trend = trendPhrase {
-                Text("Spending in \(periodLabel)") + trend + Text(" totalling \(total).")
-            } else {
-                Text("Spending in \(periodLabel) totalled \(total).")
-            }
-        }
-        .font(.subheadline)
-        .fixedSize(horizontal: false, vertical: true)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .accessibilityLabel(isRevealed
-            ? "Spending in \(periodLabel), \(AmountFormatter.money(summary.expense))"
-            : "Amounts hidden")
+        sentence
+            .font(.subheadline)
+            .foregroundStyle(trendTint)
+            .fixedSize(horizontal: false, vertical: true)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .accessibilityLabel(isRevealed
+                ? Text("Spending in \(periodLabel), \(AmountFormatter.money(summary.expense))")
+                : Text("Amounts hidden"))
     }
 }
 
