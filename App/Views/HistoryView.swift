@@ -87,17 +87,23 @@ struct HistoryView: View {
                     .monospacedDigit()
                     .foregroundStyle(Color.moneyOut)
 
-                if s.income > 0 {
+                // Both qualifier lines stay laid out even with nothing received,
+                // and fade instead of being removed.
+                //
+                // They used to be behind `if s.income > 0`, so scrolling from a
+                // month with a salary to one without collapsed the hero by two
+                // lines and yanked the chart up under it mid-scroll. Holding the
+                // space costs a little air on income-free windows and buys a
+                // block that never changes height.
+                let net = s.income - s.expense
+                VStack(spacing: 2) {
                     Text(privacy.isRevealed
                          ? "\(AmountFormatter.money(s.income)) received"
                          : "•••• received")
                         .font(.title3.weight(.semibold))
                         .monospacedDigit()
                         .foregroundStyle(Color.moneyIn)
-                }
 
-                let net = s.income - s.expense
-                if s.income > 0 {
                     Text(privacy.isRevealed
                          ? "\(net >= 0 ? "↑" : "↓") \(AmountFormatter.money(abs(net))) net"
                          : "•••• net")
@@ -105,14 +111,20 @@ struct HistoryView: View {
                         .monospacedDigit()
                         .foregroundStyle(net >= 0 ? Color.moneyIn : Color.moneyOut)
                 }
+                .opacity(s.income > 0 ? 1 : 0)
+                .accessibilityHidden(s.income == 0)
             }
             .frame(maxWidth: .infinity)
             // Digits roll to their new values as you scroll to another period,
             // rather than the whole figure being swapped out. This is what Apple
             // uses for changing numbers — timers, rings, Weather.
             .contentTransition(.numericText())
-            .animation(.smooth(duration: 0.3), value: s.expense)
-            .animation(.smooth(duration: 0.3), value: s.income)
+            // Slower than the chart's own spring on purpose: the figure settles
+            // after the bars do, so the eye follows the bars and then reads the
+            // number, rather than both changing at once and neither registering.
+            .animation(.smooth(duration: 0.45), value: s.expense)
+            .animation(.smooth(duration: 0.45), value: s.income)
+            .animation(.smooth(duration: 0.45), value: s.income > 0)
             .accessibilityElement(children: .combine)
         }
     }

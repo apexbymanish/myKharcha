@@ -194,9 +194,18 @@ struct ActivityBarChart: View {
 
     /// Bottom of the y-domain. Zero when nothing was received in view, so an
     /// income-free window keeps the whole frame for spending.
+    ///
+    /// Measured against the spending ceiling, never against the income itself. It
+    /// used to return `-incomePeak * 3`, mixing two scales that share no unit: a
+    /// ₩3,000,000 salary beside ₩130,000 of spending gave a domain of
+    /// -9,000,000…130,000, so the entire expense half rendered in the top 1.4% of
+    /// the plot as hairlines with their labels stacked on one another. Deriving
+    /// the floor from `spendTop` pins the zero rule at three quarters of the
+    /// height whatever was received, and `depth` below normalises income into
+    /// the quarter that leaves.
     private var floorValue: Double {
         guard incomePeak > 0 else { return 0 }
-        return -incomePeak / Self.incomeShare * (1 - Self.incomeShare)
+        return -spendTop * (Self.incomeShare / (1 - Self.incomeShare))
     }
 
     /// Labels always fit, because the visible window is fixed at roughly nine bars
