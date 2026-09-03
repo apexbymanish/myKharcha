@@ -4,30 +4,82 @@ import KharchaKit
 
 /// The snap-up detail for a tapped bar. Sits on the chart, next to the bar it
 /// describes, rather than at the bottom of the screen.
+///
+/// Carries the day's breakdown, not just its total. The bands already say what
+/// the money went on, but only the biggest one is wide enough to hold its name —
+/// everything below that is a colour with no label. Tapping is where the rest of
+/// the answer lives.
 private struct TooltipCard: View {
-    let date: Date
-    let amount: Decimal
+    let bar: ActivityBar
     let unit: Calendar.Component
+    /// Resolved by the chart, so the dot beside a category matches its band.
+    let colorFor: (String) -> Color
+    var isRevealed: Bool = true
 
     private var label: String {
         let f = DateFormatter()
         f.setLocalizedDateFormatFromTemplate(unit == .month ? "MMMMyyyy" : "MMMd")
-        return f.string(from: date)
+        return f.string(from: bar.date)
+    }
+
+    private func money(_ amount: Decimal) -> String {
+        isRevealed ? AmountFormatter.money(amount) : "••••"
     }
 
     var body: some View {
-        VStack(spacing: 2) {
-            Text(label)
-                .font(.caption2)
-                .foregroundStyle(.secondary)
-            Text(AmountFormatter.money(amount))
-                .font(.subheadline.weight(.semibold))
-                .monospacedDigit()
+        VStack(alignment: .leading, spacing: 5) {
+            HStack(spacing: 6) {
+                Text(label)
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                Spacer(minLength: 4)
+                // Counts are not amounts, so they stay visible when amounts hide.
+                if bar.count > 0 {
+                    Text("\(bar.count)")
+                        .font(.caption2.monospacedDigit())
+                        .foregroundStyle(.tertiary)
+                }
+            }
+
+            if bar.expense > 0 {
+                Text("−" + money(bar.expense))
+                    .font(.subheadline.weight(.semibold))
+                    .monospacedDigit()
+                    .foregroundStyle(Color.moneyOut)
+            }
+            if bar.income > 0 {
+                Text("+" + money(bar.income))
+                    .font(.subheadline.weight(.semibold))
+                    .monospacedDigit()
+                    .foregroundStyle(Color.moneyIn)
+            }
+
+            // Only worth a divider and a list when there is more than one band —
+            // for a single-category day the total above already said it.
+            if bar.segments.count > 1 {
+                Divider().padding(.vertical, 1)
+                ForEach(bar.segments) { slice in
+                    HStack(spacing: 5) {
+                        RoundedRectangle(cornerRadius: 2, style: .continuous)
+                            .fill(colorFor(slice.categoryName))
+                            .frame(width: 7, height: 7)
+                        Text(slice.categoryName)
+                            .font(.caption2)
+                            .lineLimit(1)
+                        Spacer(minLength: 8)
+                        Text(money(slice.amount))
+                            .font(.caption2.monospacedDigit())
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
         }
         .padding(.horizontal, 10)
-        .padding(.vertical, 6)
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 8))
-        .shadow(color: .black.opacity(0.12), radius: 6, y: 2)
+        .padding(.vertical, 7)
+        .frame(minWidth: 96, maxWidth: 190, alignment: .leading)
+        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 10))
+        .shadow(color: .black.opacity(0.18), radius: 8, y: 2)
+        .accessibilityElement(children: .combine)
     }
 }
 
@@ -45,6 +97,7 @@ private struct AmountTag: View {
 
     let amount: Decimal
     let direction: Direction
+    var isRevealed: Bool = true
 
     private var symbol: String { direction == .spent ? "minus" : "plus" }
     private var tint: Color { direction == .spent ? .moneyOut : .moneyIn }
@@ -57,7 +110,7 @@ private struct AmountTag: View {
                 .imageScale(.small)
                 .fontWeight(.bold)
                 .foregroundStyle(tint)
-            Text(AmountFormatter.money(amount))
+            Text(isRevealed ? AmountFormatter.money(amount) : "••••")
                 .monospacedDigit()
                 .foregroundStyle(.primary)
         }
@@ -82,6 +135,10 @@ struct ActivityBarChart: View {
     /// Category name → colour hex, so bands wear the same colours their categories
     /// do elsewhere. Colour is presentation, so the model does not carry it.
     var categoryColors: [String: String] = [:]
+    /// Whether amounts are shown. The bars used to print real figures while the
+    /// hero above them masked to bullets, so the privacy toggle hid the one
+    /// number on screen and left nine.
+    var isRevealed: Bool = true
     /// Leading edge of the visible window, bound to the view model's chart anchor.
     /// Writing to it is how scrolling moves the period the header describes.
     @Binding var scrollPosition: Date
@@ -179,12 +236,16 @@ struct ActivityBarChart: View {
     /// This replaces the budget-status colouring. A fill can encode category or
     /// budget, not both, and knowing what the money went on beats knowing whether
     /// the day beat its allowance — which the hero and Reports already say.
-    private func barColor(for p: Point) -> Color {
-        if let hex = categoryColors[p.series] { return Color(hex: hex) }
+    private func barColor(for p: Point) -> Color { barColor(forCategory: p.series) }
+
+    /// Keyed on the name rather than a `Point`, so the tooltip's dots resolve
+    /// through the same function the bands do and cannot drift from them.
+    private func barColor(forCategory name: String) -> Color {
+        if let hex = categoryColors[name] { return Color(hex: hex) }
         // Dimmed on purpose. At full strength systemGray is the brightest band on
         // a dark chart, which puts the loudest colour on the one bucket that means
         // "nothing in particular" and lets it out-shout the named categories.
-        if p.series == ActivityBar.otherSegmentName {
+        if name == ActivityBar.otherSegmentName {
             return Color(hex: "#8E8E93").opacity(0.5)
         }
         return .moneyOut
@@ -217,11 +278,15 @@ struct ActivityBarChart: View {
         peak > 0 && p.amount / peak > 0.22
     }
 
-    /// The bucket the user tapped, if it has spending.
-    private var selectedPoint: Point? {
+    /// The bucket the user tapped.
+    ///
+    /// The whole `ActivityBar`, not a `Point`. A Point is one band, so the
+    /// tooltip used to report the leading category's amount as if it were the
+    /// day's — right on a single-category day and quietly wrong on every other.
+    private var selectedBar: ActivityBar? {
         guard let sel = selectedDate.wrappedValue else { return nil }
         let cal = Calendar.current
-        return points.first { cal.isDate($0.date, equalTo: sel, toGranularity: unit) }
+        return bars.first { cal.isDate($0.date, equalTo: sel, toGranularity: unit) }
     }
 
     /// One category's band within one day's bar.
@@ -329,7 +394,7 @@ struct ActivityBarChart: View {
             .annotation(position: .bottom,
                         spacing: 3,
                         overflowResolution: AnnotationOverflowResolution(x: .fit(to: .chart), y: .fit(to: .plot))) {
-                AmountTag(amount: p.amount, direction: .received)
+                AmountTag(amount: p.amount, direction: .received, isRevealed: isRevealed)
             }
         }
     }
@@ -403,7 +468,7 @@ struct ActivityBarChart: View {
                         spacing: 3,
                         overflowResolution: AnnotationOverflowResolution(x: .fit(to: .chart), y: .fit(to: .chart))) {
                 if labelsFit, p.isTop {
-                    AmountTag(amount: Decimal(p.dayTotal), direction: .spent)
+                    AmountTag(amount: Decimal(p.dayTotal), direction: .spent, isRevealed: isRevealed)
                 }
             }
         }
@@ -450,17 +515,22 @@ struct ActivityBarChart: View {
         // the screen, far from the thing it described.
         .chartOverlay { proxy in
             GeometryReader { geo in
-                if let p = selectedPoint,
+                if let bar = selectedBar,
                    let plot = proxy.plotFrame,
-                   let x = proxy.position(forX: p.date) {
+                   let x = proxy.position(forX: bar.date) {
                     let originX = geo[plot].origin.x
-                    TooltipCard(date: p.date, amount: Decimal(p.amount), unit: unit)
-                        .position(x: min(max(originX + x, 70), geo.size.width - 70), y: 28)
+                    TooltipCard(bar: bar, unit: unit,
+                                colorFor: { barColor(forCategory: $0) },
+                                isRevealed: isRevealed)
+                        // Half the card's widest width, so a tap on the first or
+                        // last bar slides the card inside the frame rather than
+                        // hanging it off the edge.
+                        .position(x: min(max(originX + x, 100), geo.size.width - 100), y: 42)
                         // Scales up from the bar rather than appearing, and slides
                         // between bars instead of jumping when the selection moves.
                         .transition(.scale(scale: 0.85).combined(with: .opacity))
                         .animation(.spring(response: 0.32, dampingFraction: 0.72),
-                                   value: p.date)
+                                   value: bar.date)
                 }
             }
         }

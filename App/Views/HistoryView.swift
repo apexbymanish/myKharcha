@@ -175,6 +175,7 @@ struct HistoryView: View {
                         vm.state.categories.map { ($0.name, $0.colorHex) },
                         uniquingKeysWith: { first, _ in first }
                     ),
+                    isRevealed: privacy.isRevealed,
                     scrollPosition: Binding(
                         get: { vm.state.chartAnchor },
                         set: { newAnchor in
