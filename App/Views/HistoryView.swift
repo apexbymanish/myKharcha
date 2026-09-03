@@ -11,9 +11,8 @@ struct HistoryView: View {
     @State private var selectedBarDate: Date?
     // Month navigation (client-side filter on top of VM filters)
     @State private var selectedMonth: Date? = nil
-    // Explicit user overrides of the default expansion (which follows the chart).
-    @State private var collapsedSections: Set<String> = []
-    @State private var expandedSections: Set<String> = []
+    // Sections the user has opened in full via "Show all"; the rest show a preview.
+    @State private var fullyShownSections: Set<String> = []
     // Expanded by default: the chart now sits at the top of the screen, so
     // landing on a collapsed row would hide the thing you came to see.
     @State private var analyticsExpanded = true
@@ -78,39 +77,76 @@ struct HistoryView: View {
     // as the Filters sheet's live "Show N results" button.
     private var filteredTxnCount: Int { visibleSections.reduce(0) { $0 + $1.rows.count } }
 
-    /// Whether a month section shows its rows.
+    /// One month's rows plus its "Show all" disclosure.
     ///
-    /// By default only the period the chart has settled on is open — the others
-    /// stay as tappable headers, so the whole ledger is still reachable without
-    /// the screen opening every month at once. An explicit tap always wins, so
-    /// the user can pin a month open (or shut) and scrolling the chart won't
-    /// fight them over it.
-    private func isExpanded(_ section: HistoryViewModel.Section) -> Bool {
-        if collapsedSections.contains(section.title) { return false }
-        if expandedSections.contains(section.title) { return true }
-        return sectionMatchesSettledPeriod(section)
-    }
+    /// Extracted from `body` rather than inlined: with the section built in place
+    /// the type-checker gave up on the whole `List` expression.
+    @ViewBuilder
+    private func transactionSection(_ section: HistoryViewModel.Section) -> some View {
+        let shown = visibleRows(of: section)
+        Section {
+            ForEach(shown, id: \.id) { row in
+                Button {
+                    editingRow = row
+                } label: {
+                    TxnRowView(row: row, categories: vm.state.categories)
+                }
+                .buttonStyle(.plain)
+                .accessibilityHint("Edits this transaction")
+                .swipeActions {
+                    Button("Delete", role: .destructive) {
+                        Task { await vm.delete(row.id) }
+                    }
+                }
+            }
 
-    private func toggleSection(_ section: HistoryViewModel.Section, currentlyExpanded: Bool) {
-        collapsedSections.remove(section.title)
-        expandedSections.remove(section.title)
-        // Record the choice only where it differs from the default, so a section
-        // the user re-aligns with the chart goes back to following it.
-        if currentlyExpanded {
-            if sectionMatchesSettledPeriod(section) { collapsedSections.insert(section.title) }
-        } else {
-            if !sectionMatchesSettledPeriod(section) { expandedSections.insert(section.title) }
+            // The count is the point: four of six is not worth a tap, four of
+            // two hundred is. A bare chevron hides that.
+            if section.rows.count > shown.count {
+                showAllButton(for: section)
+            }
+        } header: {
+            SectionHeader(
+                title: section.title,
+                totalExpenses: section.totalExpenses,
+                totalIncome: section.totalIncome,
+                filterKind: vm.state.filterKind,
+                isRevealed: privacy.isRevealed
+            )
         }
     }
 
-    /// Does this month section fall inside the period the chart came to rest on?
-    /// Year scope matches the whole year, since one bar there is a month.
-    private func sectionMatchesSettledPeriod(_ section: HistoryViewModel.Section) -> Bool {
-        let cal = Calendar.current
-        let granularity: Calendar.Component = period == .year ? .year : .month
-        return section.rows.contains {
-            cal.isDate($0.date, equalTo: vm.state.settledAnchor, toGranularity: granularity)
+    private func showAllButton(for section: HistoryViewModel.Section) -> some View {
+        Button {
+            // Discard `insert`'s tuple: as a single-expression closure it would be
+            // withAnimation's return value, which collides with the action's Void.
+            withAnimation(.easeInOut(duration: 0.2)) {
+                _ = fullyShownSections.insert(section.title)
+            }
+        } label: {
+            HStack {
+                Text("Show all \(section.rows.count) transactions")
+                Spacer()
+                Image(systemName: "chevron.down")
+                    .font(.caption.weight(.semibold))
+            }
+            .font(.subheadline.weight(.semibold))
+            .foregroundStyle(Color.brandPrimary)
         }
+        .buttonStyle(.plain)
+    }
+
+    /// How many rows a month shows before the "Show all" row appears. Enough to
+    /// see the shape of a month without any one month filling the screen.
+    private static let previewRowCount = 4
+
+    /// The rows a section actually renders. Every section shows a preview; tapping
+    /// "Show all" opens that one section fully. There is deliberately no
+    /// month-level collapse — the preview already keeps the screen usable, so a
+    /// second disclosure governing the same rows would be redundant machinery.
+    private func visibleRows(of section: HistoryViewModel.Section) -> [TxnRow] {
+        if fullyShownSections.contains(section.title) { return section.rows }
+        return Array(section.rows.prefix(Self.previewRowCount))
     }
 
     // Sections after applying the client-side month/year filter.
@@ -149,40 +185,9 @@ struct HistoryView: View {
                 //      land on rather than a stack of collapsed month rows ───
                 analyticsSection
 
-                // ── 3. Expandable transaction sections ────────────────────
+                // ── 3. Transaction sections, previewed ────────────────────
                 ForEach(visibleSections, id: \.title) { section in
-                    let isExpanded = isExpanded(section)
-                    Section {
-                        if isExpanded {
-                            ForEach(section.rows, id: \.id) { row in
-                                Button {
-                                    editingRow = row
-                                } label: {
-                                    TxnRowView(row: row, categories: vm.state.categories)
-                                }
-                                .buttonStyle(.plain)
-                                .accessibilityHint("Edits this transaction")
-                                .swipeActions {
-                                    Button("Delete", role: .destructive) {
-                                        Task { await vm.delete(row.id) }
-                                    }
-                                }
-                            }
-                        }
-                    } header: {
-                        ExpandableSectionHeader(
-                            title: section.title,
-                            totalExpenses: section.totalExpenses,
-                            totalIncome: section.totalIncome,
-                            filterKind: vm.state.filterKind,
-                            isExpanded: isExpanded,
-                            isRevealed: privacy.isRevealed
-                        ) {
-                            withAnimation(.easeInOut(duration: 0.2)) {
-                                toggleSection(section, currentlyExpanded: isExpanded)
-                            }
-                        }
-                    }
+                    transactionSection(section)
                 }
 
                 // ── 4. No-results when filters match nothing ──────────────
@@ -396,43 +401,35 @@ struct HistoryView: View {
 
 // MARK: - Expandable section header
 
-private struct ExpandableSectionHeader: View {
+/// A month's title and total. Informational only — the section always shows a
+/// preview of its rows, so there is nothing here to collapse. The one disclosure
+/// is the "Show all" row at the foot of each section, which keeps a single
+/// control governing a single thing rather than nesting two.
+private struct SectionHeader: View {
     let title: String
     let totalExpenses: Decimal
     let totalIncome: Decimal
     let filterKind: TxnKind?
-    let isExpanded: Bool
     let isRevealed: Bool
-    let onToggle: () -> Void
 
     var body: some View {
-        Button(action: onToggle) {
-            HStack(spacing: 6) {
-                Image(systemName: isExpanded ? "chevron.down" : "chevron.right")
-                    .font(.caption2.weight(.bold))
-                    .foregroundStyle(Color.brandPrimary)
-                    .frame(width: 10)
-                    .animation(.easeInOut(duration: 0.18), value: isExpanded)
+        HStack(spacing: 6) {
+            Text(title)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(.primary)
 
-                Text(title)
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(.primary)
+            Spacer()
 
-                Spacer()
-
-                if filterKind == .income {
-                    Text(isRevealed ? "+\(AmountFormatter.money(totalIncome))" : "+••••")
-                        .font(.caption.monospacedDigit())
-                        .foregroundStyle(Color.moneyIn.opacity(0.85))
-                } else {
-                    Text(isRevealed ? "−\(AmountFormatter.money(totalExpenses))" : "−••••")
-                        .font(.caption.monospacedDigit())
-                        .foregroundStyle(.secondary)
-                }
+            if filterKind == .income {
+                Text(isRevealed ? "+\(AmountFormatter.money(totalIncome))" : "+••••")
+                    .font(.caption.monospacedDigit())
+                    .foregroundStyle(Color.moneyIn.opacity(0.85))
+            } else {
+                Text(isRevealed ? "−\(AmountFormatter.money(totalExpenses))" : "−••••")
+                    .font(.caption.monospacedDigit())
+                    .foregroundStyle(.secondary)
             }
-            .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
     }
 }
 
