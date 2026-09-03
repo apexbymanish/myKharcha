@@ -171,8 +171,9 @@ struct BudgetBar: View {
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(status.categoryName)
         .accessibilityValue(
-            "\(AmountFormatter.money(status.spent)) of \(AmountFormatter.money(status.budget))"
-            + (status.isOver ? ", over budget" : "")
+            status.isOver
+                ? String(localized: "\(AmountFormatter.money(status.spent)) of \(AmountFormatter.money(status.budget)), over budget")
+                : String(localized: "\(AmountFormatter.money(status.spent)) of \(AmountFormatter.money(status.budget))")
         )
     }
 }
@@ -335,19 +336,23 @@ struct PayCycleCard: View {
 
     private var accessibilityValueString: String {
         guard privacy.isRevealed else {
-            return "\(plan.daysUntilPayday) days until payday. Amounts hidden."
+            return String(localized: "\(plan.daysUntilPayday) days until payday. Amounts hidden.")
         }
-        var value = "\(plan.daysUntilPayday) days until payday. "
+        // Whole sentences, joined by the locale's own list separator. Appending
+        // fragments with `+=` baked English word order into every language and,
+        // because none of the pieces went through the catalog, VoiceOver read
+        // this card in English however the phone was set.
+        var parts = [String(localized: "\(plan.daysUntilPayday) days until payday.")]
         if plan.isOverspent {
-            value += "Over budget by \(AmountFormatter.money(plan.overspentBy)). Avoid new spending."
+            parts.append(String(localized: "Over budget by \(AmountFormatter.money(plan.overspentBy)). Avoid new spending."))
         } else {
-            value += "\(AmountFormatter.money(plan.remaining)) left to spend this cycle."
-            value += " Safe to spend \(AmountFormatter.money(plan.safeToSpendPerDay)) per day."
+            parts.append(String(localized: "\(AmountFormatter.money(plan.remaining)) left to spend this cycle."))
+            parts.append(String(localized: "Safe to spend \(AmountFormatter.money(plan.safeToSpendPerDay)) per day."))
         }
         if plan.savingsReserved > 0 {
-            value += " \(AmountFormatter.money(plan.savingsReserved)) reserved for savings."
+            parts.append(String(localized: "\(AmountFormatter.money(plan.savingsReserved)) reserved for savings."))
         }
-        return value
+        return parts.joined(separator: " ")
     }
 
     private var spentFraction: Double {
@@ -376,11 +381,16 @@ struct PayCycleCard: View {
                         .foregroundStyle(.secondary)
                     Spacer()
                     if privacy.isRevealed {
-                        Text("\(AmountFormatter.money(plan.spentThisCycle))  of  \(AmountFormatter.money(plan.salary))")
+                        // Single spaces. The key used to carry two on each side
+                        // of "of" as a typographic tweak, which hands translators
+                        // a string whose whitespace looks like a mistake — and
+                        // any of them who normalises it silently changes the
+                        // layout. Spacing belongs in the layout, not the string.
+                        Text("\(AmountFormatter.money(plan.spentThisCycle)) of \(AmountFormatter.money(plan.salary))")
                             .font(.caption.monospacedDigit())
                             .foregroundStyle(plan.isOverspent ? Color.moneyOut : .secondary)
                     } else {
-                        Text("•••••  of  •••••")
+                        Text("••••• of •••••")
                             .font(.caption.monospacedDigit())
                             .foregroundStyle(.secondary)
                     }
@@ -536,34 +546,38 @@ struct MonthGlanceCard: View {
 
     private func urgencyText(for item: HomeViewModel.State.DueSoonItem) -> String {
         switch item.daysUntil {
-        case 0: return "Due today"
-        case 1: return "Due tomorrow"
-        default: return "Due in \(item.daysUntil) days"
+        case 0: return String(localized: "Due today")
+        case 1: return String(localized: "Due tomorrow")
+        default: return String(localized: "Due in \(item.daysUntil) days")
         }
     }
 
     private var autoLabel: String {
         if autoItems.count == 1 {
-            return "\(autoItems[0].name) · auto-logging"
+            return String(localized: "\(autoItems[0].name) · auto-logging")
         }
-        return "\(autoItems.count) payments auto-logging"
+        return String(localized: "\(autoItems.count) payments auto-logging")
     }
 
     private var soonLabel: String {
         if soonItems.count == 1 {
             let item = soonItems[0]
             let amount = isRevealed ? AmountFormatter.money(item.amount) : "••••"
-            return "\(item.name) · \(amount) due soon"
+            return String(localized: "\(item.name) · \(amount) due soon")
         }
-        return "\(soonItems.count) payments due soon"
+        return String(localized: "\(soonItems.count) payments due soon")
     }
 
     private var budgetLabel: String {
+        // Counts go through the catalog as counts, not as a hand-picked
+        // singular or plural. `overBudget == 1 ? "budget" : "budgets"` is only
+        // right for the two-form languages; Russian and Arabic need four and
+        // six, and no ternary can express that. A `%lld` key lets the catalog
+        // carry each language's own plural rules.
         if overBudget > 0 {
-            let plural = overBudget == 1 ? "budget" : "budgets"
-            return "\(overBudget) \(plural) over · \(onTrack) on track"
+            return String(localized: "\(overBudget) over budget · \(onTrack) on track")
         }
-        return onTrack == 1 ? "1 budget on track" : "All \(onTrack) budgets on track"
+        return String(localized: "\(onTrack) budgets on track")
     }
 
     private var accessibilityText: String {

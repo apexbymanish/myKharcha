@@ -55,7 +55,7 @@ struct HomeView: View {
         case 17..<21: phrase = String(localized: "Good evening")
         default:      phrase = String(localized: "Good night")
         }
-        if let name = firstName { return "\(phrase), \(name)" }
+        if let name = firstName { return String(localized: "\(phrase), \(name)") }
         return phrase
     }
 
@@ -75,7 +75,7 @@ struct HomeView: View {
         switch days {
         case 0:    return String(localized: "today")
         case 1:    return String(localized: "tomorrow")
-        case 2..<14: return "in \(days) days"
+        case 2..<14: return String(localized: "in \(days) days")
         default:
             // Concrete date is clearer than "in N weeks" for anything 2+ weeks out.
             let date = Calendar.current.date(
@@ -126,7 +126,13 @@ struct HomeView: View {
                 .foregroundStyle(.tertiary)
         }
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(isAuto ? "Auto-pay" : "Next bill"): \(item.name)\(a11yAmount), \(dueLabelText)")
+        // Whole labels, not a kind word spliced into a format. The interpolated
+        // form extracted as "%@: %@%@, %@" — four unlabelled slots, and the kind
+        // ("Auto-pay" / "Next bill") went into one of them as an English literal
+        // that never reached the catalog at all.
+        .accessibilityLabel(isAuto
+            ? String(localized: "Auto-pay: \(item.name)\(a11yAmount), \(dueLabelText)")
+            : String(localized: "Next bill: \(item.name)\(a11yAmount), \(dueLabelText)"))
         .accessibilityHint("Opens Reminders")
     }
 

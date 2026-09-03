@@ -5823,6 +5823,7 @@
       }
     },
     "Amounts hidden" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -35697,56 +35698,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Chi tiêu & thu nhập"
-          }
-        }
-      }
-    },
-    "Spending in %@ is down %lld%%, totalling %@." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Spending in %1$@ is down %2$lld%%, totalling %3$@."
-          }
-        }
-      }
-    },
-    "Spending in %@ is unchanged, totalling %@." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Spending in %1$@ is unchanged, totalling %2$@."
-          }
-        }
-      }
-    },
-    "Spending in %@ is up %lld%%, totalling %@." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Spending in %1$@ is up %2$lld%%, totalling %3$@."
-          }
-        }
-      }
-    },
-    "Spending in %@ totalled %@." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Spending in %1$@ totalled %2$@."
-          }
-        }
-      }
-    },
-    "Spending in %@, %@" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Spending in %1$@, %2$@"
           }
         }
       }

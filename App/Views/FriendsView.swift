@@ -13,9 +13,9 @@ struct FriendsView: View {
     }
 
     private func phrase(_ row: FriendsViewModel.Row) -> String {
-        if row.net > 0 { return "owes you \(AmountFormatter.money(row.net))" }
-        if row.net < 0 { return "you owe \(AmountFormatter.money(abs(row.net)))" }
-        return "settled"
+        if row.net > 0 { return String(localized: "owes you \(AmountFormatter.money(row.net))") }
+        if row.net < 0 { return String(localized: "you owe \(AmountFormatter.money(abs(row.net)))") }
+        return String(localized: "settled")
     }
 
     var body: some View {

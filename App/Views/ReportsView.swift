@@ -202,11 +202,19 @@ struct ReportsView: View {
             if catPct > biggestPct { biggestPct = catPct; biggestCat = catName }
         }
 
-        let direction = delta > 0 ? "up" : "down"
+        // A whole sentence per direction. This used to interpolate a bare
+        // `"up"`/`"down"` into one sentence, so even a translated sentence kept
+        // an English word inside it — and the fixed word order is wrong in
+        // several of the twenty languages this app ships, Arabic and Urdu among
+        // them, which read right to left.
         if let cat = biggestCat {
-            return "\(cat) spending is \(direction) \(pct)% from last month"
+            return delta > 0
+                ? String(localized: "\(cat) spending is up \(pct)% from last month")
+                : String(localized: "\(cat) spending is down \(pct)% from last month")
         }
-        return "Total spending is \(direction) \(pct)% from last month"
+        return delta > 0
+            ? String(localized: "Total spending is up \(pct)% from last month")
+            : String(localized: "Total spending is down \(pct)% from last month")
     }
 
     // MARK: - Body

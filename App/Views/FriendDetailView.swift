@@ -16,9 +16,9 @@ struct FriendDetailView: View {
     }
 
     private var netPhrase: String {
-        if vm.state.net > 0 { return "\(vm.state.friendName) owes you \(AmountFormatter.money(vm.state.net))" }
-        if vm.state.net < 0 { return "You owe \(vm.state.friendName) \(AmountFormatter.money(abs(vm.state.net)))" }
-        return "Settled up"
+        if vm.state.net > 0 { return String(localized: "\(vm.state.friendName) owes you \(AmountFormatter.money(vm.state.net))") }
+        if vm.state.net < 0 { return String(localized: "You owe \(vm.state.friendName) \(AmountFormatter.money(abs(vm.state.net)))") }
+        return String(localized: "Settled up")
     }
 
     var body: some View {

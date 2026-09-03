@@ -112,8 +112,15 @@ struct HistoryView: View {
                     .monospacedDigit()
                     .foregroundStyle(Color.moneyIn)
 
+                // Two whole strings rather than one with the arrow interpolated.
+                // The interpolated form extracted as "%@ %@ net" — two opaque
+                // slots a translator cannot place, and no way to move the arrow
+                // to the other side of the figure where a right-to-left script
+                // needs it.
                 Text(privacy.isRevealed
-                     ? "\(net >= 0 ? "↑" : "↓") \(AmountFormatter.money(abs(net))) net"
+                     ? (net >= 0
+                        ? "↑ \(AmountFormatter.money(net)) net"
+                        : "↓ \(AmountFormatter.money(abs(net))) net")
                      : "•••• net")
                     .font(.subheadline.weight(.medium))
                     .monospacedDigit()
