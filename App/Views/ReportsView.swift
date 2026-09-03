@@ -2,6 +2,57 @@ import SwiftUI
 import Charts
 import KharchaKit
 
+/// How much of the ledger a report covers. This is where the W/M/Y control
+/// lives now — History is the graph and scrolls freely through it, so choosing
+/// a span is an analysis job and belongs on the analysis screen.
+enum ReportScope: String, CaseIterable, Identifiable {
+    case week, month, year
+    var id: String { rawValue }
+
+    var component: Calendar.Component {
+        switch self {
+        case .week:  return .weekOfYear
+        case .month: return .month
+        case .year:  return .year
+        }
+    }
+
+    var title: LocalizedStringKey {
+        switch self {
+        case .week:  return "Week"
+        case .month: return "Month"
+        case .year:  return "Year"
+        }
+    }
+
+    /// Names one period for a chip or an axis tick — "Aug 17", "Aug 26", "2026".
+    func label(for date: Date) -> String {
+        let f = DateFormatter()
+        switch self {
+        case .week:  f.setLocalizedDateFormatFromTemplate("MMMd")
+        case .month: f.setLocalizedDateFormatFromTemplate("MMMyy")
+        case .year:  f.setLocalizedDateFormatFromTemplate("yyyy")
+        }
+        return f.string(from: date)
+    }
+
+    /// Names one period in full, for a card's heading.
+    func fullLabel(for date: Date) -> String {
+        let f = DateFormatter()
+        switch self {
+        case .week:
+            let end = Calendar.current.date(byAdding: .day, value: 6, to: date) ?? date
+            let iv = DateIntervalFormatter()
+            iv.dateStyle = .medium
+            iv.timeStyle = .none
+            return iv.string(from: date, to: end)
+        case .month: f.setLocalizedDateFormatFromTemplate("MMMMyyyy")
+        case .year:  f.setLocalizedDateFormatFromTemplate("yyyy")
+        }
+        return f.string(from: date)
+    }
+}
+
 struct ReportsView: View {
     let allRows: [TxnRow]
     let categories: [CategorySnapshot]
@@ -33,7 +84,9 @@ struct ReportsView: View {
 
     @EnvironmentObject private var privacy: PrivacyManager
     @Environment(\.dismiss) private var dismiss
-    @State private var selectedMonth: Date? = nil
+    @State private var selectedPeriod: Date? = nil
+    @State private var scope: ReportScope = .month
+    @State private var showExport = false
     @State private var showFilters = false
 
 
@@ -56,33 +109,40 @@ struct ReportsView: View {
 
     // MARK: - Period helpers
 
-    private var availableMonths: [Date] {
-        let cal = Calendar.current
-        let months = Set(allRows.compactMap { row -> Date? in
-            var comps = cal.dateComponents([.year, .month], from: row.date)
-            comps.day = 1
-            return cal.date(from: comps)
-        })
-        return months.sorted(by: >)
+    /// Everything below is written against `scope` rather than against months.
+    /// One `dateInterval(of:for:)` call decides the boundaries, so a week, a
+    /// month and a year are the same code path with a different component —
+    /// which is what lets the W/M/Y control drive the whole screen.
+    private func periodStart(containing date: Date) -> Date {
+        Calendar.current.dateInterval(of: scope.component, for: date)?.start ?? date
     }
 
-    private var reportMonth: Date {
-        if let m = selectedMonth { return m }
-        if let m = availableMonths.first { return m }
-        var comps = Calendar.current.dateComponents([.year, .month], from: Date())
-        comps.day = 1
-        return Calendar.current.date(from: comps) ?? Date()
+    /// Only periods that actually hold transactions, newest first. Empty ones
+    /// are not offered: a chip that leads to "no data" is a dead end you can
+    /// only find by tapping it.
+    private var availablePeriods: [Date] {
+        Set(allRows.map { periodStart(containing: $0.date) }).sorted(by: >)
     }
 
-    private var periodRows: [TxnRow] {
-        let cal = Calendar.current
-        return allRows.filter { cal.isDate($0.date, equalTo: reportMonth, toGranularity: .month) }
+    private var reportPeriod: Date {
+        if let p = selectedPeriod { return periodStart(containing: p) }
+        if let p = availablePeriods.first { return p }
+        return periodStart(containing: Date())
     }
 
-    private var prevMonthRows: [TxnRow] {
-        let cal = Calendar.current
-        guard let prev = cal.date(byAdding: .month, value: -1, to: reportMonth) else { return [] }
-        return allRows.filter { cal.isDate($0.date, equalTo: prev, toGranularity: .month) }
+    /// Compares normalised starts rather than calling `isDate(_:equalTo:)` with
+    /// `.weekOfYear`, whose behaviour across a year boundary depends on the
+    /// calendar's minimum-days-in-first-week rule.
+    private func rows(in period: Date) -> [TxnRow] {
+        allRows.filter { periodStart(containing: $0.date) == period }
+    }
+
+    private var periodRows: [TxnRow] { rows(in: reportPeriod) }
+
+    private var prevPeriodRows: [TxnRow] {
+        guard let prev = Calendar.current.date(byAdding: scope.component, value: -1, to: reportPeriod)
+        else { return [] }
+        return rows(in: periodStart(containing: prev))
     }
 
     // MARK: - Totals
@@ -90,8 +150,8 @@ struct ReportsView: View {
     private var totalExpense: Decimal { periodRows.filter { $0.kind == .expense }.reduce(0) { $0 + $1.amount } }
     private var totalIncome:  Decimal { periodRows.filter { $0.kind == .income  }.reduce(0) { $0 + $1.amount } }
     private var net:          Decimal { totalIncome - totalExpense }
-    private var prevExpense:  Decimal { prevMonthRows.filter { $0.kind == .expense }.reduce(0) { $0 + $1.amount } }
-    private var prevIncome:   Decimal { prevMonthRows.filter { $0.kind == .income  }.reduce(0) { $0 + $1.amount } }
+    private var prevExpense:  Decimal { prevPeriodRows.filter { $0.kind == .expense }.reduce(0) { $0 + $1.amount } }
+    private var prevIncome:   Decimal { prevPeriodRows.filter { $0.kind == .income  }.reduce(0) { $0 + $1.amount } }
 
     private var salary: Decimal {
         let raw = PayPreference.defaults.double(forKey: PayPreference.salaryKey)
@@ -148,7 +208,7 @@ struct ReportsView: View {
         let pct = Int((NSDecimalNumber(decimal: abs(delta) / prevExpense * 100).doubleValue).rounded())
         guard pct >= 3 else { return nil }
 
-        let prevGrouped = Dictionary(grouping: prevMonthRows.filter { $0.kind == .expense }, by: { $0.categoryName.isEmpty ? "Other" : $0.categoryName })
+        let prevGrouped = Dictionary(grouping: prevPeriodRows.filter { $0.kind == .expense }, by: { $0.categoryName.isEmpty ? "Other" : $0.categoryName })
         let curGrouped  = Dictionary(grouping: periodRows.filter    { $0.kind == .expense }, by: { $0.categoryName.isEmpty ? "Other" : $0.categoryName })
         var biggestCat: String?
         var biggestPct: Double = 0
@@ -169,8 +229,46 @@ struct ReportsView: View {
 
     // MARK: - Body
 
+    /// Sheet chrome and the scope control, both pinned above the scrolling
+    /// content. The picker does not scroll away: it is the control that decides
+    /// what everything below means, so it has to stay reachable while you read.
+    @ViewBuilder private var header: some View {
+        VStack(spacing: 12) {
+            ZStack {
+                Text("Reports")
+                    .font(.title2.bold())
+
+                HStack(spacing: 8) {
+                    RptCircleButton(symbol: "xmark", label: "Close") { dismiss() }
+                    Spacer()
+                    if filterHost != nil {
+                        RptCircleButton(symbol: "line.3.horizontal.decrease",
+                                        label: "Filter transactions") { showFilters = true }
+                    }
+                    RptCircleButton(symbol: "square.and.arrow.up", label: "Export") {
+                        showExport = true
+                    }
+                    .disabled(periodRows.isEmpty)
+                }
+            }
+
+            Picker("Scope", selection: $scope) {
+                ForEach(ReportScope.allCases) { s in
+                    Text(s.title).tag(s)
+                }
+            }
+            .pickerStyle(.segmented)
+            .labelsHidden()
+        }
+        .padding(.horizontal)
+        .padding(.top, 8)
+        .padding(.bottom, 10)
+    }
+
     var body: some View {
         NavigationStack {
+            VStack(spacing: 0) {
+            header
             List {
                 monthSelectorSection
                 if periodRows.isEmpty {
@@ -184,31 +282,26 @@ struct ReportsView: View {
                         .listRowSeparator(.hidden)
                     }
                 } else {
-                    heroSection
-                    ledgerSections
+                    comparisonSection
+                    statsSection
+                    salarySection
+                    if let day = biggestDay { biggestDaySection(day) }
                     categorySection
-                    if !prevMonthRows.isEmpty { momSection }
+                    if !prevPeriodRows.isEmpty { momSection }
                     if !topExpenses.isEmpty   { topExpensesSection }
                     if let insight = insightText { insightSection(insight) }
+                    ledgerSections
                 }
             }
-            .navigationTitle("Reports")
-            .navigationBarTitleDisplayMode(.large)
+            }
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar(.hidden, for: .navigationBar)
             // Inherit History's month on open so Reports doesn't silently show a
             // different period than the screen it was opened from.
-            .onAppear { if selectedMonth == nil { selectedMonth = initialMonth } }
-            .toolbar {
-                if filterHost != nil {
-                    ToolbarItem(placement: .topBarLeading) {
-                        Button { showFilters = true } label: {
-                            Image(systemName: "line.3.horizontal.decrease.circle")
-                        }
-                        .accessibilityLabel("Filter transactions")
-                    }
-                }
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button("Done") { dismiss() }
-                }
+            .onAppear { if selectedPeriod == nil { selectedPeriod = initialMonth } }
+            .sheet(isPresented: $showExport) {
+                ExportPreviewSheet(rows: periodRows,
+                                   periodLabel: scope.fullLabel(for: reportPeriod))
             }
             .sheet(isPresented: $showFilters) {
                 if let host = filterHost {
@@ -229,17 +322,16 @@ struct ReportsView: View {
     // MARK: - Month selector
 
     @ViewBuilder private var monthSelectorSection: some View {
-        if !availableMonths.isEmpty {
+        if !availablePeriods.isEmpty {
             Section {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 6) {
-                        ForEach(availableMonths, id: \.self) { month in
-                            let active = Calendar.current.isDate(reportMonth, equalTo: month, toGranularity: .month)
+                        ForEach(availablePeriods, id: \.self) { period in
                             ReportMonthChip(
-                                label: month.formatted(.dateTime.month(.abbreviated).year(.twoDigits)),
-                                isActive: active
+                                label: scope.label(for: period),
+                                isActive: reportPeriod == period
                             ) {
-                                withAnimation(.easeInOut(duration: 0.18)) { selectedMonth = month }
+                                withAnimation(.easeInOut(duration: 0.18)) { selectedPeriod = period }
                             }
                         }
                     }
@@ -252,84 +344,185 @@ struct ReportsView: View {
         }
     }
 
-    // MARK: - Hero card
+    // MARK: - Spend against salary
 
-    @ViewBuilder private var heroSection: some View {
+    /// The one thing the stats grid does not carry: spending measured against
+    /// what came in to cover it. A total answers "how much"; this answers
+    /// "how much of it", which is the question a salary earner is actually
+    /// asking, and it needs a bar rather than a figure to answer.
+    @ViewBuilder private var salarySection: some View {
+        if salary > 0 && totalExpense > 0 {
+            Section {
+                let fraction = min(NSDecimalNumber(decimal: totalExpense / salary).doubleValue, 1.0)
+                VStack(alignment: .leading, spacing: 6) {
+                    HStack {
+                        Text("of salary").font(.caption).foregroundStyle(.secondary)
+                        Spacer()
+                        Text(privacy.isRevealed
+                             ? AmountFormatter.money(totalExpense) + " / " + AmountFormatter.money(salary)
+                             : "•••• / ••••")
+                            .font(.caption.monospacedDigit()).foregroundStyle(.secondary)
+                    }
+                    GeometryReader { geo in
+                        ZStack(alignment: .leading) {
+                            Capsule().fill(Color.secondary.opacity(0.15))
+                            Capsule()
+                                .fill(fraction >= 1.0 ? Color.moneyOut : Color.brandPrimary)
+                                .frame(width: geo.size.width * fraction)
+                        }
+                    }.frame(height: 6)
+                }
+                .padding(.vertical, 4)
+                .accessibilityElement(children: .combine)
+            }
+        }
+    }
+
+    // MARK: - Comparison chart
+
+    /// This period against the two before it. Three is the useful number: one
+    /// bar is a figure, two is a comparison, three is the first count at which
+    /// you can see a direction rather than a single step.
+    private struct PeriodTotal: Identifiable {
+        let id: Date
+        let label: String
+        let amount: Decimal
+        let isCurrent: Bool
+    }
+
+    private var comparisonTotals: [PeriodTotal] {
+        let cal = Calendar.current
+        return (0..<3).reversed().compactMap { back -> PeriodTotal? in
+            guard let date = cal.date(byAdding: scope.component, value: -back, to: reportPeriod)
+            else { return nil }
+            let start = periodStart(containing: date)
+            let spent = rows(in: start).filter { $0.kind == .expense }.reduce(Decimal(0)) { $0 + $1.amount }
+            return PeriodTotal(id: start,
+                               label: scope.label(for: start),
+                               amount: spent,
+                               isCurrent: back == 0)
+        }
+    }
+
+    @ViewBuilder private var comparisonSection: some View {
         Section {
-            VStack(spacing: 14) {
-                HStack(alignment: .top) {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(reportMonth.formatted(.dateTime.month(.wide).year()))
-                            .font(.caption).foregroundStyle(.secondary)
-                        if net >= 0 {
-                            Text(privacy.isRevealed ? "Net +" + AmountFormatter.money(net) : "Net +••••")
-                                .font(.title2.bold()).foregroundStyle(Color.moneyIn)
-                        } else {
-                            Text(privacy.isRevealed ? "Net −" + AmountFormatter.money(abs(net)) : "Net −••••")
-                                .font(.title2.bold()).foregroundStyle(Color.moneyOut)
-                        }
-                    }
-                    Spacer()
-                    Image(systemName: net >= 0 ? "arrow.up.circle.fill" : "arrow.down.circle.fill")
-                        .font(.title2)
-                        .foregroundStyle(net >= 0 ? Color.moneyIn : Color.moneyOut)
-                }
-
-                Divider()
-
-                HStack {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Spent").font(.caption).foregroundStyle(.secondary)
-                            .lineLimit(1)
-                        Text(privacy.isRevealed ? AmountFormatter.money(totalExpense) : "••••")
-                            .font(.subheadline.monospacedDigit().weight(.semibold))
+            Chart(comparisonTotals) { p in
+                BarMark(
+                    x: .value("Period", p.label),
+                    y: .value("Spent", NSDecimalNumber(decimal: p.amount).doubleValue),
+                    width: .ratio(0.55)
+                )
+                // The period you are reading is solid; the ones it is measured
+                // against recede, so the comparison has a subject.
+                .foregroundStyle(p.isCurrent ? Color.moneyOut : Color.moneyOut.opacity(0.3))
+                .cornerRadius(6)
+                .annotation(position: .top, spacing: 4) {
+                    if p.isCurrent && privacy.isRevealed {
+                        Text(AmountFormatter.money(p.amount))
+                            .font(.caption2.weight(.semibold))
+                            .monospacedDigit()
                             .foregroundStyle(Color.moneyOut)
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.7)
-                    }
-                    Spacer()
-                    VStack(alignment: .center, spacing: 2) {
-                        Text("Transactions").font(.caption).foregroundStyle(.secondary)
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.6)
-                        Text("\(periodRows.count)").font(.subheadline.weight(.semibold))
-                            .lineLimit(1)
-                    }
-                    Spacer()
-                    VStack(alignment: .trailing, spacing: 2) {
-                        Text("Received").font(.caption).foregroundStyle(.secondary)
-                            .lineLimit(1)
-                        Text(privacy.isRevealed ? AmountFormatter.money(totalIncome) : "••••")
-                            .font(.subheadline.monospacedDigit().weight(.semibold))
-                            .foregroundStyle(Color.moneyIn)
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.7)
-                    }
-                }
-
-                if salary > 0 && totalExpense > 0 {
-                    let fraction = min(NSDecimalNumber(decimal: totalExpense / salary).doubleValue, 1.0)
-                    VStack(alignment: .leading, spacing: 4) {
-                        HStack {
-                            Text("of salary").font(.caption).foregroundStyle(.secondary)
-                            Spacer()
-                            Text(privacy.isRevealed
-                                 ? AmountFormatter.money(totalExpense) + " / " + AmountFormatter.money(salary)
-                                 : "•••• / ••••")
-                                .font(.caption.monospacedDigit()).foregroundStyle(.secondary)
-                        }
-                        GeometryReader { geo in
-                            ZStack(alignment: .leading) {
-                                Capsule().fill(Color.secondary.opacity(0.15))
-                                Capsule()
-                                    .fill(fraction >= 1.0 ? Color.moneyOut : Color.brandPrimary)
-                                    .frame(width: geo.size.width * fraction)
-                            }
-                        }.frame(height: 6)
                     }
                 }
             }
-            .padding(.vertical, 4)
+            .chartYAxis(.hidden)
+            .frame(height: 150)
+            .padding(.vertical, 6)
+        }
+        .listRowBackground(Color.clear)
+    }
+
+    // MARK: - Stats grid
+
+    /// Days the average is divided by. For a period still running that is the
+    /// days elapsed, not the days it will hold — dividing August's spending by
+    /// 31 on the 3rd reports a daily average three times lower than the truth.
+    private var elapsedDays: Int {
+        let cal = Calendar.current
+        guard let interval = cal.dateInterval(of: scope.component, for: reportPeriod) else { return 1 }
+        let end = min(interval.end, Date())
+        let days = cal.dateComponents([.day], from: interval.start, to: end).day ?? 0
+        return max(days, 1)
+    }
+
+    private var dailyAverage: Decimal { totalExpense / Decimal(elapsedDays) }
+
+    private var categoryCount: Int {
+        Set(periodRows.filter { $0.kind == .expense }
+            .map { $0.categoryName.isEmpty ? "Other" : $0.categoryName }).count
+    }
+
+    @ViewBuilder private var statsSection: some View {
+        Section {
+            VStack(alignment: .leading, spacing: 16) {
+                Text(scope.fullLabel(for: reportPeriod))
+                    .font(.title2.bold())
+
+                Grid(horizontalSpacing: 12, verticalSpacing: 16) {
+                    GridRow {
+                        RptStatTile(value: AmountFormatter.money(totalExpense),
+                                    label: "TOTAL SPENT", tint: .moneyOut, isRevealed: privacy.isRevealed)
+                        RptStatTile(value: AmountFormatter.money(dailyAverage),
+                                    label: "PER DAY", isRevealed: privacy.isRevealed)
+                    }
+                    GridRow {
+                        RptStatTile(value: AmountFormatter.money(totalIncome),
+                                    label: "TOTAL RECEIVED", tint: .moneyIn, isRevealed: privacy.isRevealed)
+                        RptStatTile(value: (net >= 0 ? "+" : "−") + AmountFormatter.money(abs(net)),
+                                    label: "NET", tint: net >= 0 ? .moneyIn : .moneyOut,
+                                    isRevealed: privacy.isRevealed)
+                    }
+                    GridRow {
+                        // Counts are not amounts, so the privacy toggle leaves
+                        // them alone — hiding "47 transactions" protects nothing.
+                        RptStatTile(value: "\(periodRows.count)", label: "TRANSACTIONS", isRevealed: true)
+                        RptStatTile(value: "\(categoryCount)", label: "CATEGORIES", isRevealed: true)
+                    }
+                }
+            }
+            .padding(.vertical, 6)
+        }
+    }
+
+    // MARK: - Biggest day
+
+    private struct DayTotal {
+        let date: Date
+        let spent: Decimal
+        let received: Decimal
+        let count: Int
+    }
+
+    private var biggestDay: DayTotal? {
+        let cal = Calendar.current
+        let byDay = Dictionary(grouping: periodRows) { cal.startOfDay(for: $0.date) }
+        let totals = byDay.map { date, rows in
+            DayTotal(date: date,
+                     spent: rows.filter { $0.kind == .expense }.reduce(Decimal(0)) { $0 + $1.amount },
+                     received: rows.filter { $0.kind == .income }.reduce(Decimal(0)) { $0 + $1.amount },
+                     count: rows.count)
+        }
+        return totals.filter { $0.spent > 0 }.max { $0.spent < $1.spent }
+    }
+
+    @ViewBuilder private func biggestDaySection(_ day: DayTotal) -> some View {
+        Section {
+            VStack(alignment: .leading, spacing: 10) {
+                Text(day.date.formatted(.dateTime.month(.wide).day().year()))
+                    .font(.title3.bold())
+                Text("BIGGEST DAY")
+                    .font(.caption2.weight(.semibold))
+                    .foregroundStyle(Color.moneyOut)
+
+                HStack(alignment: .top, spacing: 0) {
+                    RptStatTile(value: AmountFormatter.money(day.spent),
+                                label: "SPENT", tint: .moneyOut, isRevealed: privacy.isRevealed)
+                    RptStatTile(value: AmountFormatter.money(day.received),
+                                label: "RECEIVED", tint: .moneyIn, isRevealed: privacy.isRevealed)
+                    RptStatTile(value: "\(day.count)", label: "ENTRIES", isRevealed: true)
+                }
+            }
+            .padding(.vertical, 6)
         }
     }
 
@@ -481,6 +674,54 @@ private struct RptMoMStat: View {
             }
         }
         .frame(maxWidth: .infinity)
+    }
+}
+
+/// One figure and its caption. The unit of the stats grid and the biggest-day
+/// card, so a number means the same thing and is measured the same way wherever
+/// it appears on this screen.
+private struct RptStatTile: View {
+    let value: String
+    let label: LocalizedStringKey
+    var tint: Color = .primary
+    let isRevealed: Bool
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(isRevealed ? value : "••••")
+                .font(.title3.weight(.semibold))
+                .monospacedDigit()
+                .foregroundStyle(tint)
+                .lineLimit(1)
+                .minimumScaleFactor(0.6)
+            Text(label)
+                .font(.caption2.weight(.medium))
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .accessibilityElement(children: .combine)
+    }
+}
+
+/// A circular glyph button, the sheet-chrome control the reference screens use
+/// in place of a navigation bar's text buttons.
+private struct RptCircleButton: View {
+    let symbol: String
+    let label: LocalizedStringKey
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: symbol)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(.primary)
+                .frame(width: 32, height: 32)
+                .background(Color.secondary.opacity(0.18), in: Circle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(label)
     }
 }
 
