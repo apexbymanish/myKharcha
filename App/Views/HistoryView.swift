@@ -39,7 +39,11 @@ struct HistoryView: View {
     /// The buckets currently on screen — the same window `ActivityBarChart`
     /// draws, taken from the same function so the two cannot drift apart.
     private var visibleBars: [ActivityBar] {
-        let start = vm.state.chartAnchor
+        // The settled anchor, not the live one. Reading the scroll position as it
+        // moves made the hero's figures and its date range churn through every
+        // intermediate window during a fling; they now change once, when the
+        // scroll stops, on the same beat as the bars rescaling.
+        let start = vm.state.settledAnchor
         let end = start.addingTimeInterval(ActivityBarChart.visibleDomain(for: period))
         return vm.state.chartBars.filter { $0.date >= start && $0.date < end }
     }
@@ -191,6 +195,7 @@ struct HistoryView: View {
                     ),
                     isRevealed: privacy.isRevealed,
                     selectedEntries: selectedEntries,
+                    scaleAnchor: vm.state.settledAnchor,
                     scrollPosition: Binding(
                         get: { vm.state.chartAnchor },
                         set: { newAnchor in

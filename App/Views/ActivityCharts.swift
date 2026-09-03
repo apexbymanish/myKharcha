@@ -181,6 +181,15 @@ struct ActivityBarChart: View {
     /// The selected day's transactions, supplied by the owner — the chart is
     /// given buckets, and a bucket does not carry notes.
     var selectedEntries: [TxnRow] = []
+    /// The window everything scales against — the scroll position as it was when
+    /// the scroll last came to rest, not as it is right now.
+    ///
+    /// `chartScrollPosition` fires on every frame of a fling. Scaling off it
+    /// recomputed the ceiling and the bar width dozens of times a second, so the
+    /// bars sheared and jumped the whole way through a scroll. Held at the
+    /// settled anchor they stay put while you scroll and rescale once, on the
+    /// spring below, when you stop.
+    var scaleAnchor: Date = .distantPast
     /// Leading edge of the visible window, bound to the view model's chart anchor.
     /// Writing to it is how scrolling moves the period the header describes.
     @Binding var scrollPosition: Date
@@ -207,8 +216,9 @@ struct ActivityBarChart: View {
     /// visible domain. Everything that scales with "what you can see" derives from
     /// this rather than from the whole series.
     private var visibleBars: [ActivityBar] {
-        let end = scrollPosition.addingTimeInterval(visibleDomain)
-        return bars.filter { $0.date >= scrollPosition && $0.date < end }
+        let start = scaleAnchor == .distantPast ? scrollPosition : scaleAnchor
+        let end = start.addingTimeInterval(visibleDomain)
+        return bars.filter { $0.date >= start && $0.date < end }
     }
 
     /// Non-empty buckets on screen. Drives how fat the bars are drawn.
