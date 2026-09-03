@@ -10,12 +10,6 @@ struct HistoryView: View {
     @State private var selectedBarDate: Date?
     // Month navigation (client-side filter on top of VM filters)
     @State private var selectedMonth: Date? = nil
-    // Sections the user has opened in full via "Show all"; the rest show a preview.
-    @State private var fullyShownSections: Set<String> = []
-    // Expanded by default: the chart now sits at the top of the screen, so
-    // landing on a collapsed row would hide the thing you came to see.
-    @State private var analyticsExpanded = true
-    // Local calendar day selection — shown inline below heatmap, does NOT filter the main list
     @State private var showReports = false
     @State private var selectedYear: Int? = nil
 
@@ -67,78 +61,6 @@ struct HistoryView: View {
     // as the Filters sheet's live "Show N results" button.
     private var filteredTxnCount: Int { visibleSections.reduce(0) { $0 + $1.rows.count } }
 
-    /// One month's rows plus its "Show all" disclosure.
-    ///
-    /// Extracted from `body` rather than inlined: with the section built in place
-    /// the type-checker gave up on the whole `List` expression.
-    @ViewBuilder
-    private func transactionSection(_ section: HistoryViewModel.Section) -> some View {
-        let shown = visibleRows(of: section)
-        Section {
-            ForEach(shown, id: \.id) { row in
-                Button {
-                    editingRow = row
-                } label: {
-                    TxnRowView(row: row, categories: vm.state.categories)
-                }
-                .buttonStyle(.plain)
-                .accessibilityHint("Edits this transaction")
-                .swipeActions {
-                    Button("Delete", role: .destructive) {
-                        Task { await vm.delete(row.id) }
-                    }
-                }
-            }
-
-            // The count is the point: four of six is not worth a tap, four of
-            // two hundred is. A bare chevron hides that.
-            if section.rows.count > shown.count {
-                showAllButton(for: section)
-            }
-        } header: {
-            SectionHeader(
-                title: section.title,
-                totalExpenses: section.totalExpenses,
-                totalIncome: section.totalIncome,
-                filterKind: vm.state.filterKind,
-                isRevealed: privacy.isRevealed
-            )
-        }
-    }
-
-    private func showAllButton(for section: HistoryViewModel.Section) -> some View {
-        Button {
-            // Discard `insert`'s tuple: as a single-expression closure it would be
-            // withAnimation's return value, which collides with the action's Void.
-            withAnimation(.easeInOut(duration: 0.2)) {
-                _ = fullyShownSections.insert(section.title)
-            }
-        } label: {
-            HStack {
-                Text("Show all \(section.rows.count) transactions")
-                Spacer()
-                Image(systemName: "chevron.down")
-                    .font(.caption.weight(.semibold))
-            }
-            .font(.subheadline.weight(.semibold))
-            .foregroundStyle(Color.brandPrimary)
-        }
-        .buttonStyle(.plain)
-    }
-
-    /// How many rows a month shows before the "Show all" row appears. Enough to
-    /// see the shape of a month without any one month filling the screen.
-    private static let previewRowCount = 4
-
-    /// The rows a section actually renders. Every section shows a preview; tapping
-    /// "Show all" opens that one section fully. There is deliberately no
-    /// month-level collapse — the preview already keeps the screen usable, so a
-    /// second disclosure governing the same rows would be redundant machinery.
-    private func visibleRows(of section: HistoryViewModel.Section) -> [TxnRow] {
-        if fullyShownSections.contains(section.title) { return section.rows }
-        return Array(section.rows.prefix(Self.previewRowCount))
-    }
-
     // Sections after applying the client-side month/year filter.
     private var visibleSections: [HistoryViewModel.Section] {
         let cal = Calendar.current
@@ -154,45 +76,102 @@ struct HistoryView: View {
         return vm.state.sections
     }
 
+    /// Spent, received and net for whatever the chart is showing — the Pedometer++
+    /// hero, where one figure dominates and the others qualify it. Income used to
+    /// exist only as a second bar colour, which was easy to miss entirely.
+    @ViewBuilder private var heroBlock: some View {
+        if let s = vm.state.chartSummary {
+            VStack(spacing: 2) {
+                Text(privacy.isRevealed ? AmountFormatter.money(s.expense) : "••••")
+                    .font(.system(size: 40, weight: .bold, design: .rounded))
+                    .monospacedDigit()
+                    .foregroundStyle(Color.moneyOut)
+
+                if s.income > 0 {
+                    Text(privacy.isRevealed
+                         ? "\(AmountFormatter.money(s.income)) received"
+                         : "•••• received")
+                        .font(.title3.weight(.semibold))
+                        .monospacedDigit()
+                        .foregroundStyle(Color.moneyIn)
+                }
+
+                let net = s.income - s.expense
+                if s.income > 0 {
+                    Text(privacy.isRevealed
+                         ? "\(net >= 0 ? "↑" : "↓") \(AmountFormatter.money(abs(net))) net"
+                         : "•••• net")
+                        .font(.subheadline.weight(.medium))
+                        .monospacedDigit()
+                        .foregroundStyle(net >= 0 ? Color.moneyIn : Color.moneyOut)
+                }
+            }
+            .frame(maxWidth: .infinity)
+            .accessibilityElement(children: .combine)
+        }
+    }
+
     // MARK: - Body
 
     var body: some View {
-        ScrollViewReader { proxy in
-        List {
-            if vm.state.allRows.isEmpty && vm.state.errorMessage == nil {
-                EmptyStateView(
-                    icon: "clock.arrow.circlepath",
-                    title: "No history yet",
-                    message: "Transactions you log will appear here, grouped by month."
-                )
-                .listRowBackground(Color.clear)
-                .listRowSeparator(.hidden)
-            } else {
-                // ── 1. Analytics — above the ledger, so the chart is what you
-                //      land on rather than a stack of collapsed month rows ───
-                analyticsSection
-
-                // ── 3. Transaction sections, previewed ────────────────────
-                ForEach(visibleSections, id: \.title) { section in
-                    transactionSection(section)
-                }
-
-                // ── 4. No-results when filters match nothing ──────────────
-                if visibleSections.isEmpty && !vm.state.allRows.isEmpty && vm.state.errorMessage == nil {
-                    EmptyStateView(
-                        icon: "magnifyingglass",
-                        title: "No matching transactions",
-                        message: "Try adjusting your search, month, or filters."
-                    )
-                    .listRowBackground(Color.clear)
-                    .listRowSeparator(.hidden)
-                }
-            }
-
+        VStack(spacing: 0) {
             if let error = vm.state.errorMessage {
                 InlineError(message: error)
+                    .padding(.horizontal)
+            }
+
+            heroBlock
+                .padding(.horizontal)
+                .padding(.top, 8)
+
+            if let summary = vm.state.chartSummary, summary.isEmpty {
+                // An empty stretch says so, rather than leaving a bare plot for
+                // the user to interpret as breakage.
+                Spacer()
+                VStack(spacing: 6) {
+                    Image(systemName: "checkmark.circle")
+                        .font(.system(size: 34))
+                        .foregroundStyle(Color.moneyIn)
+                    Text("No spend")
+                        .font(.title3.weight(.semibold))
+                    Text("Nothing logged in this period.")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+                Spacer()
+            } else {
+                // The chart is the screen, not a card inside it. It takes the
+                // room the ledger used to, which is what makes the bars big.
+                ActivityBarChart(
+                    bars: vm.state.chartBars,
+                    unit: period == .year ? .month : .day,
+                    selectedDate: $selectedBarDate,
+                    period: period,
+                    allowance: vm.state.chartAllowance,
+                    scrollPosition: Binding(
+                        get: { vm.state.chartAnchor },
+                        set: { newAnchor in
+                            selectedBarDate = nil
+                            selectedMonth = nil
+                            Task { await vm.setChartAnchor(newAnchor) }
+                            scheduleSettle()
+                        }
+                    )
+                )
+                .frame(maxHeight: .infinity)
+                .padding(.horizontal, 8)
+            }
+
+            if let date = selectedBarDate {
+                BarSelectionBreakdown(allRows: vm.state.allRows, date: date, period: period) {
+                    selectedBarDate = nil
+                }
+                .padding(.horizontal)
+                .padding(.bottom, 8)
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color(.systemGroupedBackground))
         .navigationTitle("History")
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
@@ -207,8 +186,8 @@ struct HistoryView: View {
                 allRows: vm.state.allRows,
                 categories: vm.state.categories,
                 initialMonth: vm.state.chartAnchor,
-                // Filters are presented from Reports but still drive this screen's
-                // list, so the state stays here and Reports gets the bindings.
+                // Filters are presented from Reports but still drive the ledger,
+                // so the state stays here and Reports gets the bindings.
                 filterHost: .init(
                     vm: vm,
                     selectedYear: $selectedYear,
@@ -221,7 +200,9 @@ struct HistoryView: View {
                         selectedYear = nil
                         Task { await vm.clearAllFilters() }
                     }
-                )
+                ),
+                sections: visibleSections,
+                onEditRow: { editingRow = $0 }
             )
         }
         .sheet(item: $editingRow, onDismiss: {
@@ -247,16 +228,6 @@ struct HistoryView: View {
         .onReceive(NotificationCenter.default.publisher(for: .kharchaRemoteDidChange)) { _ in
             Task { await vm.load() }
         }
-        .onChange(of: selectedBarDate) { _, newDate in
-            guard newDate != nil else { return }
-            Task { @MainActor in
-                try? await Task.sleep(for: .milliseconds(120))
-                withAnimation(.easeInOut(duration: 0.3)) {
-                    proxy.scrollTo("barSelectionBreakdown", anchor: .top)
-                }
-            }
-        }
-        } // ScrollViewReader
     }
 
     /// Maps the VM's optional `filterKind` to/from the 3-way segment. Only the
@@ -280,54 +251,6 @@ struct HistoryView: View {
                 }
             }
         )
-    }
-
-    // MARK: - Analytics (collapsed by default)
-
-    @ViewBuilder private var analyticsSection: some View {
-        Section {
-            DisclosureGroup(isExpanded: $analyticsExpanded) {
-                if let summary = vm.state.chartSummary {
-                    ChartHeadline(summary: summary, period: period, isRevealed: privacy.isRevealed)
-                }
-                ActivityBarChart(
-                    // The whole timeline, so the chart can be scrolled through it —
-                    // not just the anchored window the header summarises.
-                    bars: vm.state.chartBars,
-                    unit: period == .year ? .month : .day,
-                    selectedDate: $selectedBarDate,
-                    period: period,
-                    allowance: vm.state.chartAllowance,
-                    scrollPosition: Binding(
-                        get: { vm.state.chartAnchor },
-                        set: { newAnchor in
-                            // Paging away from a selected bar makes the selection
-                            // meaningless, so drop it as the window moves.
-                            selectedBarDate = nil
-                            // The chart is the navigator once the user scrolls it —
-                            // release the Filters month so the two can't contradict.
-                            selectedMonth = nil
-                            // The headline follows the finger; the list waits for
-                            // the scroll to stop (see settleTask below).
-                            Task { await vm.setChartAnchor(newAnchor) }
-                            scheduleSettle()
-                        }
-                    )
-                )
-                if let date = selectedBarDate {
-                    BarSelectionBreakdown(allRows: vm.state.allRows, date: date, period: period) {
-                        selectedBarDate = nil
-                    }
-                    .id("barSelectionBreakdown")
-                }
-            } label: {
-                // No scope control here. Week/Month/Year lives in Reports, the way
-                // Pedometer++ keeps its main screen to the graph alone.
-                Label("Analytics", systemImage: "chart.bar.xaxis")
-                    .font(.subheadline.weight(.medium))
-                    .foregroundStyle(.primary)
-            }
-        }
     }
 
 }

@@ -26,10 +26,33 @@ struct ReportsView: View {
         let onReset: () -> Void
     }
 
+    /// The ledger, which lives here rather than under the History graph. History
+    /// is the graph; reading back through transactions is an analysis job.
+    var sections: [HistoryViewModel.Section] = []
+    var onEditRow: ((TxnRow) -> Void)? = nil
+
     @EnvironmentObject private var privacy: PrivacyManager
     @Environment(\.dismiss) private var dismiss
     @State private var selectedMonth: Date? = nil
     @State private var showFilters = false
+
+
+    /// The transaction ledger. It used to sit under History's graph; History is
+    /// now the graph alone, so reading back through rows happens here.
+    @ViewBuilder private var ledgerSections: some View {
+        ForEach(sections, id: \.title) { section in
+            Section(section.title) {
+                ForEach(section.rows, id: \.id) { row in
+                    Button {
+                        onEditRow?(row)
+                    } label: {
+                        TxnRowView(row: row, categories: categories)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
+    }
 
     // MARK: - Period helpers
 
@@ -162,6 +185,7 @@ struct ReportsView: View {
                     }
                 } else {
                     heroSection
+                    ledgerSections
                     categorySection
                     if !prevMonthRows.isEmpty { momSection }
                     if !topExpenses.isEmpty   { topExpensesSection }
