@@ -27,6 +27,9 @@ public final class HomeViewModel: ObservableObject {
         /// Category id → stored colorHex, so the spending chart can color slices to
         /// match each category's chip elsewhere in the app.
         public var categoryColors: [UUID: String] = [:]
+        /// Current categories, so recent-transaction rows can show the same
+        /// icon/color swatch used on History rows.
+        public var categories: [CategorySnapshot] = []
         /// Present only when the user has set a payday + salary in Settings.
         public var payPlan: PayCyclePlan?
         /// Active installments whose next due date is within the next 7 days.
@@ -92,9 +95,9 @@ public final class HomeViewModel: ObservableObject {
             state.budgets = budgets
 
             state.breakdown = try await store.spendingBreakdown(in: .month, now: now, calendar: calendar)
-            state.categoryColors = Dictionary(
-                uniqueKeysWithValues: try await store.categories().map { ($0.id, $0.colorHex) }
-            )
+            let categories = try await store.categories()
+            state.categories = categories
+            state.categoryColors = Dictionary(uniqueKeysWithValues: categories.map { ($0.id, $0.colorHex) })
 
             if let payday, let salary = monthlySalary, salary > 0 {
                 let cycle = PayCyclePlanner.cycle(now: now, dayOfMonth: payday, calendar: calendar)

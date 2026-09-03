@@ -224,7 +224,12 @@ struct ActivityBarChart: View {
     /// the day beat its allowance — which the hero and Reports already say.
     private func barColor(for p: Point) -> Color {
         if let hex = categoryColors[p.series] { return Color(hex: hex) }
-        if p.series == ActivityBar.otherSegmentName { return Color(hex: "#8E8E93") }
+        // Dimmed on purpose. At full strength systemGray is the brightest band on
+        // a dark chart, which puts the loudest colour on the one bucket that means
+        // "nothing in particular" and lets it out-shout the named categories.
+        if p.series == ActivityBar.otherSegmentName {
+            return Color(hex: "#8E8E93").opacity(0.5)
+        }
         return .moneyOut
     }
 

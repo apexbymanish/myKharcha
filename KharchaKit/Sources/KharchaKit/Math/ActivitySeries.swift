@@ -40,6 +40,16 @@ public struct ActivityBar: Sendable, Equatable, Identifiable {
     /// at a twelfth of a bar it is a few pixels nobody can identify or tap.
     static let segmentFloor = Decimal(string: "0.083")!
 
+    /// The share of a bucket "Other" is allowed to reach before named categories
+    /// are promoted back out of it. A residual band bigger than about a third of
+    /// the bar has stopped being a residue.
+    static let otherCeiling = Decimal(string: "0.35")!
+
+    /// How many named bands one bar will carry. Past this the bands are thinner
+    /// than the text that would sit in them, and the colours stop being telling
+    /// apart from one another.
+    static let maxNamedSlices = 5
+
     public var id: Date { date }
     /// Income minus expense — positive means you netted money that bucket.
     public var net: Decimal { income - expense }
@@ -292,19 +302,56 @@ public enum ActivitySeries {
         let grouped = Dictionary(grouping: expenses) { row in
             row.categoryName.isEmpty ? ActivityBar.otherSegmentName : row.categoryName
         }
+        // Ranked once; the floor and the promotion below both work in this order.
+        let ranked = grouped
+            .map { name, rows in
+                CategorySlice(categoryName: name,
+                              amount: rows.reduce(Decimal(0)) { $0 + $1.amount })
+            }
+            .sorted { $0.amount > $1.amount }
+
         var kept: [CategorySlice] = []
-        var merged: Decimal = 0
-        for (name, rows) in grouped {
-            let amount = rows.reduce(Decimal(0)) { $0 + $1.amount }
-            if amount / total < ActivityBar.segmentFloor || name == ActivityBar.otherSegmentName {
-                merged += amount
+        // Below the floor, but nameable — these can be promoted back out.
+        var promotable: [CategorySlice] = []
+        // Genuinely uncategorised. Never promotable: it has no name to show.
+        var unnamed: Decimal = 0
+
+        for slice in ranked {
+            if slice.categoryName == ActivityBar.otherSegmentName {
+                unnamed += slice.amount
+            } else if slice.amount / total < ActivityBar.segmentFloor {
+                promotable.append(slice)
             } else {
-                kept.append(CategorySlice(categoryName: name, amount: amount))
+                kept.append(slice)
             }
         }
+
+        // The floor alone was wrong for an evenly spread day. Thirteen roughly
+        // equal categories are each below a twelfth of the day, so every one of
+        // them merged and the bar rendered as a single featureless block — a
+        // stacked bar that has stopped saying the one thing it exists to say.
+        //
+        // So "Other" is capped as well as floored: while it would take more than
+        // `otherCeiling` of the bucket, the largest merged categories are
+        // promoted back out, up to `maxNamedSlices`. A ₩2,000 coffee inside a
+        // ₩200,000 day still merges, because there "Other" is 2% and dominates
+        // nothing.
+        var tail = unnamed + promotable.reduce(Decimal(0)) { $0 + $1.amount }
+        var next = 0
+        while next < promotable.count,
+              kept.count < ActivityBar.maxNamedSlices,
+              tail / total > ActivityBar.otherCeiling {
+            kept.append(promotable[next])
+            tail -= promotable[next].amount
+            next += 1
+        }
+
         kept.sort { $0.amount > $1.amount }
-        if merged > 0 {
-            kept.append(CategorySlice(categoryName: ActivityBar.otherSegmentName, amount: merged))
+        // Appended last however large it is, so it sits at the top of the stack
+        // and never leads. The leading band is what carries the category name,
+        // and a bar labelled "Other" names nothing.
+        if tail > 0 {
+            kept.append(CategorySlice(categoryName: ActivityBar.otherSegmentName, amount: tail))
         }
         return kept
     }

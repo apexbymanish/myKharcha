@@ -364,6 +364,33 @@ private func row(_ amount: Decimal, _ kind: TxnKind, _ date: Date) -> TxnRow {
     #expect(segs[1].amount == 5_000)
 }
 
+@Test func anEvenlySpreadDayKeepsItsLargestCategoriesRatherThanMergingAllOfThem() {
+    // A day spread thinly across many categories has every slice below the
+    // floor, so the floor alone folded the whole day into one "Other" block —
+    // a featureless bar that says nothing about where the money went, which is
+    // the one thing a stacked bar exists to say.
+    //
+    // The floor now applies only to the tail: the biggest categories are kept
+    // whatever their share.
+    let txns = (0..<13).map { rowIn("Cat\($0)", 10_000, d(2026, 8, 3)) }
+    let bars = ActivitySeries.bars(txns, period: .month, now: d(2026, 8, 15), calendar: testCal)
+    let segs = bars[2].segments
+
+    // Each slice is 1/13 — 7.7%, under the 8.3% floor — yet the bar is not
+    // one anonymous block.
+    #expect(segs.count > 1)
+    #expect(segs.first?.categoryName != ActivityBar.otherSegmentName)
+    #expect(segs.filter { $0.categoryName == ActivityBar.otherSegmentName }.count <= 1)
+}
+
+@Test func theLargestCategoryIsNeverSweptIntoOther() {
+    // The band that carries the label is the biggest one. If it can be merged,
+    // the label can read "Other" on a bar whose money plainly went somewhere.
+    let txns = (0..<20).map { rowIn("Cat\($0)", $0 == 0 ? 12_000 : 10_000, d(2026, 8, 3)) }
+    let bars = ActivitySeries.bars(txns, period: .month, now: d(2026, 8, 15), calendar: testCal)
+    #expect(bars[2].segments.first?.categoryName == "Cat0")
+}
+
 @Test func segmentsCoverTheWholeBarWithNothingLost() {
     // Whatever the merging does, the slices must still add up to the bar — a
     // stacked bar that does not reach its own total is a lie.
