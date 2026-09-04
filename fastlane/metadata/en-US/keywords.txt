@@ -1,1 +1,1 @@
-expense,budget,money,spending,tracker,manager,finance,savings,debt,income,wallet,bill,planner,daily
+budget,money,spending,manager,finance,savings,debt,income,wallet,bill,planner,daily,receipt,split

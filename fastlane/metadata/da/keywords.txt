@@ -1,1 +1,1 @@
-udgift,budget,penge,opsparing,økonomi,gæld,indkomst,tracker,abonnement,daglig,lån,rapport
+budget,opsparing,økonomi,gæld,indkomst,tracker,abonnement,daglig,lån,rapport,kvittering,kontant

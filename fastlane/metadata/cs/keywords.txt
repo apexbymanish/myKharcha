@@ -1,1 +1,1 @@
-výdaje,rozpočet,peníze,spoření,finance,dluh,příjem,tracker,splátky,denní,plánování
+rozpočet,spoření,finance,dluh,příjem,tracker,splátky,denní,plánování,účtenka,hotovost,půjčka,útrata

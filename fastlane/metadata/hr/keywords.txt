@@ -1,1 +1,1 @@
-troškovi,proračun,novac,štednja,financije,dug,prihod,tracker,rate,dnevno,planiranje
+proračun,štednja,financije,dug,prihod,tracker,rate,dnevno,planiranje,račun,gotovina,kredit,potrošnja

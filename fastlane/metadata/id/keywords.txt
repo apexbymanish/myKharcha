@@ -1,1 +1,1 @@
-pengeluaran,anggaran,uang,tabungan,keuangan,utang,pendapatan,dompet,harian,perencana
+anggaran,uang,tabungan,keuangan,utang,pendapatan,dompet,harian,perencana,struk,tunai,pinjaman

@@ -1,1 +1,1 @@
-harcama,bütçe,para,tasarruf,finans,borç,gelir,cüzdan,günlük,planlama,fatura,gider
+harcama,bütçe,tasarruf,finans,borç,gelir,cüzdan,günlük,planlama,fatura,fiş,nakit,kredi,taksit

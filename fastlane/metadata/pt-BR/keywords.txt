@@ -1,1 +1,1 @@
-gasto,orçamento,dinheiro,poupança,finanças,dívida,receita,carteira,diário,planejador
+orçamento,poupança,finanças,dívida,receita,carteira,diário,planejador,recibo,empréstimo,parcela

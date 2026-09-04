@@ -1,1 +1,1 @@
-gasto,presupuesto,dinero,ahorro,finanzas,deuda,ingreso,cartera,diario,planificador,factura
+presupuesto,ahorro,finanzas,deuda,ingreso,cartera,planificador,factura,recibo,efectivo,préstamo

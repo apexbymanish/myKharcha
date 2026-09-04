@@ -1,1 +1,1 @@
-chi tiêu,ngân sách,tiền,tiết kiệm,tài chính,nợ,thu nhập,ví,hàng ngày,kế hoạch
+ngân sách,tiết kiệm,tài chính,nợ,thu nhập,ví,hàng ngày,kế hoạch,hóa đơn,tiền mặt,khoản vay,trả góp

@@ -1,1 +1,1 @@
-despeses,pressupost,diners,estalvi,finances,deute,ingressos,tracker,terminis,diari,planificació
+pressupost,diners,estalvi,finances,deute,ingressos,tracker,terminis,diari,planificació,rebut,efectiu
