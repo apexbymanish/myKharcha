@@ -470,6 +470,71 @@ struct ActivityBarChart: View {
     }
 
     private var points: [Point] { marks.points }
+
+    /// One drawn bar: a category band, a no-spend stub, or a day's income.
+    struct Column: Identifiable {
+        var id: String { "\(date.timeIntervalSince1970)|\(slot)|\(series)" }
+        let date: Date
+        /// Which half of the column it sits in.
+        let slot: String
+        /// Category name for a band; the label on the largest one.
+        let series: String
+        let amount: Double
+        let fill: Color
+        let isStub: Bool
+        let isIncome: Bool
+        /// True for the band that carries the category name, and for nothing else.
+        let carriesCategoryName: Bool
+        /// True for the one mark per bar that carries the figure above it.
+        let carriesTotal: Bool
+        /// What that figure reads — the day's whole spend, or the income.
+        let labelAmount: Decimal
+    }
+
+    /// Spend bands, stubs and income in one series, which is what lets
+    /// `position(by:)` split the column.
+    private var columns: [Column] {
+        var out: [Column] = []
+        out.reserveCapacity(marks.points.count + marks.emptyBars.count + marks.incomePoints.count)
+
+        for p in marks.points {
+            out.append(Column(date: p.date,
+                              slot: Self.spendSlot,
+                              series: p.series,
+                              amount: p.amount,
+                              fill: barColor(for: p),
+                              isStub: false,
+                              isIncome: false,
+                              carriesCategoryName: labelsFit && p.isLead && bandHoldsItsName(p),
+                              carriesTotal: labelsFit && p.isTop,
+                              labelAmount: Decimal(p.dayTotal)))
+        }
+        for bar in marks.emptyBars {
+            out.append(Column(date: bar.date,
+                              slot: Self.spendSlot,
+                              series: "",
+                              amount: spendTop * 0.018,
+                              fill: Color.secondary.opacity(0.28),
+                              isStub: true,
+                              isIncome: false,
+                              carriesCategoryName: false,
+                              carriesTotal: false,
+                              labelAmount: 0))
+        }
+        for p in marks.incomePoints {
+            out.append(Column(date: p.date,
+                              slot: Self.incomeSlot,
+                              series: "",
+                              amount: p.plotted,
+                              fill: Color.moneyIn,
+                              isStub: false,
+                              isIncome: true,
+                              carriesCategoryName: false,
+                              carriesTotal: labelsFit,
+                              labelAmount: p.amount))
+        }
+        return out
+    }
     private var emptyBars: [ActivityBar] { marks.emptyBars }
     private var incomePoints: [IncomePoint] { marks.incomePoints }
 
@@ -536,108 +601,65 @@ struct ActivityBarChart: View {
     // Split out of `body`: with all of it inline the type-checker gave up on
     // the whole Chart expression, the same way it did on HistoryView's List.
 
-    @ChartContentBuilder private var incomeMarks: some ChartContent {
-        // Income grows upward alongside spending, in green.
-        //
-        // Income takes the right-hand slot of its column, spending the left.
-        //
-        // At equal width and full column, a day that both earned and spent showed
-        // only whichever was drawn last — ₩3,000,000 received hid ₩255,880 spent
-        // completely, label and all. Grouping gives each measure its own slot, so
-        // both are visible and both keep their figure. The cost is that every
-        // column reserves two slots, so a day with only one kind fills half of
-        // one; that is the trade accepted for never hiding a value.
-        ForEach(incomePoints) { p in
+    /// Every bar in one builder — spend bands, no-spend stubs and income alike.
+    ///
+    /// They have to share a single `ForEach` for `position(by:)` to mean
+    /// anything. Declared as separate mark groups, each one saw only its own slot
+    /// value, so Charts gave each the whole column and drew them on top of one
+    /// another: ₩3,000,000 received covered ₩255,880 spent completely, label and
+    /// all. In one series there are two distinct slots, so the column splits and
+    /// both are visible — spending left, income right.
+    @ChartContentBuilder private var columnMarks: some ChartContent {
+        ForEach(columns) { p in
             BarMark(
                 x: .value("Date", p.date, unit: unit),
                 yStart: .value("Amount", 0),
-                yEnd: .value("Amount", p.plotted),
+                yEnd: .value("Amount", p.amount),
+                // A share of the slot, and that share grows when few bars are on
+                // screen — see `barRatio`.
                 width: .ratio(barRatio)
             )
-            .position(by: .value("Kind", Self.incomeSlot))
-            .foregroundStyle(Color.moneyIn)
-            .cornerRadius(4)
-            .annotation(position: .top,
-                        spacing: 3,
-                        overflowResolution: AnnotationOverflowResolution(x: .fit(to: .chart), y: .fit(to: .chart))) {
-                AmountTag(amount: p.amount, direction: .received, isRevealed: isRevealed)
-            }
-        }
-    }
-
-    @ChartContentBuilder private var zeroRuleMark: some ChartContent {
-        // The line the two measures meet at. Without it the split reads as one
-        // scale and the income bars look like negative spending.
-        if incomePeak > 0 {
-            RuleMark(y: .value("Zero", 0))
-                .foregroundStyle(Color.secondary.opacity(0.35))
-                .lineStyle(StrokeStyle(lineWidth: 0.5))
-        }
-    }
-
-    @ChartContentBuilder private var emptyDayMarks: some ChartContent {
-        // Empty days keep their column: a flat grey stub on the baseline, so a
-        // no-spend day is visibly a day rather than a gap in the data.
-        ForEach(emptyBars) { bar in
-            BarMark(
-                x: .value("Date", bar.date, unit: unit),
-                yStart: .value("Amount", 0),
-                yEnd: .value("Amount", spendTop * 0.018),
-                width: .ratio(barRatio)
-            )
-            .foregroundStyle(Color.secondary.opacity(0.28))
-            .cornerRadius(2)
-        }
-    }
-
-    @ChartContentBuilder private var spendMarks: some ChartContent {
-        ForEach(points) { p in
-            BarMark(
-                x: .value("Date", p.date, unit: unit),
-                y: .value("Amount", p.amount),
-                // A share of the column, and that share grows when few bars
-                // are on screen — see `barRatio`.
-                width: .ratio(barRatio)
-            )
-            .foregroundStyle(barColor(for: p))
-            .cornerRadius(4)
-            // Every spend bar carries its own amount, so a value never needs
-            // to be uncovered by tapping or scrubbing.
-            // Amount always above the bar, tinted to match it. Fixed placement
-            // beats adaptive — your eye learns one place to look.
-            // The biggest band carries its category name, written into the
-            // band itself. Dynamic Type sized, so it grows with the user's
-            // text setting instead of staying 9pt forever.
+            .position(by: .value("Kind", p.slot))
+            .foregroundStyle(p.fill)
+            .cornerRadius(p.isStub ? 2 : 4)
+            // The biggest band carries its category name, written into the band
+            // itself. Dynamic Type sized, so it grows with the user's text
+            // setting instead of staying 9pt forever.
             .annotation(position: .overlay, alignment: .center, spacing: 0) {
-                if labelsFit, p.isLead, bandHoldsItsName(p) {
-                    Text(p.series)
-                        .font(.caption2.weight(.bold))
-                        .minimumScaleFactor(0.7)
-                        .lineLimit(1)
-                        .foregroundStyle(.black.opacity(0.72))
-                        .padding(.horizontal, 2)
-                }
+                if p.carriesCategoryName { categoryLabel(p) }
             }
-            // The day's total, written once above the whole stack.
+            // The figure above the bar: the day's whole spend once, on the
+            // topmost band, or the income on its own bar.
             //
             // Keyed on `isTop`, not `isLead`. An annotation attaches to its own
             // mark, and the lead band is the *biggest* one, which stacks at the
             // bottom — so on any bar with more than one category the total was
             // drawn just above that bottom band, floating down beside the bar it
-            // was meant to be labelling instead of sitting on top of it.
+            // was meant to be labelling.
             //
-            // `overflowResolution` keeps it on screen for a bar that clips at
-            // the percentile ceiling. Without it the label is positioned above
-            // the bar's true top, which is outside the plot area — so the
-            // biggest days, the ones you most want labelled, showed nothing.
+            // `overflowResolution` keeps it on screen for a bar that clips at the
+            // percentile ceiling, whose true top is outside the plot area.
             .annotation(position: .top,
                         spacing: 3,
                         overflowResolution: AnnotationOverflowResolution(x: .fit(to: .chart), y: .fit(to: .chart))) {
-                if labelsFit, p.isTop {
-                    AmountTag(amount: Decimal(p.dayTotal), direction: .spent, isRevealed: isRevealed)
-                }
+                if p.carriesTotal { amountLabel(p) }
             }
         }
+    }
+
+    @ViewBuilder private func categoryLabel(_ p: Column) -> some View {
+        Text(p.series)
+            .font(.caption2.weight(.bold))
+            .minimumScaleFactor(0.7)
+            .lineLimit(1)
+            .foregroundStyle(.black.opacity(0.72))
+            .padding(.horizontal, 2)
+    }
+
+    @ViewBuilder private func amountLabel(_ p: Column) -> some View {
+        AmountTag(amount: p.labelAmount,
+                  direction: p.isIncome ? .received : .spent,
+                  isRevealed: isRevealed)
     }
 
     @ChartContentBuilder private var selectionMark: some ChartContent {
@@ -653,14 +675,7 @@ struct ActivityBarChart: View {
 
     var body: some View {
         Chart {
-            zeroRuleMark
-            emptyDayMarks
-            spendMarks
-            // Last, so on a day that both earned and spent the green sits over
-            // the red. Income was drawn first here and last on Home's week chart,
-            // which put the same collision on top on one screen and underneath on
-            // the other.
-            incomeMarks
+            columnMarks
             selectionMark
         }
         .chartLegend(.hidden)   // colour now encodes budget, not series
@@ -783,34 +798,47 @@ struct MiniTrendChart: View {
         return (ceiling as NSDecimalNumber).doubleValue
     }
 
-    /// A slightly deeper share than the full chart's quarter. At this height a
-    /// quarter of 120pt is 30pt, and a bar that short reads as an artefact
-    /// rather than as a measure.
-    private static let incomeShare = 0.3
-
-    private var floorValue: Double {
-        // Keyed on the whole series, not the visible window. Deriving it from the
-        // window meant a window with no income had no room below the axis — so
-        // scrolling into a payday drew nothing until the scale caught up, and the
-        // green bars appeared out of thin air when it did. The frame is reserved
-        // whenever the ledger has any income at all, and stays reserved.
-        guard seriesHasIncome else { return 0 }
-        return -spendTop * (Self.incomeShare / (1 - Self.incomeShare))
-    }
+    /// Both measures grow upward from the baseline, as on the full chart. This
+    /// card was left diverging when the History chart stopped — an earlier edit
+    /// here did not match and went in silently.
+    private var floorValue: Double { 0 }
 
     private var seriesHasIncome: Bool { bars.contains { $0.income > 0 } }
 
     private var incomePoints: [IncomePoint] {
         guard seriesHasIncome, incomePeak > 0 else { return [] }
-        // Four fifths, leaving a gutter for the figure — same reason as the full
-        // chart: written under the bar it sits on the background, not on green.
-        let depth = abs(floorValue) * 0.8
+        // Normalised to the income in the week, so the biggest green bar reaches
+        // the height the biggest red one does. Held under the ceiling so its cap
+        // is not cut off square.
+        let ceiling = spendTop * 0.985
         return bars.compactMap { bar in
             guard bar.income > 0 else { return nil }
             let value = (bar.income as NSDecimalNumber).doubleValue
             return IncomePoint(date: bar.date,
                                amount: bar.income,
-                               plotted: -(value / incomePeak) * depth)
+                               plotted: (value / incomePeak) * ceiling)
+        }
+    }
+
+    /// Spend and income in one series, so `position(by:)` can split the column.
+    /// Two separate mark groups each see one slot value and take the whole
+    /// column, which draws them on top of one another.
+    private struct Column: Identifiable {
+        var id: String { "\(date.timeIntervalSince1970)|\(slot)" }
+        let date: Date
+        let slot: String
+        let amount: Double
+        let label: Decimal
+        let isIncome: Bool
+    }
+
+    private var columns: [Column] {
+        spendPoints.map {
+            Column(date: $0.date, slot: ActivityBarChart.spendSlot,
+                   amount: $0.amount, label: $0.trueAmount, isIncome: false)
+        } + incomePoints.map {
+            Column(date: $0.date, slot: ActivityBarChart.incomeSlot,
+                   amount: $0.plotted, label: $0.amount, isIncome: true)
         }
     }
 
@@ -818,11 +846,13 @@ struct MiniTrendChart: View {
         isRevealed ? AmountFormatter.money(amount) : "••••"
     }
 
-    @ChartContentBuilder private var spendMarks: some ChartContent {
-        ForEach(spendPoints) { p in
-            BarMark(x: .value("Date", p.date, unit: .day), y: .value("Amount", p.amount))
-                .position(by: .value("Kind", ActivityBarChart.spendSlot))
-                .foregroundStyle(Color.moneyOut)
+    @ChartContentBuilder private var columnMarks: some ChartContent {
+        ForEach(columns) { c in
+            BarMark(x: .value("Date", c.date, unit: .day),
+                    yStart: .value("Amount", 0),
+                    yEnd: .value("Amount", c.amount))
+                .position(by: .value("Kind", c.slot))
+                .foregroundStyle(c.isIncome ? Color.moneyIn : Color.moneyOut)
                 .cornerRadius(2)
                 // The figure on the bar, as on the full chart. Without it the
                 // week is a shape you can compare against itself and nothing
@@ -830,33 +860,13 @@ struct MiniTrendChart: View {
                 // cost, which is the one thing worth knowing at a glance.
                 .annotation(position: .top, spacing: 2,
                             overflowResolution: .init(x: .fit(to: .chart), y: .fit(to: .chart))) {
-                    Text(money(p.trueAmount))
+                    Text((c.isIncome ? "+" : "") + money(c.label))
                         .font(.system(size: 9, weight: .semibold))
                         .monospacedDigit()
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(c.isIncome ? Color.moneyIn : .secondary)
                         .lineLimit(1)
-                        // Seven columns on a phone leave roughly 45pt each, and a
-                        // five-figure amount wants more than that.
-                        .minimumScaleFactor(0.6)
-                }
-        }
-    }
-
-    @ChartContentBuilder private var incomeMarks: some ChartContent {
-        ForEach(incomePoints) { p in
-            BarMark(x: .value("Date", p.date, unit: .day),
-                    yStart: .value("Amount", 0),
-                    yEnd: .value("Amount", p.plotted))
-                .position(by: .value("Kind", ActivityBarChart.incomeSlot))
-                .foregroundStyle(Color.moneyIn)
-                .cornerRadius(2)
-                .annotation(position: .top, spacing: 2,
-                            overflowResolution: .init(x: .fit(to: .chart), y: .fit(to: .chart))) {
-                    Text(money(p.amount))
-                        .font(.system(size: 9, weight: .semibold))
-                        .monospacedDigit()
-                        .foregroundStyle(Color.moneyIn)
-                        .lineLimit(1)
+                        // Seven columns on a phone leave roughly 45pt each, split
+                        // in two, and a five-figure amount wants more than that.
                         .minimumScaleFactor(0.6)
                 }
         }
@@ -864,10 +874,7 @@ struct MiniTrendChart: View {
 
     var body: some View {
         Chart {
-            spendMarks
-            // Drawn after the spend bars and narrower, so a day that both earned
-            // and spent shows both.
-            incomeMarks
+            columnMarks
         }
         .chartLegend(.hidden)
         .chartXAxis { AxisMarks(values: .stride(by: .day)) { _ in AxisTick() } }
