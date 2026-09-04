@@ -534,17 +534,19 @@ struct ActivityBarChart: View {
     @ChartContentBuilder private var incomeMarks: some ChartContent {
         // Income grows upward alongside spending, in green.
         //
-        // Narrower than the spend bar and drawn over it, so a day that both
-        // earned and spent shows both rather than one hiding the other. That
-        // collision is the open question here: the two are on different scales,
-        // so the green bar in front of a red one is not a share of it, and the
-        // pairing needs a decision about how they should sit together.
+        // Same width as a spend bar — one bar spec for both measures, so a green
+        // column and a red one are the same object in two colours rather than
+        // looking like two different kinds of thing.
+        //
+        // Drawn after the spend marks, so on a day that both earned and spent the
+        // green covers the red entirely. That collision is the open question
+        // here, deliberately left plain to look at.
         ForEach(incomePoints) { p in
             BarMark(
                 x: .value("Date", p.date, unit: unit),
                 yStart: .value("Amount", 0),
                 yEnd: .value("Amount", p.plotted),
-                width: .ratio(barRatio * 0.52)
+                width: .ratio(barRatio)
             )
             .foregroundStyle(Color.moneyIn)
             .cornerRadius(4)
@@ -832,8 +834,7 @@ struct MiniTrendChart: View {
         ForEach(incomePoints) { p in
             BarMark(x: .value("Date", p.date, unit: .day),
                     yStart: .value("Amount", 0),
-                    yEnd: .value("Amount", p.plotted),
-                    width: .ratio(0.45))
+                    yEnd: .value("Amount", p.plotted))
                 .foregroundStyle(Color.moneyIn)
                 .cornerRadius(2)
                 .annotation(position: .top, spacing: 2,
