@@ -1,0 +1,9 @@
+Der Verlauf ist jetzt ein bildschirmfüllendes Diagramm, durch das du frei scrollen kannst.
+
+• Jeder Balken trägt seinen Betrag, aufgeteilt nach den Kategorien deiner Ausgaben
+• Tippe auf einen Balken und sieh die Buchungen des Tages samt Notizen
+• Einnahmen stehen jetzt neben den Ausgaben – der Zahltag fällt sofort auf
+• Berichte neu aufgebaut nach Woche, Monat und Jahr, mit Periodenvergleich und deinem größten Tag
+• Der Export zeigt dir vor dem Teilen genau, was er enthält
+• Beträge ausblenden blendet sie jetzt auch im Diagramm aus
+• Vollständig in 20 Sprachen übersetzt

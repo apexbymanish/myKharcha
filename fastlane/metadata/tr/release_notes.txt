@@ -1,0 +1,9 @@
+Geçmiş artık zaman içinde serbestçe kaydırabildiğiniz tam ekran bir grafik.
+
+• Her çubuk kendi tutarını taşır ve harcadığınız kategorilere ayrılır
+• Bir çubuğa dokunun, o günün işlemlerini notlarıyla görün
+• Gelir artık harcamanın yanında; maaş günü hemen göze çarpıyor
+• Raporlar Hafta, Ay ve Yıl üzerine yeniden kuruldu; dönem karşılaştırması ve en yüksek gününüzle
+• Dışa aktarma, paylaşmadan önce içeriğini olduğu gibi gösteriyor
+• Tutarları gizlemek artık grafiklerde de gizliyor
+• 20 dile tam olarak çevrildi

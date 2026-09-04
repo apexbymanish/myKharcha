@@ -1,0 +1,9 @@
+L’historial ara és un gràfic a pantalla completa que pots recórrer lliurement en el temps.
+
+• Cada barra porta el seu import, repartit entre les categories en què has gastat
+• Toca una barra per veure els moviments d’aquell dia amb les seves notes
+• Els ingressos apareixen al costat de les despeses: el dia de cobrament es veu de seguida
+• Informes refets al voltant de Setmana, Mes i Any, amb comparació de períodes i el teu dia més alt
+• L’exportació et mostra exactament què conté abans de compartir-la
+• Amagar imports ara també els amaga als gràfics
+• Traduït completament a 20 idiomes

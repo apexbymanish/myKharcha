@@ -1,0 +1,9 @@
+O histórico agora é um gráfico em tela cheia que você percorre livremente no tempo.
+
+• Cada barra traz o seu valor, dividido nas categorias em que você gastou
+• Toque numa barra para ver as transações do dia, com suas notas
+• A receita aparece ao lado dos gastos, então o dia do pagamento salta aos olhos
+• Relatórios refeitos em torno de Semana, Mês e Ano, com comparação de períodos e o seu maior dia
+• A exportação mostra exatamente o que contém antes de você compartilhar
+• Ocultar valores agora os oculta também nos gráficos
+• Totalmente traduzido para 20 idiomas

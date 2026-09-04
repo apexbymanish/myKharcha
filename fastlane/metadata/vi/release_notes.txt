@@ -1,0 +1,9 @@
+Lịch sử giờ là một biểu đồ toàn màn hình, cuộn tự do theo thời gian.
+
+• Mỗi cột đều ghi số tiền của nó, chia theo các danh mục bạn đã chi
+• Chạm vào một cột để xem giao dịch của ngày đó cùng ghi chú
+• Thu nhập nay nằm cạnh chi tiêu, nên ngày lương rất dễ nhận ra
+• Báo cáo được dựng lại theo Tuần, Tháng và Năm, kèm so sánh kỳ và ngày chi nhiều nhất
+• Xuất dữ liệu cho bạn xem chính xác nội dung trước khi chia sẻ
+• Ẩn số tiền giờ ẩn cả trên biểu đồ
+• Đã dịch đầy đủ sang 20 ngôn ngữ

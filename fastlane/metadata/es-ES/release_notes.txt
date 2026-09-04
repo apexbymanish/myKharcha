@@ -1,0 +1,9 @@
+El historial es ahora un gráfico a pantalla completa que puedes recorrer libremente en el tiempo.
+
+• Cada barra lleva su importe, repartido entre las categorías en las que gastaste
+• Toca una barra para ver los movimientos de ese día con sus notas
+• Los ingresos aparecen junto a los gastos, así el día de cobro se ve enseguida
+• Informes rehechos en torno a Semana, Mes y Año, con comparación de periodos y tu día más alto
+• La exportación te muestra exactamente qué contiene antes de compartirla
+• Ocultar importes ahora también los oculta en los gráficos
+• Traducido por completo a 20 idiomas

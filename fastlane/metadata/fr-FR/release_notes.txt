@@ -1,0 +1,9 @@
+L’historique est désormais un graphique plein écran que vous parcourez librement dans le temps.
+
+• Chaque barre porte son montant, réparti entre les catégories de vos dépenses
+• Touchez une barre pour voir les opérations du jour et leurs notes
+• Les revenus figurent à côté des dépenses : le jour de paie saute aux yeux
+• Rapports repensés autour de la semaine, du mois et de l’année, avec comparaison des périodes et votre plus grosse journée
+• L’export vous montre exactement son contenu avant que vous le partagiez
+• Masquer les montants les masque aussi sur les graphiques
+• Entièrement traduit en 20 langues

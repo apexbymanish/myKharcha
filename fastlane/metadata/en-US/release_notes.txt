@@ -1,0 +1,9 @@
+History is now a full-screen chart you can scroll freely through time.
+
+• Every bar carries its own amount, split into the categories you spent on
+• Tap a bar to see that day's transactions, with their notes
+• Income now sits beside spending, so payday is easy to find
+• Reports rebuilt around Week, Month and Year, with a period comparison and your biggest day
+• Export shows you exactly what it contains before you share it
+• Hiding amounts now hides them on the charts too
+• Kharcha is now fully translated into 20 languages

@@ -1,0 +1,9 @@
+Povijest je sada grafikon preko cijelog zaslona kroz koji se slobodno pomičete kroz vrijeme.
+
+• Svaki stupac nosi svoj iznos, razdijeljen po kategorijama u kojima ste trošili
+• Dodirnite stupac da vidite transakcije tog dana zajedno s bilješkama
+• Prihod je sada uz troškove, pa se dan plaće odmah primijeti
+• Izvještaji su iznova složeni oko tjedna, mjeseca i godine, s usporedbom razdoblja i vašim najvećim danom
+• Izvoz vam prije dijeljenja pokazuje točno što sadrži
+• Skrivanje iznosa sada ih skriva i na grafikonima
+• U cijelosti prevedeno na 20 jezika

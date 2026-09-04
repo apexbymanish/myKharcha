@@ -1,0 +1,9 @@
+Historie je nyní graf přes celou obrazovku, kterým můžete volně procházet časem.
+
+• Každý sloupec nese svou částku rozdělenou podle kategorií, kde jste utráceli
+• Klepnutím na sloupec zobrazíte transakce daného dne i s poznámkami
+• Příjem je teď vedle výdajů, takže výplatní den je hned vidět
+• Přehledy přestavěné kolem týdne, měsíce a roku, se srovnáním období a vaším nejvyšším dnem
+• Export vám před sdílením ukáže přesně, co obsahuje
+• Skrytí částek je nyní skryje i v grafech
+• Kompletně přeloženo do 20 jazyků

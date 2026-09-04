@@ -1,0 +1,9 @@
+Historik er nu et fuldskærmsdiagram, du frit kan rulle gennem tiden i.
+
+• Hver søjle bærer sit beløb, fordelt på de kategorier, du brugte penge på
+• Tryk på en søjle for at se dagens posteringer med deres noter
+• Indtægt står nu ved siden af forbrug, så lønningsdagen er let at få øje på
+• Rapporter er bygget om omkring uge, måned og år, med periodesammenligning og din største dag
+• Eksport viser dig præcis, hvad den indeholder, før du deler den
+• At skjule beløb skjuler dem nu også i diagrammerne
+• Fuldt oversat til 20 sprog

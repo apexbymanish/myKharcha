@@ -1,0 +1,9 @@
+Riwayat kini berupa grafik satu layar penuh yang bisa Anda geser bebas menyusuri waktu.
+
+• Setiap batang menampilkan nominalnya, terbagi menurut kategori pengeluaran
+• Ketuk sebuah batang untuk melihat transaksi hari itu beserta catatannya
+• Pemasukan kini bersebelahan dengan pengeluaran, jadi hari gajian mudah ditemukan
+• Laporan dibangun ulang seputar Minggu, Bulan, dan Tahun, lengkap dengan perbandingan periode dan hari pengeluaran terbesar
+• Ekspor memperlihatkan isinya sebelum Anda membagikannya
+• Menyembunyikan nominal kini juga menyembunyikannya di grafik
+• Kini diterjemahkan penuh ke dalam 20 bahasa
