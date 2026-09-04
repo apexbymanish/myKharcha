@@ -159,26 +159,6 @@ private struct AmountTag: View {
     }
 }
 
-/// The span of dates the chart is actually drawing, reported by the chart itself.
-///
-/// Read from `ChartProxy` rather than inferred from `chartScrollPosition`. The
-/// scroll binding is a request and a report, and the two are not always the same
-/// thing: it reports a position during first layout that the chart has not
-/// applied yet, and it can lag a fling. Every "the header describes one window
-/// while the bars draw another" bug traced back to trusting it. The proxy is
-/// asked what is on screen, so it cannot disagree with what is on screen.
-struct ChartVisibleRange: Equatable {
-    let start: Date
-    let end: Date
-}
-
-struct ChartVisibleRangeKey: PreferenceKey {
-    static let defaultValue: ChartVisibleRange? = nil
-    static func reduce(value: inout ChartVisibleRange?, nextValue: () -> ChartVisibleRange?) {
-        value = nextValue() ?? value
-    }
-}
-
 /// Grouped spend-vs-income bar chart over a set of `ActivityBar` buckets.
 /// `unit` is `.day` for week/month periods and `.month` for the year period.
 /// Bind `selectedDate` to track which bar the user tapped; the binding is
@@ -635,21 +615,6 @@ struct ActivityBarChart: View {
         // the screen, far from the thing it described.
         .chartOverlay { proxy in
             GeometryReader { geo in
-                // Ask the chart what it is drawing, and publish it upward.
-                // Quantised to bucket starts so a drag reports once per bucket
-                // crossed rather than once per pixel.
-                if let plot = proxy.plotFrame {
-                    let rect = geo[plot]
-                    let lead = proxy.value(atX: 0, as: Date.self)
-                    let trail = proxy.value(atX: rect.width, as: Date.self)
-                    Color.clear.preference(
-                        key: ChartVisibleRangeKey.self,
-                        value: (lead != nil && trail != nil)
-                            ? ChartVisibleRange(start: Self.bucketStart(lead!, unit: unit),
-                                                end: Self.bucketStart(trail!, unit: unit))
-                            : nil
-                    )
-                }
                 if let bar = selectedBar,
                    let plot = proxy.plotFrame,
                    let x = proxy.position(forX: bar.date) {

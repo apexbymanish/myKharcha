@@ -51,11 +51,6 @@ struct HistoryView: View {
     /// only a finger on the chart is.
     @State private var userHasScrolled = false
 
-    /// What the chart says it is drawing. Ground truth for the header and the
-    /// scale; the scroll binding is only used to tell the view model where a
-    /// scroll came to rest.
-    @State private var visibleRange: ChartVisibleRange?
-
     private func scheduleSettle() {
         settleTask?.cancel()
         settleTask = Task { @MainActor in
@@ -84,7 +79,6 @@ struct HistoryView: View {
     /// you had last stopped: income had no room and tall bars clipped until you
     /// let go.
     private var effectiveScaleAnchor: Date {
-        if let range = visibleRange { return range.start }
         let live = liveAnchor ?? vm.state.chartAnchor
         return ActivityBarChart.bucketStart(live, unit: period == .year ? .month : .day)
     }
@@ -241,6 +235,16 @@ struct HistoryView: View {
             // *replaced* by the empty state, which removed the only way to scroll
             // back to a period that has data — the user was stranded.
             ZStack {
+                // Built only once the series exists.
+                //
+                // `chartScrollPosition` applies its value at the chart's first
+                // layout and treats it as a report from then on. Creating the
+                // chart before the rows had loaded meant that first layout used
+                // the default anchor, and the opening window chosen a moment
+                // later was never applied — the logs showed the anchor correct at
+                // Aug 25 while the axis drew Aug 18–26. Waiting for the bars means
+                // the first layout is the only one that matters.
+                if !vm.state.chartBars.isEmpty {
                 ActivityBarChart(
                     bars: vm.state.chartBars,
                     unit: period == .year ? .month : .day,
@@ -268,10 +272,6 @@ struct HistoryView: View {
                 // Minimum distance rather than zero, so a tap that selects a bar
                 // is not mistaken for a scroll. Simultaneous, so the chart's own
                 // pan still does the scrolling — this only observes.
-                .onPreferenceChange(ChartVisibleRangeKey.self) { range in
-                    ChartDiagnostics.log("proxyRange \(range.map { "\($0.start)…\($0.end)" } ?? "nil")")
-                    if let range { visibleRange = range }
-                }
                 .onChange(of: effectiveScaleAnchor) { _, anchor in
                     let bars = visibleBars
                     let peak = bars.map(\.expense).max() ?? 0
@@ -291,6 +291,7 @@ struct HistoryView: View {
                 // on the screen; running to the edges makes the graph the surface
                 // the screen is built on, which is what Pedometer++ does.
                 .padding(.bottom, 8)
+                }
 
                 if visibleTotals.isEmpty {
                     // Sits over the chart rather than in place of it, and lets
