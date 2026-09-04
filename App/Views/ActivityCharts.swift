@@ -646,10 +646,14 @@ struct ActivityBarChart: View {
 
     var body: some View {
         Chart {
-            incomeMarks
             zeroRuleMark
             emptyDayMarks
             spendMarks
+            // Last, so on a day that both earned and spent the green sits over
+            // the red. Income was drawn first here and last on Home's week chart,
+            // which put the same collision on top on one screen and underneath on
+            // the other.
+            incomeMarks
             selectionMark
         }
         .chartLegend(.hidden)   // colour now encodes budget, not series
