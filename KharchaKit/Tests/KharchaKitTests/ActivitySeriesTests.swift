@@ -425,11 +425,11 @@ private func row(_ amount: Decimal, _ kind: TxnKind, _ date: Date) -> TxnRow {
     // nothing moves at all.
     #expect(ActivitySeries.niceCeiling(0) == 0)
     #expect(ActivitySeries.niceCeiling(1) == 1)
-    #expect(ActivitySeries.niceCeiling(1_100) == 2_000)
+    #expect(ActivitySeries.niceCeiling(1_100) == 1_250)
     #expect(ActivitySeries.niceCeiling(2_400) == 2_500)
-    #expect(ActivitySeries.niceCeiling(2_600) == 5_000)
+    #expect(ActivitySeries.niceCeiling(2_600) == 3_000)
     #expect(ActivitySeries.niceCeiling(47_400) == 50_000)
-    #expect(ActivitySeries.niceCeiling(681_000) == 1_000_000)
+    #expect(ActivitySeries.niceCeiling(681_000) == 700_000)
 }
 
 @Test func niceCeilingIsNeverBelowWhatItMustHold() {
@@ -446,3 +446,30 @@ private func row(_ amount: Decimal, _ kind: TxnKind, _ date: Date) -> TxnRow {
     #expect(ActivitySeries.niceCeiling(41_000) == ActivitySeries.niceCeiling(48_000))
 }
 
+
+// MARK: - Chart scale (the gap above the bars)
+
+@Test func chartScaleLeavesTheTypicalDayReadableNotAStripAtTheBottom() {
+    // The exact window from the report: six days spanning ₩17,000 to ₩961,070.
+    // The ceiling landed so far above them that the bars sat as a strip along the
+    // bottom with two thirds of the plot empty above. A scale is doing its job
+    // when the tallest bar nearly fills the frame.
+    let window: [Decimal] = [681_020, 129_900, 31_630, 28_500, 17_000, 961_070]
+    let top = ActivitySeries.niceCeiling(ActivitySeries.chartCeiling(window))
+    let tallest = window.max()!
+
+    // The tallest bar reaches at least three quarters of the height. It may clip
+    // — that is the outlier rule — but it must not be dwarfed by empty space.
+    #expect(tallest / top >= Decimal(string: "0.75")!)
+}
+
+@Test func niceCeilingDoesNotInflateAValueByMoreThanAQuarter() {
+    // Rounding 749,122 up to 1,000,000 is a third of the frame given away to
+    // whitespace. The steps have to be fine enough that the rounding costs
+    // little.
+    for value in [Decimal(749_122), 1_100, 3_100, 6_200, 47_400, 961_070] {
+        let ceiling = ActivitySeries.niceCeiling(value)
+        #expect(ceiling >= value)
+        #expect(ceiling <= value * Decimal(string: "1.25")!)
+    }
+}

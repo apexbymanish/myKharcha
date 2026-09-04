@@ -176,14 +176,13 @@ public enum ActivitySeries {
         let exponent = floor(log10(raw))
         let power = pow(10.0, exponent)
         let normalised = raw / power
-        let step: Double
-        switch normalised {
-        case ..<1.0000001: step = 1
-        case ..<2:         step = 2
-        case ..<2.5:       step = 2.5
-        case ..<5:         step = 5
-        default:           step = 10
-        }
+        // No two neighbouring steps are more than 1.25× apart, so rounding up
+        // costs at most a quarter of the frame. The first cut of this used
+        // 1/2/2.5/5/10, which rounded 1,057,177 to 2,000,000 — the tallest bar
+        // then reached 48% of the ceiling and the rest of the window lay along
+        // the bottom as a strip with two thirds of the plot empty above it.
+        let steps: [Double] = [1, 1.25, 1.5, 1.75, 2, 2.5, 3, 3.5, 4, 5, 6, 7, 8, 10]
+        let step = steps.first { normalised <= $0 * 1.0000001 } ?? 10
         return Decimal(step * power)
     }
 

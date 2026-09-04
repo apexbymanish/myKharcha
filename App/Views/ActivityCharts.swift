@@ -159,6 +159,26 @@ private struct AmountTag: View {
     }
 }
 
+/// The span of dates the chart is actually drawing, reported by the chart itself.
+///
+/// Read from `ChartProxy` rather than inferred from `chartScrollPosition`. The
+/// scroll binding is a request and a report, and the two are not always the same
+/// thing: it reports a position during first layout that the chart has not
+/// applied yet, and it can lag a fling. Every "the header describes one window
+/// while the bars draw another" bug traced back to trusting it. The proxy is
+/// asked what is on screen, so it cannot disagree with what is on screen.
+struct ChartVisibleRange: Equatable {
+    let start: Date
+    let end: Date
+}
+
+struct ChartVisibleRangeKey: PreferenceKey {
+    static let defaultValue: ChartVisibleRange? = nil
+    static func reduce(value: inout ChartVisibleRange?, nextValue: () -> ChartVisibleRange?) {
+        value = nextValue() ?? value
+    }
+}
+
 /// Grouped spend-vs-income bar chart over a set of `ActivityBar` buckets.
 /// `unit` is `.day` for week/month periods and `.month` for the year period.
 /// Bind `selectedDate` to track which bar the user tapped; the binding is
@@ -223,6 +243,15 @@ struct ActivityBarChart: View {
 
     private var visibleDomain: TimeInterval { Self.visibleDomain(for: period) }
 
+    /// Start of the bucket a date falls in, so a reported range only changes when
+    /// the set of visible bars does.
+    static func bucketStart(_ date: Date, unit: Calendar.Component) -> Date {
+        let cal = Calendar.current
+        return unit == .month
+            ? (cal.dateInterval(of: .month, for: date)?.start ?? date)
+            : cal.startOfDay(for: date)
+    }
+
     /// The buckets actually on screen — from the scroll position forward by one
     /// visible domain, the boundary bucket included. Everything that scales with
     /// "what you can see" derives from this rather than from the whole series.
@@ -232,6 +261,11 @@ struct ActivityBarChart: View {
     /// measured the ceiling without a bar that was on screen, and that bar then
     /// overflowed the domain it had not been counted in.
     private var visibleBars: [ActivityBar] {
+        // `scaleAnchor` is fed back from the range this chart reported through
+        // `ChartVisibleRangeKey`, so the marks are scaled against the buckets the
+        // chart says it is drawing. One frame behind on first layout, and correct
+        // from then on — which beats a scroll position that can be wrong and stay
+        // wrong.
         let start = scaleAnchor == .distantPast ? scrollPosition : scaleAnchor
         let end = start.addingTimeInterval(visibleDomain)
         return bars.filter { $0.date >= start && $0.date <= end }
@@ -601,6 +635,21 @@ struct ActivityBarChart: View {
         // the screen, far from the thing it described.
         .chartOverlay { proxy in
             GeometryReader { geo in
+                // Ask the chart what it is drawing, and publish it upward.
+                // Quantised to bucket starts so a drag reports once per bucket
+                // crossed rather than once per pixel.
+                if let plot = proxy.plotFrame {
+                    let rect = geo[plot]
+                    let lead = proxy.value(atX: 0, as: Date.self)
+                    let trail = proxy.value(atX: rect.width, as: Date.self)
+                    Color.clear.preference(
+                        key: ChartVisibleRangeKey.self,
+                        value: (lead != nil && trail != nil)
+                            ? ChartVisibleRange(start: Self.bucketStart(lead!, unit: unit),
+                                                end: Self.bucketStart(trail!, unit: unit))
+                            : nil
+                    )
+                }
                 if let bar = selectedBar,
                    let plot = proxy.plotFrame,
                    let x = proxy.position(forX: bar.date) {

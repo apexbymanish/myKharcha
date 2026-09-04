@@ -51,6 +51,11 @@ struct HistoryView: View {
     /// only a finger on the chart is.
     @State private var userHasScrolled = false
 
+    /// What the chart says it is drawing. Ground truth for the header and the
+    /// scale; the scroll binding is only used to tell the view model where a
+    /// scroll came to rest.
+    @State private var visibleRange: ChartVisibleRange?
+
     private func scheduleSettle() {
         settleTask?.cancel()
         settleTask = Task { @MainActor in
@@ -79,11 +84,9 @@ struct HistoryView: View {
     /// you had last stopped: income had no room and tall bars clipped until you
     /// let go.
     private var effectiveScaleAnchor: Date {
+        if let range = visibleRange { return range.start }
         let live = liveAnchor ?? vm.state.chartAnchor
-        let cal = Calendar.current
-        return period == .year
-            ? (cal.dateInterval(of: .month, for: live)?.start ?? live)
-            : cal.startOfDay(for: live)
+        return ActivityBarChart.bucketStart(live, unit: period == .year ? .month : .day)
     }
 
     /// The buckets on screen, the boundary one included.
@@ -265,6 +268,9 @@ struct HistoryView: View {
                 // Minimum distance rather than zero, so a tap that selects a bar
                 // is not mistaken for a scroll. Simultaneous, so the chart's own
                 // pan still does the scrolling — this only observes.
+                .onPreferenceChange(ChartVisibleRangeKey.self) { range in
+                    if let range { visibleRange = range }
+                }
                 .simultaneousGesture(
                     DragGesture(minimumDistance: 4)
                         .onChanged { _ in
