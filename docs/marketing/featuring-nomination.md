@@ -23,18 +23,20 @@ an app) and not "App Launch" (the app has been on the store since 1.0.0).
 History rebuilt as a scrollable spending chart
 ```
 
-**Description** — roughly 1,050 characters, inside Apple's limit:
+**Description** — 976 characters. **The field caps at exactly 1,000**, and
+truncates silently at the limit rather than warning you, so keep any edit under
+it.
 
 ```
-Paisa Khoi? is a free expense tracker with no subscription, no ads and no account required.
+Paisa Khoi? is a free expense tracker — no subscription, no ads, no account required.
 
-This update rebuilds History into a full-screen chart you scroll freely through time. Every bar carries its own amount, split into the categories the money went on, and tapping a day shows the actual transactions behind it. Reports was rebuilt around Week, Month and Year with period comparison and your biggest spending day. Export now shows exactly what it contains before you share it.
+This update rebuilds History into a full-screen chart you scroll freely through time. Every bar carries its own amount, split into the categories the money went on, and tapping a day shows the transactions behind it. Reports was rebuilt around Week, Month and Year, with period comparison and your biggest spending day.
 
-What makes the app unusual: paste a bank message, a receipt or a note and it reads the amount, date and category entirely on device — nothing is uploaded. It works in any currency and converts foreign amounts as you paste them. It is fully translated into 20 languages, including Nepali, Bengali, Tamil, Telugu, Marathi and Urdu, which most finance apps skip.
+What makes it unusual: paste a bank message, a receipt or a note and it reads the amount, date and category entirely on device — nothing is uploaded. It works in any currency, converting foreign amounts as you paste, and is fully translated into 20 languages including Nepali, Bengali, Tamil, Telugu and Urdu, which most finance apps skip.
 
-Accessibility: every bar in the chart is a VoiceOver element, the chart supports Audio Graphs, Reduce Motion and Dynamic Type are honoured, and no meaning is carried by colour alone.
+Every bar in the chart is a VoiceOver element and the chart supports Audio Graphs. Reduce Motion and Dynamic Type are honoured, and no meaning is carried by colour alone.
 
-Data stays on the device unless you sign in with Apple to back it up.
+Data stays on the device unless you sign in with Apple.
 ```
 
 **Availability:** version 1.0.3, and the date it goes live. Submit the build for
