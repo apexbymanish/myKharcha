@@ -159,6 +159,19 @@ private struct AmountTag: View {
     }
 }
 
+private extension Array {
+    /// First index whose element satisfies `belongsAfter`, assuming the array is
+    /// partitioned by it — the standard lower-bound binary search.
+    func partitioningIndex(where belongsAfter: (Element) -> Bool) -> Int {
+        var low = 0, high = count
+        while low < high {
+            let mid = low + (high - low) / 2
+            if belongsAfter(self[mid]) { high = mid } else { low = mid + 1 }
+        }
+        return low
+    }
+}
+
 /// Grouped spend-vs-income bar chart over a set of `ActivityBar` buckets.
 /// `unit` is `.day` for week/month periods and `.month` for the year period.
 /// Bind `selectedDate` to track which bar the user tapped; the binding is
@@ -201,6 +214,9 @@ struct ActivityBarChart: View {
     /// Leading edge of the visible window, bound to the view model's chart anchor.
     /// Writing to it is how scrolling moves the period the header describes.
     @Binding var scrollPosition: Date
+
+    /// Rebuilt only when `marksKey` changes.
+    @State private var marks = Marks()
 
     /// About nine bars on screen at a time, scrolling freely through the rest.
     /// Nine is the ceiling for keeping an amount on every bar legible, and it is
@@ -248,7 +264,15 @@ struct ActivityBarChart: View {
         // wrong.
         let start = scaleAnchor == .distantPast ? scrollPosition : scaleAnchor
         let end = start.addingTimeInterval(visibleDomain)
-        return bars.filter { $0.date >= start && $0.date <= end }
+        // A slice, not a filter. `bars` is sorted and contiguous, so the window is
+        // a range of indices found by two binary searches — and this is read by
+        // the ceiling, the income depth and the bar width, each of which used to
+        // walk all 800 buckets on every body pass. During a fling that is every
+        // frame, several times over.
+        let lower = bars.partitioningIndex(where: { $0.date >= start })
+        let upper = bars.partitioningIndex(where: { $0.date > end })
+        guard lower <= upper else { return [] }
+        return Array(bars[lower..<upper])
     }
 
     /// Non-empty buckets on screen. Drives how fat the bars are drawn.
@@ -380,7 +404,11 @@ struct ActivityBarChart: View {
 
     /// One category's band within one day's bar.
     private struct Point: Identifiable {
-        let id = UUID()
+        /// Derived, never minted. `UUID()` gave every mark a new identity on every
+        /// rebuild, so Swift Charts could not match a bar to its previous self: it
+        /// discarded and redrew the lot rather than animating a height, which is
+        /// most of what "glitchy on a fast scroll" was.
+        var id: String { "\(date.timeIntervalSince1970)|\(series)" }
         let date: Date
         /// Category name — the stacking key, and the label on the largest band.
         let series: String
@@ -409,7 +437,47 @@ struct ActivityBarChart: View {
     /// Zero days are dropped rather than drawn: a spend tracker has many of them,
     /// and each one was eating a column's width to say nothing.
     /// One point per category band, so the bars stack by what the money went on.
-    private var points: [Point] {
+    /// The marks, built once per window instead of once per body pass.
+    ///
+    /// `points` walks every bucket and every category band inside it, `emptyBars`
+    /// and `incomePoints` walk the series again — all three of them on every body
+    /// pass, which during a fling is every frame. The whole series has to be
+    /// plotted for scrolling to work, so the cost cannot be trimmed by drawing
+    /// less; it can only be paid less often. This is what "Pedometer++ has its
+    /// data ready" amounts to: prepare, then read.
+    private struct Marks {
+        var points: [Point] = []
+        var emptyBars: [ActivityBar] = []
+        var incomePoints: [IncomePoint] = []
+    }
+
+    /// What the marks actually depend on. Anything absent here cannot change
+    /// their geometry, so it must not cause the work to be redone.
+    private struct MarksKey: Equatable {
+        let barCount: Int
+        let firstBar: Date?
+        let cap: Double
+        let incomeDepth: Double
+    }
+
+    private var marksKey: MarksKey {
+        MarksKey(barCount: bars.count,
+                 firstBar: bars.first?.date,
+                 cap: spendTop,
+                 incomeDepth: incomePeak > 0 ? abs(floorValue) : 0)
+    }
+
+    private func buildMarks() -> Marks {
+        Marks(points: buildPoints(),
+              emptyBars: bars.filter { $0.expense == 0 },
+              incomePoints: buildIncomePoints())
+    }
+
+    private var points: [Point] { marks.points }
+    private var emptyBars: [ActivityBar] { marks.emptyBars }
+    private var incomePoints: [IncomePoint] { marks.incomePoints }
+
+    private func buildPoints() -> [Point] {
         // A day above the ceiling is drawn just under it rather than through it.
         //
         // `chartCeiling` deliberately lets a rent-sized day clip so the ordinary
@@ -435,9 +503,9 @@ struct ActivityBarChart: View {
         }
     }
 
-    /// Days with nothing spent. They keep their column and show a flat grey stub,
-    /// so a no-spend day reads as a day you spent nothing rather than a hole.
-    private var emptyBars: [ActivityBar] { bars.filter { $0.expense == 0 } }
+    // Days with nothing spent keep their column and show a flat grey stub, so a
+    // no-spend day reads as a day you spent nothing rather than a hole. Built in
+    // `buildMarks`.
 
     /// Income bars, pre-scaled to their own half of the axis.
     ///
@@ -445,13 +513,13 @@ struct ActivityBarChart: View {
     /// `ChartContentBuilder` closure defeat its type inference, and the failure
     /// surfaces as a misleading "cannot convert [ActivityBar] to Binding<C>".
     private struct IncomePoint: Identifiable {
-        let id = UUID()
+        var id: Date { date }
         let date: Date
         let amount: Decimal
         let plotted: Double
     }
 
-    private var incomePoints: [IncomePoint] {
+    private func buildIncomePoints() -> [IncomePoint] {
         guard seriesHasIncome, incomePeak > 0 else { return [] }
         // Four fifths of the income half, not all of it. The last fifth is the
         // gutter the amount is written in: the figure sits under its bar on the
@@ -647,6 +715,7 @@ struct ActivityBarChart: View {
         .animation(.spring(response: 0.42, dampingFraction: 0.86), value: incomePeak)
         .animation(.spring(response: 0.42, dampingFraction: 0.86), value: barRatio)
         // A tap on a bar should feel like it landed.
+        .onChange(of: marksKey, initial: true) { _, _ in marks = buildMarks() }
         .sensoryFeedback(.selection, trigger: selectedDate.wrappedValue)
         .chartScrollableAxes(.horizontal)
         .chartXVisibleDomain(length: visibleDomain)
@@ -672,7 +741,7 @@ struct MiniTrendChart: View {
     var isRevealed: Bool = true
 
     private struct Point: Identifiable {
-        let id = UUID()
+        var id: Date { date }
         let date: Date
         /// Where the bar is drawn — held below the ceiling so its cap survives.
         let amount: Double
@@ -683,7 +752,7 @@ struct MiniTrendChart: View {
 
     /// Income hangs below a zero rule on its own scale, as on the full chart.
     private struct IncomePoint: Identifiable {
-        let id = UUID()
+        var id: Date { date }
         let date: Date
         let amount: Decimal
         let plotted: Double
