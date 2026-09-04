@@ -8,3 +8,8 @@ DerivedData/
 GoogleService-Info.plist
 *.xcworkspace/xcshareddata/
 AuthKey_*.p8
+
+# Fastlane build output
+*.ipa
+*.app.dSYM.zip
+.firebase/

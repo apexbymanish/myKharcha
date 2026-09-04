@@ -687,6 +687,8 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 2LZ2H9STBD;
 				INFOPLIST_FILE = Widget/Info.plist;
+				CURRENT_PROJECT_VERSION = 4;
+				MARKETING_VERSION = 1.0.3;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -705,6 +707,8 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 2LZ2H9STBD;
 				INFOPLIST_FILE = Widget/Info.plist;
+				CURRENT_PROJECT_VERSION = 4;
+				MARKETING_VERSION = 1.0.3;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -838,6 +842,8 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 2LZ2H9STBD;
 				INFOPLIST_FILE = Extension/Info.plist;
+				CURRENT_PROJECT_VERSION = 4;
+				MARKETING_VERSION = 1.0.3;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -855,6 +861,8 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 2LZ2H9STBD;
 				INFOPLIST_FILE = Extension/Info.plist;
+				CURRENT_PROJECT_VERSION = 4;
+				MARKETING_VERSION = 1.0.3;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
