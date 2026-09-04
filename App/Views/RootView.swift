@@ -17,28 +17,48 @@ struct RootView: View {
     @AppStorage(PayPreference.dayKey, store: PayPreference.defaults) private var paydayDay = 1
     @AppStorage(PayPreference.salaryKey, store: PayPreference.defaults) private var monthlySalary = 0.0
     @State private var showOptionalUpdateAlert = false
+    @State private var tab: Tab = Self.launchTab
+
+    private enum Tab: String { case home, history, friends, more }
+
+    /// Which tab to open on. Only ever moved by `-screen <name>`, which the
+    /// screenshot pass uses to reach a tab without driving the UI — there is no
+    /// UI test target to tap through with, and a launch argument is a great deal
+    /// simpler than adding one for four pictures.
+    private static var launchTab: Tab {
+        #if DEBUG
+        let args = ProcessInfo.processInfo.arguments
+        if let i = args.firstIndex(of: "-screen"), args.indices.contains(i + 1),
+           let t = Tab(rawValue: args[i + 1]) { return t }
+        #endif
+        return .home
+    }
 
     var body: some View {
-        TabView {
+        TabView(selection: $tab) {
             NavigationStack {
                 HomeView(store: services.store)
             }
             .tabItem { Label("Home", systemImage: "house") }
+            .tag(Tab.home)
 
             NavigationStack {
                 HistoryView(store: services.store)
             }
             .tabItem { Label("History", systemImage: "list.bullet") }
+            .tag(Tab.history)
 
             NavigationStack {
                 FriendsView(store: services.store)
             }
             .tabItem { Label("Friends", systemImage: "person.2") }
+            .tag(Tab.friends)
 
             NavigationStack {
                 MoreView(store: services.store)
             }
             .tabItem { Label("More", systemImage: "ellipsis") }
+            .tag(Tab.more)
         }
         // Single brand accent across every screen (HIG: one consistent tint for
         // interactivity), coordinated with the app logo.

@@ -52,6 +52,7 @@
 		D9CA6C09190EC645534A3749 /* AppShortcuts.strings in Resources */ = {isa = PBXBuildFile; fileRef = 603A5A86D90E0B55068BA06D /* AppShortcuts.strings */; };
 		DA8F7CB24A48B6E78F6A4EDC /* ActivityCharts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 959BACA54E01B023276CE8F4 /* ActivityCharts.swift */; };
 		A1E5C0D24B71E0A9C3F10002 /* ExportPreviewSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1E5C0D24B71E0A9C3F10001 /* ExportPreviewSheet.swift */; };
+		A1E5C0D24B71E0A9C3F10004 /* DemoData.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1E5C0D24B71E0A9C3F10003 /* DemoData.swift */; };
 		DC43AE9520A807F9E5FD5C2B /* KharchaKit in Frameworks */ = {isa = PBXBuildFile; productRef = 3DD61C4907D809C2393BE230 /* KharchaKit */; };
 		E036C51F34E1B1F3EA61E5BC /* FriendsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A34CE6439C8216233EFABD4 /* FriendsView.swift */; };
 		E7D09FB8DA5781CE85EF6389 /* KharchaApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FA8CCC79FEAF1C8A0A478AC /* KharchaApp.swift */; };
@@ -160,6 +161,7 @@
 		937792B55087B957FB2294FD /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/AppShortcuts.strings; sourceTree = "<group>"; };
 		959BACA54E01B023276CE8F4 /* ActivityCharts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityCharts.swift; sourceTree = "<group>"; };
 		A1E5C0D24B71E0A9C3F10001 /* ExportPreviewSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportPreviewSheet.swift; sourceTree = "<group>"; };
+		A1E5C0D24B71E0A9C3F10003 /* DemoData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DemoData.swift; path = App/Bootstrap/DemoData.swift; sourceTree = SOURCE_ROOT; };
 		9FA8CCC79FEAF1C8A0A478AC /* KharchaApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KharchaApp.swift; sourceTree = "<group>"; };
 		B4ABA52414CD34EBD8EB3CE1 /* RemindersView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemindersView.swift; sourceTree = "<group>"; };
 		B9736B38E543ACF8EDB42DAD /* FrankfurterRateService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrankfurterRateService.swift; sourceTree = "<group>"; };
@@ -310,6 +312,7 @@
 			children = (
 				959BACA54E01B023276CE8F4 /* ActivityCharts.swift */,
 				A1E5C0D24B71E0A9C3F10001 /* ExportPreviewSheet.swift */,
+				A1E5C0D24B71E0A9C3F10003 /* DemoData.swift */,
 				C907E594924CA417671EA605 /* BudgetsView.swift */,
 				3135AA1A3D54C1360E66E543 /* Components.swift */,
 				CD5A5FDB31A883B6E3EAB77B /* FriendDetailView.swift */,
@@ -525,6 +528,7 @@
 			files = (
 				DA8F7CB24A48B6E78F6A4EDC /* ActivityCharts.swift in Sources */,
 				A1E5C0D24B71E0A9C3F10002 /* ExportPreviewSheet.swift in Sources */,
+				A1E5C0D24B71E0A9C3F10004 /* DemoData.swift in Sources */,
 				EDCCA7DDB4E6538BEFD71DEE /* AppBootstrap.swift in Sources */,
 				841B26FD78955A9FD61C0BF5 /* AppContainer.swift in Sources */,
 				D05D916D920569343C27050F /* AppleSignIn.swift in Sources */,

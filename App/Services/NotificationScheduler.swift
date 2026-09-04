@@ -15,6 +15,10 @@ final class NotificationScheduler {
 
     func resync(store: ExpenseStore, now: Date = Date(), calendar: Calendar = .current) async {
         let center = UNUserNotificationCenter.current()
+        #if DEBUG
+        // The permission alert lands over whatever is being captured.
+        if ProcessInfo.processInfo.arguments.contains("-seedDemo") { return }
+        #endif
         guard (try? await center.requestAuthorization(options: [.alert, .sound])) == true else { return }
 
         let rules = (try? await store.recurringRules()) ?? []
@@ -42,6 +46,10 @@ final class NotificationScheduler {
     /// re-planning replaces the previous alert instead of stacking.
     func schedulePlanSummary(body: String, paydayDay: Int, now: Date = Date(), calendar: Calendar = .current) async {
         let center = UNUserNotificationCenter.current()
+        #if DEBUG
+        // The permission alert lands over whatever is being captured.
+        if ProcessInfo.processInfo.arguments.contains("-seedDemo") { return }
+        #endif
         guard (try? await center.requestAuthorization(options: [.alert, .sound])) == true else { return }
 
         let id = prefix + "plan.summary"
@@ -65,6 +73,10 @@ final class NotificationScheduler {
     /// and a fired notification is no longer "pending", so the next open schedules the following month.
     func schedulePaydayNudge(paydayDay: Int, now: Date = Date(), calendar: Calendar = .current) async {
         let center = UNUserNotificationCenter.current()
+        #if DEBUG
+        // The permission alert lands over whatever is being captured.
+        if ProcessInfo.processInfo.arguments.contains("-seedDemo") { return }
+        #endif
         guard (try? await center.requestAuthorization(options: [.alert, .sound])) == true else { return }
 
         let id = prefix + "payday.nudge"

@@ -51,6 +51,11 @@ struct KharchaApp: App {
                 }
             }
             .task {
+                #if DEBUG
+                // Screenshots need a populated ledger. Debug-only and opt-in by
+                // launch argument, so it cannot reach a release binary.
+                await DemoData.seedIfRequested(store: services.store)
+                #endif
                 // Hold for 0.8 s then fade out over 0.3 s.
                 try? await Task.sleep(nanoseconds: 800_000_000)
                 withAnimation(.easeOut(duration: 0.3)) {

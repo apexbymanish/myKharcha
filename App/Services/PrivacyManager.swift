@@ -5,7 +5,17 @@ import SwiftUI
 /// background/foreground cycles; resets to hidden on each fresh app launch.
 @MainActor
 final class PrivacyManager: ObservableObject {
-    @Published private(set) var isRevealed = false
+    @Published private(set) var isRevealed = PrivacyManager.initialState
+
+    /// Hidden by default. Revealed only for the screenshot pass, where a listing
+    /// full of "••••" would sell nothing.
+    private static var initialState: Bool {
+        #if DEBUG
+        return ProcessInfo.processInfo.arguments.contains("-seedDemo")
+        #else
+        return false
+        #endif
+    }
 
     func toggle() { isRevealed.toggle() }
 }
