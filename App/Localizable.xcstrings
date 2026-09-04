@@ -31209,6 +31209,7 @@
       }
     },
     "No spend" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -46018,6 +46019,7 @@
       }
     },
     "Swipe to another period" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {

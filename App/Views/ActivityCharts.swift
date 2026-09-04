@@ -312,26 +312,17 @@ struct ActivityBarChart: View {
     /// split are what tell the reader these are two different measures.
     private static let incomeShare = 0.25
 
-    /// Bottom of the y-domain. Zero when nothing was received in view, so an
-    /// income-free window keeps the whole frame for spending.
+    /// Nothing hangs below the axis any more, so the domain starts at zero.
     ///
-    /// Measured against the spending ceiling, never against the income itself. It
-    /// used to return `-incomePeak * 3`, mixing two scales that share no unit: a
-    /// ₩3,000,000 salary beside ₩130,000 of spending gave a domain of
-    /// -9,000,000…130,000, so the entire expense half rendered in the top 1.4% of
-    /// the plot as hairlines with their labels stacked on one another. Deriving
-    /// the floor from `spendTop` pins the zero rule at three quarters of the
-    /// height whatever was received, and `depth` below normalises income into
-    /// the quarter that leaves.
-    private var floorValue: Double {
-        // Keyed on the whole series, not the visible window. Deriving it from the
-        // window meant a window with no income had no room below the axis — so
-        // scrolling into a payday drew nothing until the scale caught up, and the
-        // green bars appeared out of thin air when it did. The frame is reserved
-        // whenever the ledger has any income at all, and stays reserved.
-        guard seriesHasIncome else { return 0 }
-        return -spendTop * (Self.incomeShare / (1 - Self.incomeShare))
-    }
+    /// Income used to diverge downward on its own scale. It reads more directly
+    /// with both measures growing the same way, at the cost that the axis now
+    /// means two different things depending on the colour: a green bar is scaled
+    /// against the income seen in the window, a red one against the spending, and
+    /// one twice the height of the other does not mean twice the money. They
+    /// cannot share a scale — a ₩3,000,000 salary beside ₩30,000 days flattens
+    /// every red bar to a line, which is what sent income below the axis in the
+    /// first place.
+    private var floorValue: Double { 0 }
 
     private var seriesHasIncome: Bool { bars.contains { $0.income > 0 } }
 
@@ -521,18 +512,17 @@ struct ActivityBarChart: View {
 
     private func buildIncomePoints() -> [IncomePoint] {
         guard seriesHasIncome, incomePeak > 0 else { return [] }
-        // Four fifths of the income half, not all of it. The last fifth is the
-        // gutter the amount is written in: the figure sits under its bar on the
-        // chart's own background rather than on the green fill, so the tinted
-        // arrow beside it stays visible. Without the gutter the tallest bar
-        // reaches the floor and the label has nowhere to go but the date axis.
-        let depth = abs(floorValue) * 0.8
+        // Upward, and normalised to the income seen in the window so the biggest
+        // green bar reaches the same height the biggest red one does. Held just
+        // under the ceiling for the same reason the spend bars are: a mark drawn
+        // past the top of the domain is cut off square and loses its cap.
+        let ceiling = spendTop * 0.985
         return bars.compactMap { bar in
             guard bar.income > 0 else { return nil }
             let value = (bar.income as NSDecimalNumber).doubleValue
             return IncomePoint(date: bar.date,
                                amount: bar.income,
-                               plotted: -(value / incomePeak) * depth)
+                               plotted: (value / incomePeak) * ceiling)
         }
     }
 
@@ -542,26 +532,25 @@ struct ActivityBarChart: View {
     // the whole Chart expression, the same way it did on HistoryView's List.
 
     @ChartContentBuilder private var incomeMarks: some ChartContent {
-        // Income hangs below the zero line, scaled to its own side. Days you
-        // were paid read instantly without a salary crushing the spending above.
+        // Income grows upward alongside spending, in green.
+        //
+        // Narrower than the spend bar and drawn over it, so a day that both
+        // earned and spent shows both rather than one hiding the other. That
+        // collision is the open question here: the two are on different scales,
+        // so the green bar in front of a red one is not a share of it, and the
+        // pairing needs a decision about how they should sit together.
         ForEach(incomePoints) { p in
             BarMark(
                 x: .value("Date", p.date, unit: unit),
                 yStart: .value("Amount", 0),
                 yEnd: .value("Amount", p.plotted),
-                width: .ratio(barRatio)
+                width: .ratio(barRatio * 0.52)
             )
             .foregroundStyle(Color.moneyIn)
             .cornerRadius(4)
-            // Under the bar, in the gutter `incomePoints` leaves for it, so the
-            // tag sits on the chart's background and its green arrow reads.
-            //
-            // `.fit(to: .plot)`, not `.fit(to: .chart)`: the chart includes the
-            // date axis, so fitting to it is what allowed the figure to land on
-            // top of the dates in the first place.
-            .annotation(position: .bottom,
+            .annotation(position: .top,
                         spacing: 3,
-                        overflowResolution: AnnotationOverflowResolution(x: .fit(to: .chart), y: .fit(to: .plot))) {
+                        overflowResolution: AnnotationOverflowResolution(x: .fit(to: .chart), y: .fit(to: .chart))) {
                 AmountTag(amount: p.amount, direction: .received, isRevealed: isRevealed)
             }
         }
@@ -843,11 +832,12 @@ struct MiniTrendChart: View {
         ForEach(incomePoints) { p in
             BarMark(x: .value("Date", p.date, unit: .day),
                     yStart: .value("Amount", 0),
-                    yEnd: .value("Amount", p.plotted))
+                    yEnd: .value("Amount", p.plotted),
+                    width: .ratio(0.45))
                 .foregroundStyle(Color.moneyIn)
                 .cornerRadius(2)
-                .annotation(position: .bottom, spacing: 2,
-                            overflowResolution: .init(x: .fit(to: .chart), y: .fit(to: .plot))) {
+                .annotation(position: .top, spacing: 2,
+                            overflowResolution: .init(x: .fit(to: .chart), y: .fit(to: .chart))) {
                     Text(money(p.amount))
                         .font(.system(size: 9, weight: .semibold))
                         .monospacedDigit()
@@ -860,24 +850,17 @@ struct MiniTrendChart: View {
 
     var body: some View {
         Chart {
-            incomeMarks
-            // The line the two measures meet at. Without it the green reads as
-            // negative spending rather than as money coming in.
-            if seriesHasIncome {
-                RuleMark(y: .value("Zero", 0))
-                    .foregroundStyle(Color.secondary.opacity(0.35))
-                    .lineStyle(StrokeStyle(lineWidth: 0.5))
-            }
             spendMarks
+            // Drawn after the spend bars and narrower, so a day that both earned
+            // and spent shows both.
+            incomeMarks
         }
         .chartLegend(.hidden)
         .chartXAxis { AxisMarks(values: .stride(by: .day)) { _ in AxisTick() } }
         .chartYAxis(.hidden)
         .chartYScale(domain: floorValue...spendTop)
-        // Tall enough for a label above and, when there is income, a bar and a
-        // label below. A week with no income keeps the whole frame for spending.
-        .frame(height: seriesHasIncome ? 138 : 104)
-        .animation(.spring(response: 0.4, dampingFraction: 0.86), value: seriesHasIncome)
+        // One height now that nothing hangs below the axis.
+        .frame(height: 104)
     }
 }
 
