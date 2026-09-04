@@ -224,12 +224,17 @@ struct ActivityBarChart: View {
     private var visibleDomain: TimeInterval { Self.visibleDomain(for: period) }
 
     /// The buckets actually on screen — from the scroll position forward by one
-    /// visible domain. Everything that scales with "what you can see" derives from
-    /// this rather than from the whole series.
+    /// visible domain, the boundary bucket included. Everything that scales with
+    /// "what you can see" derives from this rather than from the whole series.
+    ///
+    /// The far edge is inclusive because `chartXVisibleDomain` is a length rather
+    /// than a bar count, so the bucket on that boundary is drawn. Leaving it out
+    /// measured the ceiling without a bar that was on screen, and that bar then
+    /// overflowed the domain it had not been counted in.
     private var visibleBars: [ActivityBar] {
         let start = scaleAnchor == .distantPast ? scrollPosition : scaleAnchor
         let end = start.addingTimeInterval(visibleDomain)
-        return bars.filter { $0.date >= start && $0.date < end }
+        return bars.filter { $0.date >= start && $0.date <= end }
     }
 
     /// Non-empty buckets on screen. Drives how fat the bars are drawn.

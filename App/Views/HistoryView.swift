@@ -75,6 +75,14 @@ struct HistoryView: View {
             : cal.startOfDay(for: live)
     }
 
+    /// The buckets on screen, the boundary one included.
+    ///
+    /// Inclusive of the far edge on purpose. `chartXVisibleDomain` is a length,
+    /// not a bar count, so the bucket sitting on the far boundary is drawn — as a
+    /// sliver or a full bar depending on where the scroll rests. Excluding it
+    /// meant the header could read "₩0, No spend" with a bar plainly on screen,
+    /// and worse, the ceiling was measured without it: `spendTop` fell back to 1
+    /// and that bar overflowed to full height, clipped square at the top.
     private var visibleBars: [ActivityBar] {
         // The settled anchor, not the live one. Reading the scroll position as it
         // moves made the hero's figures and its date range churn through every
@@ -82,7 +90,7 @@ struct HistoryView: View {
         // scroll stops, on the same beat as the bars rescaling.
         let start = effectiveScaleAnchor
         let end = start.addingTimeInterval(ActivityBarChart.visibleDomain(for: period))
-        return vm.state.chartBars.filter { $0.date >= start && $0.date < end }
+        return vm.state.chartBars.filter { $0.date >= start && $0.date <= end }
     }
 
     /// Totals for what you can actually see.
