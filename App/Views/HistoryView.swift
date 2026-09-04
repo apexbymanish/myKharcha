@@ -40,6 +40,17 @@ struct HistoryView: View {
     /// it once when the scroll stops.
     @State private var liveAnchor: Date?
 
+    /// Whether the user has actually dragged the chart.
+    ///
+    /// `chartScrollPosition` reports a position during the chart's first layout,
+    /// before it has applied the position we asked for — and that report is the
+    /// start of the scrollable content, not where the chart ends up drawing.
+    /// Taking it at face value overwrote the opening anchor with the oldest
+    /// bucket in the ledger, so the header read "Jul 1 – 10, ₩0, No spend" while
+    /// the chart drew the end of August correctly. A layout pass is not a scroll;
+    /// only a finger on the chart is.
+    @State private var userHasScrolled = false
+
     private func scheduleSettle() {
         settleTask?.cancel()
         settleTask = Task { @MainActor in
@@ -244,11 +255,21 @@ struct HistoryView: View {
                     scrollPosition: Binding(
                         get: { liveAnchor ?? vm.state.chartAnchor },
                         set: { newAnchor in
+                            guard userHasScrolled else { return }
                             selectedBarDate = nil
                             liveAnchor = newAnchor
                             scheduleSettle()
                         }
                     )
+                )
+                // Minimum distance rather than zero, so a tap that selects a bar
+                // is not mistaken for a scroll. Simultaneous, so the chart's own
+                // pan still does the scrolling — this only observes.
+                .simultaneousGesture(
+                    DragGesture(minimumDistance: 4)
+                        .onChanged { _ in
+                            if !userHasScrolled { userHasScrolled = true }
+                        }
                 )
                 // Roughly two fifths of the screen. Full-bleed only works when the
                 // chart is reliably full; spending has empty days and outliers, so
