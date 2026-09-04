@@ -18,6 +18,22 @@ platform :ios do
     )
   end
 
+  desc "Build and upload the binary only — leaves the App Store listing untouched"
+  lane :build_only do
+    app_store_connect_api_key(
+      key_id:       "D7P7N5J6FV",
+      issuer_id:    "85bc4fc9-c2cc-4efa-9ae0-4a0c165a7cd6",
+      key_filepath: "#{Dir.home}/.appstoreconnect/private_keys/AuthKey_D7P7N5J6FV.p8"
+    )
+    build_app(scheme: "Kharcha", export_method: "app-store")
+    # `upload_to_testflight` rather than `deliver`: it sends the build and
+    # nothing else. The `release` lane pushes names, keywords and release notes
+    # alongside it, which is what you want on a version bump and not what you
+    # want when a listing is already settled and being edited by hand.
+    upload_to_testflight(skip_waiting_for_build_processing: true,
+                         skip_submission: true)
+  end
+
   desc "Full release: build, upload binary + metadata"
   lane :release do
     app_store_connect_api_key(
