@@ -172,15 +172,21 @@ public final class HistoryViewModel: ObservableObject {
     /// Choosing the window here, before the view is built, means the anchor and
     /// the drawn window agree on the first frame rather than after a scroll.
     private func chooseOpeningAnchorIfNeeded() {
-        guard !hasChosenOpeningAnchor, !state.chartBars.isEmpty else { return }
+        // Latch only once the series actually holds activity. It used to latch on
+        // the first non-empty *array*, which a series built before the rows had
+        // loaded satisfies — every bucket zero. The anchor was then chosen from
+        // nothing and never revisited, and the header spent the session
+        // describing a window the chart was not drawing.
+        guard !hasChosenOpeningAnchor,
+              let newest = state.chartBars.lastIndex(where: { $0.expense > 0 || $0.income > 0 })
+        else { return }
         hasChosenOpeningAnchor = true
 
-        let newest = state.chartBars.lastIndex { $0.expense > 0 || $0.income > 0 }
-            ?? state.chartBars.count - 1
         let start = max(0, newest - (Self.chartVisibleBuckets - 1))
         let date = state.chartBars[start].date
         state.chartAnchor = date
         state.settledAnchor = date
+        ChartDiagnostics.log("openingAnchor bars=\(state.chartBars.count) newest=\(newest) start=\(start) date=\(date)")
     }
 
     /// Totals and change for whichever window the chart is scrolled to, plus the

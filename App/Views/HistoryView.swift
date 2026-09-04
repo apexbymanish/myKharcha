@@ -269,7 +269,13 @@ struct HistoryView: View {
                 // is not mistaken for a scroll. Simultaneous, so the chart's own
                 // pan still does the scrolling — this only observes.
                 .onPreferenceChange(ChartVisibleRangeKey.self) { range in
+                    ChartDiagnostics.log("proxyRange \(range.map { "\($0.start)…\($0.end)" } ?? "nil")")
                     if let range { visibleRange = range }
+                }
+                .onChange(of: effectiveScaleAnchor) { _, anchor in
+                    let bars = visibleBars
+                    let peak = bars.map(\.expense).max() ?? 0
+                    ChartDiagnostics.log("window anchor=\(anchor) bars=\(bars.count) peak=\(peak) live=\(liveAnchor.map(String.init(describing:)) ?? "nil") vmAnchor=\(vm.state.chartAnchor)")
                 }
                 .simultaneousGesture(
                     DragGesture(minimumDistance: 4)
