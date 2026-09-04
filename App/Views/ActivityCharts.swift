@@ -239,6 +239,11 @@ struct ActivityBarChart: View {
 
     private var visibleDomain: TimeInterval { Self.visibleDomain(for: period) }
 
+    /// Slot keys for grouping the two measures within a column. Ordered by the
+    /// strings themselves, so spending sits left of income.
+    static let spendSlot = "1"
+    static let incomeSlot = "2"
+
     /// Start of the bucket a date falls in, so a reported range only changes when
     /// the set of visible bars does.
     static func bucketStart(_ date: Date, unit: Calendar.Component) -> Date {
@@ -534,13 +539,14 @@ struct ActivityBarChart: View {
     @ChartContentBuilder private var incomeMarks: some ChartContent {
         // Income grows upward alongside spending, in green.
         //
-        // Same width as a spend bar — one bar spec for both measures, so a green
-        // column and a red one are the same object in two colours rather than
-        // looking like two different kinds of thing.
+        // Income takes the right-hand slot of its column, spending the left.
         //
-        // Drawn after the spend marks, so on a day that both earned and spent the
-        // green covers the red entirely. That collision is the open question
-        // here, deliberately left plain to look at.
+        // At equal width and full column, a day that both earned and spent showed
+        // only whichever was drawn last — ₩3,000,000 received hid ₩255,880 spent
+        // completely, label and all. Grouping gives each measure its own slot, so
+        // both are visible and both keep their figure. The cost is that every
+        // column reserves two slots, so a day with only one kind fills half of
+        // one; that is the trade accepted for never hiding a value.
         ForEach(incomePoints) { p in
             BarMark(
                 x: .value("Date", p.date, unit: unit),
@@ -548,6 +554,7 @@ struct ActivityBarChart: View {
                 yEnd: .value("Amount", p.plotted),
                 width: .ratio(barRatio)
             )
+            .position(by: .value("Kind", Self.incomeSlot))
             .foregroundStyle(Color.moneyIn)
             .cornerRadius(4)
             .annotation(position: .top,
@@ -814,6 +821,7 @@ struct MiniTrendChart: View {
     @ChartContentBuilder private var spendMarks: some ChartContent {
         ForEach(spendPoints) { p in
             BarMark(x: .value("Date", p.date, unit: .day), y: .value("Amount", p.amount))
+                .position(by: .value("Kind", ActivityBarChart.spendSlot))
                 .foregroundStyle(Color.moneyOut)
                 .cornerRadius(2)
                 // The figure on the bar, as on the full chart. Without it the
@@ -839,6 +847,7 @@ struct MiniTrendChart: View {
             BarMark(x: .value("Date", p.date, unit: .day),
                     yStart: .value("Amount", 0),
                     yEnd: .value("Amount", p.plotted))
+                .position(by: .value("Kind", ActivityBarChart.incomeSlot))
                 .foregroundStyle(Color.moneyIn)
                 .cornerRadius(2)
                 .annotation(position: .top, spacing: 2,
