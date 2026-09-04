@@ -396,13 +396,24 @@ struct ActivityBarChart: View {
     /// and each one was eating a column's width to say nothing.
     /// One point per category band, so the bars stack by what the money went on.
     private var points: [Point] {
-        bars.flatMap { bar -> [Point] in
+        // A day above the ceiling is drawn just under it rather than through it.
+        //
+        // `chartCeiling` deliberately lets a rent-sized day clip so the ordinary
+        // days stay readable, but a mark drawn past the top of the domain is cut
+        // off square and loses its rounded cap — the bars stopped looking like
+        // bars and became rectangles. Scaling the day's bands down to sit a hair
+        // below the ceiling keeps the cap, keeps the proportions between the
+        // bands, and still reads as "off the top of the scale". `dayTotal` stays
+        // the true figure, so the label above the bar never lies about it.
+        let cap = spendTop * 0.985
+        return bars.flatMap { bar -> [Point] in
             let total = (bar.expense as NSDecimalNumber).doubleValue
             guard total > 0 else { return [] }
+            let squeeze = total > cap ? cap / total : 1
             return bar.segments.enumerated().map { index, seg in
                 Point(date: bar.date,
                       series: seg.categoryName,
-                      amount: (seg.amount as NSDecimalNumber).doubleValue,
+                      amount: (seg.amount as NSDecimalNumber).doubleValue * squeeze,
                       dayTotal: total,
                       isLead: index == 0,
                       isTop: index == bar.segments.count - 1)
@@ -649,7 +660,11 @@ struct MiniTrendChart: View {
     private struct Point: Identifiable {
         let id = UUID()
         let date: Date
+        /// Where the bar is drawn — held below the ceiling so its cap survives.
         let amount: Double
+        /// What the day actually cost. The label reads this, never `amount`,
+        /// or a capped bar would report a figure the user never spent.
+        let trueAmount: Decimal
     }
 
     /// Income hangs below a zero rule on its own scale, as on the full chart.
@@ -661,10 +676,14 @@ struct MiniTrendChart: View {
     }
 
     private var spendPoints: [Point] {
-        bars.compactMap { bar in
+        // Held just under the ceiling for the same reason as the full chart: a
+        // mark drawn past the top of the domain is cut off square and loses its
+        // rounded cap.
+        let cap = spendTop * 0.985
+        return bars.compactMap { bar in
             let spent = (bar.expense as NSDecimalNumber).doubleValue
             guard spent > 0 else { return nil }
-            return Point(date: bar.date, amount: spent)
+            return Point(date: bar.date, amount: min(spent, cap), trueAmount: bar.expense)
         }
     }
 
@@ -725,7 +744,7 @@ struct MiniTrendChart: View {
                 // cost, which is the one thing worth knowing at a glance.
                 .annotation(position: .top, spacing: 2,
                             overflowResolution: .init(x: .fit(to: .chart), y: .fit(to: .chart))) {
-                    Text(money(Decimal(p.amount)))
+                    Text(money(p.trueAmount))
                         .font(.system(size: 9, weight: .semibold))
                         .monospacedDigit()
                         .foregroundStyle(.secondary)
