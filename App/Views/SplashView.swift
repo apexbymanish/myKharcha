@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct SplashView: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var iconScale: CGFloat = 0.3
     @State private var iconOpacity: Double = 0
     @State private var iconRotation: Double = 0
@@ -40,29 +41,29 @@ struct SplashView: View {
 
     private func startAnimation() {
         // Pop in
-        withAnimation(.spring(response: 0.4, dampingFraction: 0.55)) {
+        withAnimation(reduceMotion ? nil : .spring(response: 0.4, dampingFraction: 0.55)) {
             iconScale = 1.0
             iconOpacity = 1
         }
         // Look left
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
-            withAnimation(.easeInOut(duration: 0.25)) { iconRotation = -14 }
+            withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.25)) { iconRotation = -14 }
         }
         // Look right
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.65) {
-            withAnimation(.easeInOut(duration: 0.3)) { iconRotation = 14 }
+            withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.3)) { iconRotation = 14 }
         }
         // Look left again (still searching)
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.95) {
-            withAnimation(.easeInOut(duration: 0.25)) { iconRotation = -8 }
+            withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.25)) { iconRotation = -8 }
         }
         // Settle centre — gave up / ready
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
-            withAnimation(.spring(response: 0.35, dampingFraction: 0.6)) { iconRotation = 0 }
+            withAnimation(reduceMotion ? nil : .spring(response: 0.35, dampingFraction: 0.6)) { iconRotation = 0 }
         }
         // Name slides up
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.3) {
-            withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
+            withAnimation(reduceMotion ? nil : .spring(response: 0.4, dampingFraction: 0.7)) {
                 nameOpacity = 1
                 nameOffsetY = 0
             }

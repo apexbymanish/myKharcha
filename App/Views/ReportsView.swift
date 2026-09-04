@@ -230,10 +230,12 @@ struct ReportsView: View {
 
                 HStack(spacing: 8) {
                     RptCircleButton(symbol: "xmark", label: "Close") { dismiss() }
+                        .accessibilityIdentifier("reports.close")
                     Spacer()
                     RptCircleButton(symbol: "square.and.arrow.up", label: "Export") {
                         showExport = true
                     }
+                    .accessibilityIdentifier("reports.export")
                     .disabled(periodRows.isEmpty)
                 }
             }
@@ -244,6 +246,7 @@ struct ReportsView: View {
                 }
             }
             .pickerStyle(.segmented)
+            .accessibilityIdentifier("reports.scope")
             .labelsHidden()
         }
         .padding(.horizontal)
@@ -705,6 +708,11 @@ private struct RptCircleButton: View {
                 .foregroundStyle(.primary)
                 .frame(width: 32, height: 32)
                 .background(Color.secondary.opacity(0.18), in: Circle())
+                // The circle stays 32pt; the target around it is 44, which is
+                // Apple's minimum. A control can look small and still be easy to
+                // hit — it must not be small to hit.
+                .frame(width: 44, height: 44)
+                .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .accessibilityLabel(label)

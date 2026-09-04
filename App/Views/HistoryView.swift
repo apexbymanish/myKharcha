@@ -9,6 +9,7 @@ struct HistoryView: View {
     @State private var editingRow: TxnRow?
     @State private var selectedBarDate: Date?
     @State private var showReports = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     init(store: ExpenseStore) {
         self.store = store
@@ -207,9 +208,9 @@ struct HistoryView: View {
         // Slower than the chart's own spring on purpose: the figure settles
         // after the bars do, so the eye follows the bars and then reads the
         // number, rather than both changing at once and neither registering.
-        .animation(.smooth(duration: 0.45), value: s.expense)
-        .animation(.smooth(duration: 0.45), value: s.income)
-        .animation(.smooth(duration: 0.45), value: s.income > 0)
+        .animation(reduceMotion ? nil : .smooth(duration: 0.45), value: s.expense)
+        .animation(reduceMotion ? nil : .smooth(duration: 0.45), value: s.income)
+        .animation(reduceMotion ? nil : .smooth(duration: 0.45), value: s.income > 0)
         .accessibilityElement(children: .combine)
     }
 
@@ -321,6 +322,7 @@ struct HistoryView: View {
                     Image(systemName: "chart.pie.fill")
                 }
                 .accessibilityLabel("Reports")
+                .accessibilityIdentifier("history.reports")
             }
         }
         .sheet(isPresented: $showReports) {

@@ -119,6 +119,9 @@ struct ExportPreviewSheet: View {
                         .foregroundStyle(.primary)
                         .frame(width: 32, height: 32)
                         .background(Color.secondary.opacity(0.18), in: Circle())
+                        // 44pt target around a 32pt circle — Apple's minimum.
+                        .frame(width: 44, height: 44)
+                        .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("Close")

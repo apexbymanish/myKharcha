@@ -1,5 +1,6 @@
 import SwiftUI
 import Charts
+import Accessibility
 import KharchaKit
 
 /// The snap-up detail for a tapped bar. Sits on the chart, next to the bar it
@@ -95,7 +96,7 @@ private struct TooltipCard: View {
                                 .lineLimit(1)
                             if note(row) != nil {
                                 Text(category(row))
-                                    .font(.system(size: 9))
+                                    .font(.caption2)
                                     .foregroundStyle(.tertiary)
                                     .lineLimit(1)
                             }
@@ -108,7 +109,7 @@ private struct TooltipCard: View {
                 }
                 if overflow > 0 {
                     Text("+\(overflow) more")
-                        .font(.system(size: 9))
+                        .font(.caption2)
                         .foregroundStyle(.tertiary)
                 }
             }
@@ -217,6 +218,19 @@ struct ActivityBarChart: View {
 
     /// Rebuilt only when `marksKey` changes.
     @State private var marks = Marks()
+
+    /// Honoured on every animation in this file. The chart springs its ceiling,
+    /// its bar widths and its tooltip; a reader who has asked the system to calm
+    /// motion should get the new values without the travel between them.
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    /// Category is otherwise carried by hue alone below the leading band. With
+    /// this on, more bands are named, so the split can be read without colour.
+    @Environment(\.accessibilityDifferentiateWithoutColor) private var differentiateWithoutColor
+
+    private func settle(_ animation: Animation) -> Animation? {
+        reduceMotion ? nil : animation
+    }
 
     /// About nine bars on screen at a time, scrolling freely through the rest.
     /// Nine is the ceiling for keeping an amount on every bar legible, and it is
@@ -384,7 +398,11 @@ struct ActivityBarChart: View {
     /// Whether a band is deep enough to hold its category name. Below this it is a
     /// colour stripe and the legend has to carry the meaning instead.
     private func bandHoldsItsName(_ p: Point) -> Bool {
-        peak > 0 && p.amount / peak > 0.22
+        // A tenth of the bar rather than a fifth when the reader has asked not to
+        // be told things by colour alone. Below the leading band the category is
+        // carried by hue and nothing else, so more of them get their name.
+        let floor = differentiateWithoutColor ? 0.10 : 0.22
+        return peak > 0 && p.amount / peak > floor
     }
 
     /// The bucket the user tapped.
@@ -489,6 +507,25 @@ struct ActivityBarChart: View {
         let carriesTotal: Bool
         /// What that figure reads — the day's whole spend, or the income.
         let labelAmount: Decimal
+
+        /// "Aug 20" / "Aug 20, Food". The date leads, because VoiceOver users
+        /// arrive at a bar without having seen where it sits on the axis.
+        var voiceOverLabel: String {
+            let f = DateFormatter()
+            f.setLocalizedDateFormatFromTemplate("MMMd")
+            let day = f.string(from: date)
+            if isStub { return String(localized: "\(day), nothing spent") }
+            if isIncome { return day }
+            return series.isEmpty ? day : "\(day), \(series)"
+        }
+
+        func voiceOverValue(isRevealed: Bool) -> String {
+            guard !isStub else { return "" }
+            let money = isRevealed ? AmountFormatter.money(labelAmount) : String(localized: "amount hidden")
+            return isIncome
+                ? String(localized: "\(money) received")
+                : String(localized: "\(money) spent")
+        }
     }
 
     /// Spend bands, stubs and income in one series, which is what lets
@@ -622,6 +659,12 @@ struct ActivityBarChart: View {
             .position(by: .value("Kind", p.slot))
             .foregroundStyle(p.fill)
             .cornerRadius(p.isStub ? 2 : 4)
+            // Each bar is its own VoiceOver element, so the chart can be walked
+            // day by day. Until this, `ActivityCharts` carried one accessibility
+            // line in the whole file — and History is now nothing but this chart,
+            // so the screen read as blank.
+            .accessibilityLabel(p.voiceOverLabel)
+            .accessibilityValue(p.voiceOverValue(isRevealed: isRevealed))
             // The biggest band carries its category name, written into the band
             // itself. Dynamic Type sized, so it grows with the user's text
             // setting instead of staying 9pt forever.
@@ -678,6 +721,11 @@ struct ActivityBarChart: View {
             columnMarks
             selectionMark
         }
+        // Audio Graphs, and a rotor summary of the whole series. A chart of daily
+        // spending is a good fit for it: pitch tracks the amount, so a month can
+        // be scanned by ear the way sighted users scan it by eye.
+        .accessibilityChartDescriptor(self)
+        .accessibilityIdentifier("history.chart")
         .chartLegend(.hidden)   // colour now encodes budget, not series
         // No Y axis and no gridlines. Every bar already carries its own amount, so
         // an axis would be the same information twice — and the axis furniture is
@@ -689,7 +737,7 @@ struct ActivityBarChart: View {
                 // Horizontal inset lives here rather than on the whole chart, so
                 // the bars can run to the screen edges while the dates stay clear
                 // of them.
-                AxisValueLabel(horizontalSpacing: 8).font(.system(size: 9))
+                AxisValueLabel(horizontalSpacing: 8).font(.caption2)
             }
         }
         // `chartCeiling` already includes its headroom, so no second helping here.
@@ -716,21 +764,21 @@ struct ActivityBarChart: View {
                         // Scales up from the bar rather than appearing, and slides
                         // between bars instead of jumping when the selection moves.
                         .transition(.scale(scale: 0.85).combined(with: .opacity))
-                        .animation(.spring(response: 0.32, dampingFraction: 0.72),
+                        .animation(settle(.spring(response: 0.32, dampingFraction: 0.72)),
                                    value: bar.date)
                 }
             }
         }
         // The selection highlight and tooltip arrive together, on one spring.
-        .animation(.spring(response: 0.32, dampingFraction: 0.72),
+        .animation(settle(.spring(response: 0.32, dampingFraction: 0.72)),
                    value: selectedDate.wrappedValue)
         // Height and width both change as the window moves — the ceiling rescales
         // and sparse windows fatten. One spring drives both, so they move together
         // rather than as two easings finishing at different moments, which reads as
         // jitter. Slightly under-damped so it settles rather than stopping dead.
-        .animation(.spring(response: 0.42, dampingFraction: 0.86), value: peak)
-        .animation(.spring(response: 0.42, dampingFraction: 0.86), value: incomePeak)
-        .animation(.spring(response: 0.42, dampingFraction: 0.86), value: barRatio)
+        .animation(settle(.spring(response: 0.42, dampingFraction: 0.86)), value: peak)
+        .animation(settle(.spring(response: 0.42, dampingFraction: 0.86)), value: incomePeak)
+        .animation(settle(.spring(response: 0.42, dampingFraction: 0.86)), value: barRatio)
         // A tap on a bar should feel like it landed.
         .onChange(of: marksKey, initial: true) { _, _ in marks = buildMarks() }
         .sensoryFeedback(.selection, trigger: selectedDate.wrappedValue)
@@ -861,7 +909,7 @@ struct MiniTrendChart: View {
                 .annotation(position: .top, spacing: 2,
                             overflowResolution: .init(x: .fit(to: .chart), y: .fit(to: .chart))) {
                     Text((c.isIncome ? "+" : "") + money(c.label))
-                        .font(.system(size: 9, weight: .semibold))
+                        .font(.caption2.weight(.semibold))
                         .monospacedDigit()
                         .foregroundStyle(c.isIncome ? Color.moneyIn : .secondary)
                         .lineLimit(1)
@@ -974,3 +1022,63 @@ struct BarSelectionBreakdown: View {
     }
 }
 
+
+// MARK: - Audio Graph
+
+/// Exposes the chart to VoiceOver's Audio Graphs and its chart rotor.
+///
+/// Spending by day maps onto sound well: pitch follows the amount, so a month
+/// can be scanned by ear the way a sighted reader scans it by eye. It also gives
+/// VoiceOver a summary of the series — count, range and totals — which is more
+/// use at a glance than stepping through sixty bars.
+extension ActivityBarChart: AXChartDescriptorRepresentable {
+    func makeChartDescriptor() -> AXChartDescriptor {
+        let dayFormatter = DateFormatter()
+        dayFormatter.setLocalizedDateFormatFromTemplate(unit == .month ? "MMMyyyy" : "MMMd")
+
+        // Indices rather than timestamps: an axis in seconds-since-1970 is
+        // announced as an eleven-digit number, which tells the listener nothing.
+        let xAxis = AXNumericDataAxisDescriptor(
+            title: String(localized: "Date"),
+            range: 0...Double(max(bars.count - 1, 1)),
+            gridlinePositions: []
+        ) { position in
+            let index = Int(position.rounded())
+            guard bars.indices.contains(index) else { return "" }
+            return dayFormatter.string(from: bars[index].date)
+        }
+
+        let highest = bars.map { max($0.expense, $0.income) }.max() ?? 0
+        let yAxis = AXNumericDataAxisDescriptor(
+            title: String(localized: "Amount"),
+            range: 0...max((highest as NSDecimalNumber).doubleValue, 1),
+            gridlinePositions: []
+        ) { AmountFormatter.money(Decimal($0)) }
+
+        func series(_ name: String, _ amount: (ActivityBar) -> Decimal) -> AXDataSeriesDescriptor {
+            AXDataSeriesDescriptor(
+                name: name,
+                isContinuous: false,
+                dataPoints: bars.enumerated().map { index, bar in
+                    AXDataPoint(x: Double(index),
+                                y: (amount(bar) as NSDecimalNumber).doubleValue,
+                                label: dayFormatter.string(from: bar.date))
+                }
+            )
+        }
+
+        var seriesList = [series(String(localized: "Spent"), \.expense)]
+        if bars.contains(where: { $0.income > 0 }) {
+            seriesList.append(series(String(localized: "Received"), \.income))
+        }
+
+        return AXChartDescriptor(
+            title: String(localized: "Spending by day"),
+            summary: nil,
+            xAxis: xAxis,
+            yAxis: yAxis,
+            additionalAxes: [],
+            series: seriesList
+        )
+    }
+}
