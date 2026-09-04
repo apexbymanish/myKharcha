@@ -8,30 +8,53 @@ Submit **four to six weeks before** anything you want featured around, not after
 
 ---
 
-## What we are nominating for
+## Form answers — copy these
 
-Primary: **App Store feature / "New Apps We Love"** for the 1.0.3 release.
-Secondary: **localisation** — the app ships in twenty languages, which is
-unusual for an independent app and is a category Apple actively looks for.
+The nomination is a form, not a document. Only the two blocks below go into it;
+everything under "Reference" is background for you.
 
-## Short description (Apple asks for a paragraph)
+**Type:** App Enhancements — new features and significant updates to an app that
+is already live. Not "New Content" (that is for content, offers or events inside
+an app) and not "App Launch" (the app has been on the store since 1.0.0).
 
-Paisa Khoi? is a free expense tracker for people who do not want a
-subscription, an advert, or an account. Paste a bank message, a receipt, or a
-note and it reads the amount, the date and the category on device — no server
-sees it. It works in any currency, converts foreign amounts as you paste them,
-and is fully translated into twenty languages, including Nepali, Bengali,
-Tamil, Telugu, Marathi and Urdu — languages most finance apps skip.
+**Name / title:**
 
-## What is new in this version
+```
+History rebuilt as a scrollable spending chart
+```
 
-History became a chart you scroll through freely, where every bar carries its
-own amount split into the categories the money went on, and tapping a day shows
-what was actually bought. Reports was rebuilt around week, month and year, with
-period comparison and your biggest day. Export now shows you exactly what it
-contains before you share it.
+**Description** — roughly 1,050 characters, inside Apple's limit:
 
-## Why it deserves a feature
+```
+Paisa Khoi? is a free expense tracker with no subscription, no ads and no account required.
+
+This update rebuilds History into a full-screen chart you scroll freely through time. Every bar carries its own amount, split into the categories the money went on, and tapping a day shows the actual transactions behind it. Reports was rebuilt around Week, Month and Year with period comparison and your biggest spending day. Export now shows exactly what it contains before you share it.
+
+What makes the app unusual: paste a bank message, a receipt or a note and it reads the amount, date and category entirely on device — nothing is uploaded. It works in any currency and converts foreign amounts as you paste them. It is fully translated into 20 languages, including Nepali, Bengali, Tamil, Telugu, Marathi and Urdu, which most finance apps skip.
+
+Accessibility: every bar in the chart is a VoiceOver element, the chart supports Audio Graphs, Reduce Motion and Dynamic Type are honoured, and no meaning is carried by colour alone.
+
+Data stays on the device unless you sign in with Apple to back it up.
+```
+
+**Availability:** version 1.0.3, and the date it goes live. Submit the build for
+review before finalising the nomination — the date has to be a real one.
+
+### What not to paste
+
+- The "why it deserves a feature" argument. It reads as pitching *at* the
+  editors; the description should describe and let them decide.
+- The full language list. The description names the ones that matter.
+- Links. The form already knows which app this is.
+
+---
+
+# Reference
+
+Background for filling in the **App Accessibility** label in the App Store
+Connect sidebar, and for answering an editor who writes back asking for detail.
+
+## Why it stands out
 
 - **Free with no subscription, no advert and no account.** In a category built
   on paywalls, this one is not.
@@ -44,7 +67,8 @@ contains before you share it.
 
 ## Accessibility
 
-Worth stating explicitly; Apple weighs it.
+Enough detail to fill in the App Accessibility nutrition label, which is a
+separate item in the App Store Connect sidebar and shows on the product page.
 
 - Every bar in the chart is its own VoiceOver element, labelled with its day and
   category and valued with its amount and direction.
