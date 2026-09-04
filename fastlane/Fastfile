@@ -26,7 +26,15 @@ platform :ios do
       key_filepath: "#{Dir.home}/.appstoreconnect/private_keys/AuthKey_D7P7N5J6FV.p8"
     )
     build_app(scheme: "Kharcha", export_method: "app-store")
-    deliver(skip_screenshots: true, force: true)
+    deliver(
+      skip_screenshots: true,
+      force:            true,
+      # Precheck cannot read in-app purchases through an App Store Connect API
+      # key, so it fails the lane *after* a successful upload — the binary and
+      # metadata are already up, and the exit code says otherwise. The metadata
+      # lane already excluded them; this one did not.
+      precheck_include_in_app_purchases: false
+    )
   end
 
 end
