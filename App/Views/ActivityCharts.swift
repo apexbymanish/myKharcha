@@ -181,14 +181,22 @@ struct ActivityBarChart: View {
     /// The selected day's transactions, supplied by the owner — the chart is
     /// given buckets, and a bucket does not carry notes.
     var selectedEntries: [TxnRow] = []
-    /// The window everything scales against — the scroll position as it was when
-    /// the scroll last came to rest, not as it is right now.
+    /// The window everything scales against, quantised to whole buckets.
     ///
-    /// `chartScrollPosition` fires on every frame of a fling. Scaling off it
-    /// recomputed the ceiling and the bar width dozens of times a second, so the
-    /// bars sheared and jumped the whole way through a scroll. Held at the
-    /// settled anchor they stay put while you scroll and rescale once, on the
-    /// spring below, when you stop.
+    /// Three designs were tried here. Scaling off the raw scroll position
+    /// recomputed the ceiling dozens of times a second and the bars sheared the
+    /// whole way through a fling. Freezing it until the scroll came to rest
+    /// fixed that and broke something worse: scroll into a window with income,
+    /// or with taller bars, and the domain still belonged to where you left —
+    /// so income had no room below the axis and tall bars clipped square until
+    /// you stopped.
+    ///
+    /// This follows the scroll live, but only ever sees whole buckets, and the
+    /// ceiling it derives is snapped to a round step. Between them the scale
+    /// changes only when the set of visible bars really does and the magnitude
+    /// really has, and each change rides the spring at the bottom of `body`.
+    /// It is what the Health-style implementations do: rescale on a quantised
+    /// offset, animated — not per frame, and not deferred.
     var scaleAnchor: Date = .distantPast
     /// Leading edge of the visible window, bound to the view model's chart anchor.
     /// Writing to it is how scrolling moves the period the header describes.
@@ -245,7 +253,7 @@ struct ActivityBarChart: View {
     /// Ceiling for the income half of the chart, from the visible window only.
     private var incomePeak: Double {
         let totals = visibleBars.map(\.income).filter { $0 > 0 }
-        let ceiling = ActivitySeries.chartCeiling(totals)
+        let ceiling = ActivitySeries.niceCeiling(ActivitySeries.chartCeiling(totals))
         return (ceiling as NSDecimalNumber).doubleValue
     }
 
@@ -273,9 +281,16 @@ struct ActivityBarChart: View {
     /// height whatever was received, and `depth` below normalises income into
     /// the quarter that leaves.
     private var floorValue: Double {
-        guard incomePeak > 0 else { return 0 }
+        // Keyed on the whole series, not the visible window. Deriving it from the
+        // window meant a window with no income had no room below the axis — so
+        // scrolling into a payday drew nothing until the scale caught up, and the
+        // green bars appeared out of thin air when it did. The frame is reserved
+        // whenever the ledger has any income at all, and stays reserved.
+        guard seriesHasIncome else { return 0 }
         return -spendTop * (Self.incomeShare / (1 - Self.incomeShare))
     }
+
+    private var seriesHasIncome: Bool { bars.contains { $0.income > 0 } }
 
     /// Labels always fit, because the visible window is fixed at roughly nine bars
     /// by `visibleDomain` however long the series is.
@@ -316,7 +331,7 @@ struct ActivityBarChart: View {
         // from months of history — the bar rendered correctly, at 1.6% of a height
         // it had no business being compared to.
         let totals = visibleBars.map(\.expense).filter { $0 > 0 }
-        let ceiling = ActivitySeries.chartCeiling(totals)
+        let ceiling = ActivitySeries.niceCeiling(ActivitySeries.chartCeiling(totals))
         return (ceiling as NSDecimalNumber).doubleValue
     }
 
@@ -407,7 +422,7 @@ struct ActivityBarChart: View {
     }
 
     private var incomePoints: [IncomePoint] {
-        guard incomePeak > 0 else { return [] }
+        guard seriesHasIncome, incomePeak > 0 else { return [] }
         // Four fifths of the income half, not all of it. The last fifth is the
         // gutter the amount is written in: the figure sits under its bar on the
         // chart's own background rather than on the green fill, so the tinted
@@ -665,12 +680,19 @@ struct MiniTrendChart: View {
     private static let incomeShare = 0.3
 
     private var floorValue: Double {
-        guard incomePeak > 0 else { return 0 }
+        // Keyed on the whole series, not the visible window. Deriving it from the
+        // window meant a window with no income had no room below the axis — so
+        // scrolling into a payday drew nothing until the scale caught up, and the
+        // green bars appeared out of thin air when it did. The frame is reserved
+        // whenever the ledger has any income at all, and stays reserved.
+        guard seriesHasIncome else { return 0 }
         return -spendTop * (Self.incomeShare / (1 - Self.incomeShare))
     }
 
+    private var seriesHasIncome: Bool { bars.contains { $0.income > 0 } }
+
     private var incomePoints: [IncomePoint] {
-        guard incomePeak > 0 else { return [] }
+        guard seriesHasIncome, incomePeak > 0 else { return [] }
         // Four fifths, leaving a gutter for the figure — same reason as the full
         // chart: written under the bar it sits on the background, not on green.
         let depth = abs(floorValue) * 0.8
@@ -734,7 +756,7 @@ struct MiniTrendChart: View {
             incomeMarks
             // The line the two measures meet at. Without it the green reads as
             // negative spending rather than as money coming in.
-            if incomePeak > 0 {
+            if seriesHasIncome {
                 RuleMark(y: .value("Zero", 0))
                     .foregroundStyle(Color.secondary.opacity(0.35))
                     .lineStyle(StrokeStyle(lineWidth: 0.5))
@@ -747,8 +769,8 @@ struct MiniTrendChart: View {
         .chartYScale(domain: floorValue...spendTop)
         // Tall enough for a label above and, when there is income, a bar and a
         // label below. A week with no income keeps the whole frame for spending.
-        .frame(height: incomePeak > 0 ? 138 : 104)
-        .animation(.spring(response: 0.4, dampingFraction: 0.86), value: incomePeak > 0)
+        .frame(height: seriesHasIncome ? 138 : 104)
+        .animation(.spring(response: 0.4, dampingFraction: 0.86), value: seriesHasIncome)
     }
 }
 

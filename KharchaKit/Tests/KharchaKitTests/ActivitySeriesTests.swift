@@ -414,3 +414,35 @@ private func row(_ amount: Decimal, _ kind: TxnKind, _ date: Date) -> TxnRow {
     let bars = ActivitySeries.bars(txns, period: .month, now: d(2026, 8, 15), calendar: testCal)
     #expect(bars[2].segments.map(\.categoryName) == ["Groceries"])
 }
+
+// MARK: - Nice ceiling
+
+@Test func niceCeilingRoundsUpToAReadableStep() {
+    // The ceiling is recomputed as the chart scrolls. If it tracked the data
+    // exactly it would move a little on every bucket crossed, and the bars would
+    // shuffle their heights the whole way through a scroll. Snapping it to a
+    // round step means neighbouring windows of similar size share a ceiling and
+    // nothing moves at all.
+    #expect(ActivitySeries.niceCeiling(0) == 0)
+    #expect(ActivitySeries.niceCeiling(1) == 1)
+    #expect(ActivitySeries.niceCeiling(1_100) == 2_000)
+    #expect(ActivitySeries.niceCeiling(2_400) == 2_500)
+    #expect(ActivitySeries.niceCeiling(2_600) == 5_000)
+    #expect(ActivitySeries.niceCeiling(47_400) == 50_000)
+    #expect(ActivitySeries.niceCeiling(681_000) == 1_000_000)
+}
+
+@Test func niceCeilingIsNeverBelowWhatItMustHold() {
+    // A ceiling under the tallest bar clips it flat and loses its rounded top,
+    // which is what a domain of 1 did to a six-figure day.
+    for value in [Decimal(1), 999, 1_000, 1_001, 31_630, 129_900, 3_000_000] {
+        #expect(ActivitySeries.niceCeiling(value) >= value)
+    }
+}
+
+@Test func niceCeilingSharesAStepAcrossSimilarWindows() {
+    // Two windows whose peaks differ by a little must land on one ceiling, or
+    // scrolling between them rescales for no reason the reader can see.
+    #expect(ActivitySeries.niceCeiling(41_000) == ActivitySeries.niceCeiling(48_000))
+}
+

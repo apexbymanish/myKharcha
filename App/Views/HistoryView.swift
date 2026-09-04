@@ -26,20 +26,6 @@ struct HistoryView: View {
     /// settle; whichever one survives the quiet gap is the real stop.
     @State private var settleTask: Task<Void, Never>?
 
-    /// The window the hero and the bar scale are measured over: the live anchor
-    /// as it was when scrolling last came to rest.
-    ///
-    /// Seeded from `chartAnchor` on appear, and re-seeded whenever the anchor
-    /// moves. This deliberately does not use the view model's `settledAnchor`,
-    /// which only advances inside `settleChartAnchor()` — so on a screen that
-    /// had not been scrolled yet it stayed where it was initialised while the
-    /// chart drew somewhere else entirely. The hero then described one window
-    /// and the bars another, and because the stale window held no spending the
-    /// ceiling collapsed to its floor value and the income bars scaled to
-    /// nothing. Nil means "not settled yet"; fall back to the live anchor, which
-    /// is always what the chart is drawing.
-    @State private var scaleAnchor: Date?
-
     /// Where the chart is actually scrolled to, written synchronously by the
     /// scroll binding.
     ///
@@ -59,13 +45,10 @@ struct HistoryView: View {
         settleTask = Task { @MainActor in
             try? await Task.sleep(for: .milliseconds(180))
             guard !Task.isCancelled else { return }
-            let resting = liveAnchor ?? vm.state.chartAnchor
-            withAnimation(.spring(response: 0.42, dampingFraction: 0.86)) {
-                scaleAnchor = resting
-            }
             // The view model learns where the scroll ended once, at rest, rather
-            // than once per frame.
-            await vm.setChartAnchor(resting)
+            // than once per frame. The chart itself no longer waits for this —
+            // it follows the quantised position live.
+            await vm.setChartAnchor(liveAnchor ?? vm.state.chartAnchor)
             await vm.settleChartAnchor()
         }
     }
@@ -73,17 +56,23 @@ struct HistoryView: View {
 
     /// The buckets currently on screen — the same window `ActivityBarChart`
     /// draws, taken from the same function so the two cannot drift apart.
-    /// The settled anchor, unless it has fallen more than a window away from what
-    /// the chart is drawing — then the live one, immediately.
+    /// The window the hero and the bar scale are measured over: the live scroll
+    /// position, snapped to the start of its bucket.
     ///
-    /// A debounce that can be wrong for 180ms is fine; one that can be wrong
-    /// indefinitely is the bug above. This bounds it: the hero can lag the bars
-    /// by a fraction of a second, never by a different month.
+    /// Snapping is what makes this cheap to follow live. The set of bars in view
+    /// is a function of the quantised position, so between two positions inside
+    /// the same day nothing it feeds — the ceiling, the bar width, the totals —
+    /// can change, and a fling recomputes once per day crossed rather than once
+    /// per frame. The earlier attempt deferred all of this until the scroll came
+    /// to rest, which stopped the churn but left the scale describing wherever
+    /// you had last stopped: income had no room and tall bars clipped until you
+    /// let go.
     private var effectiveScaleAnchor: Date {
         let live = liveAnchor ?? vm.state.chartAnchor
-        guard let settled = scaleAnchor else { return live }
-        let domain = ActivityBarChart.visibleDomain(for: period)
-        return abs(settled.timeIntervalSince(live)) > domain ? live : settled
+        let cal = Calendar.current
+        return period == .year
+            ? (cal.dateInterval(of: .month, for: live)?.start ?? live)
+            : cal.startOfDay(for: live)
     }
 
     private var visibleBars: [ActivityBar] {
@@ -266,10 +255,9 @@ struct HistoryView: View {
                     // Sits over the chart rather than in place of it, and lets
                     // touches through so the scroll underneath still works.
                     //
-                    // Anchored near the top rather than centred: bars grow from
-                    // the baseline, so the upper third is the part of the frame
-                    // that is reliably clear, and a message dead-centre sat on
-                    // the grey stubs marking the empty days.
+                    // Sits just above the date axis, in the space the missing
+                    // bars would have filled, rather than floating at the top of
+                    // an empty frame away from the thing it is describing.
                     VStack(spacing: 8) {
                         Image(systemName: "checkmark.circle")
                             .font(.largeTitle)
@@ -282,8 +270,8 @@ struct HistoryView: View {
                             .foregroundStyle(.secondary)
                     }
                     .multilineTextAlignment(.center)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-                    .padding(.top, 36)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+                    .padding(.bottom, 44)
                     .allowsHitTesting(false)
                     .transition(.opacity.combined(with: .scale(scale: 0.96)))
                 }
@@ -336,13 +324,11 @@ struct HistoryView: View {
             // Seed both, so a screen that is never scrolled still measures the
             // bars it is actually drawing.
             liveAnchor = vm.state.chartAnchor
-            scaleAnchor = vm.state.chartAnchor
         }
         // Covers anchor moves that arrive without a scroll — a reload, or the
         // period being switched underneath.
         .onChange(of: vm.state.chartBars.count) { _, _ in
             if liveAnchor == nil { liveAnchor = vm.state.chartAnchor }
-            if scaleAnchor == nil { scaleAnchor = liveAnchor }
         }
         // No `.refreshable`: the screen is a fixed layout with no scroll container,
         // so pull-to-refresh had nothing to attach to and never fired. Reloads come

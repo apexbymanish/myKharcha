@@ -161,6 +161,32 @@ public enum ActivitySeries {
         return percentile * Decimal(string: "1.1")!
     }
 
+    /// Rounds a ceiling up to the next readable step — 1, 2, 5 × a power of ten.
+    ///
+    /// The ceiling is recomputed as the chart scrolls, and one tracking the data
+    /// exactly would move a little on every bucket crossed, so every bar would
+    /// shuffle its height the whole way through a scroll. Snapping to a round
+    /// step means neighbouring windows of similar size share a ceiling and
+    /// nothing moves at all; the scale changes only when the magnitude really
+    /// does. It is never below what it was asked to hold, so the tallest bar
+    /// cannot clip against it.
+    public static func niceCeiling(_ value: Decimal) -> Decimal {
+        guard value > 0 else { return 0 }
+        let raw = (value as NSDecimalNumber).doubleValue
+        let exponent = floor(log10(raw))
+        let power = pow(10.0, exponent)
+        let normalised = raw / power
+        let step: Double
+        switch normalised {
+        case ..<1.0000001: step = 1
+        case ..<2:         step = 2
+        case ..<2.5:       step = 2.5
+        case ..<5:         step = 5
+        default:           step = 10
+        }
+        return Decimal(step * power)
+    }
+
     /// Classifies one bucket's spend against its allowance for colouring.
     /// Spending exactly the allowance counts as `.near`, not `.over` — hitting the
     /// target precisely should not be flagged as a failure.
