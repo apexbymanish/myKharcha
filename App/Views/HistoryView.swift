@@ -112,7 +112,6 @@ struct HistoryView: View {
     private struct VisibleTotals {
         let expense: Decimal
         let income: Decimal
-        var isEmpty: Bool { expense == 0 && income == 0 }
     }
 
     private var visibleTotals: VisibleTotals {
@@ -231,9 +230,13 @@ struct HistoryView: View {
             // the breathing room between it and the hero rather than beneath it.
             Spacer(minLength: 12)
 
-            // The chart is always present, even with nothing in view. It used to be
-            // *replaced* by the empty state, which removed the only way to scroll
-            // back to a period that has data — the user was stranded.
+            // No empty-state overlay. It was removed to see what it was
+            // contributing, and it turned out to be the thing most often seen
+            // when something else was wrong: every window mis-measured by a stale
+            // anchor reported zero, so "No spend" was the symptom of six separate
+            // bugs rather than a state of its own. A window with nothing in it now
+            // simply shows its empty columns, which says the same thing without
+            // ever being able to lie about it.
             ZStack {
                 // Built only once the series exists.
                 //
@@ -293,30 +296,6 @@ struct HistoryView: View {
                 .padding(.bottom, 8)
                 }
 
-                if visibleTotals.isEmpty {
-                    // Sits over the chart rather than in place of it, and lets
-                    // touches through so the scroll underneath still works.
-                    //
-                    // Sits just above the date axis, in the space the missing
-                    // bars would have filled, rather than floating at the top of
-                    // an empty frame away from the thing it is describing.
-                    VStack(spacing: 8) {
-                        Image(systemName: "checkmark.circle")
-                            .font(.largeTitle)
-                            .foregroundStyle(Color.moneyIn)
-                            .symbolEffect(.bounce, options: .nonRepeating)
-                        Text("No spend")
-                            .font(.title.weight(.semibold))
-                        Text("Swipe to another period")
-                            .font(.callout)
-                            .foregroundStyle(.secondary)
-                    }
-                    .multilineTextAlignment(.center)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
-                    .padding(.bottom, 44)
-                    .allowsHitTesting(false)
-                    .transition(.opacity.combined(with: .scale(scale: 0.96)))
-                }
             }
 
         }
@@ -335,9 +314,6 @@ struct HistoryView: View {
             )
             .ignoresSafeArea()
         }
-        // Crossing between the chart and the empty state is a change of content,
-        // not a jump cut.
-        .animation(.smooth(duration: 0.3), value: visibleTotals.isEmpty)
         .navigationTitle("History")
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
